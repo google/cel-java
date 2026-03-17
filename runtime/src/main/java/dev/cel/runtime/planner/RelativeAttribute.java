@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.GlobalResolver;
 
 /**
@@ -31,15 +32,18 @@ final class RelativeAttribute implements Attribute {
   private final ImmutableList<Qualifier> qualifiers;
 
   @Override
-  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
+  public Object resolve(long exprId, GlobalResolver ctx, ExecutionFrame frame) {
     Object obj = EvalHelpers.evalStrictly(operand, ctx, frame);
+    if (obj instanceof AccumulatedUnknowns) {
+      return obj;
+    }
+
     obj = celValueConverter.toRuntimeValue(obj);
 
     for (Qualifier qualifier : qualifiers) {
       obj = qualifier.qualify(obj);
     }
 
-    // TODO: Handle unknowns
     return celValueConverter.maybeUnwrap(obj);
   }
 

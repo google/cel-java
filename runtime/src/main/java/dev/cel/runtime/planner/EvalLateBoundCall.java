@@ -19,6 +19,7 @@ import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
@@ -36,10 +37,17 @@ final class EvalLateBoundCall extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object[] argVals = new Object[args.length];
+    AccumulatedUnknowns unknowns = null;
     for (int i = 0; i < args.length; i++) {
       PlannedInterpretable arg = args[i];
       // Late bound functions are assumed to be strict.
       argVals[i] = evalStrictly(arg, resolver, frame);
+
+      unknowns = AccumulatedUnknowns.maybeMerge(unknowns, argVals[i]);
+    }
+
+    if (unknowns != null) {
+      return unknowns;
     }
 
     CelResolvedOverload resolvedOverload =

@@ -14,14 +14,15 @@
 
 package dev.cel.runtime.planner;
 
+import com.google.common.collect.Maps;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.CelType;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.StructValue;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -45,17 +46,22 @@ final class EvalCreateStruct extends PlannedInterpretable {
 
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
-    Map<String, Object> fieldValues = new HashMap<>();
+    Map<String, Object> fieldValues = Maps.newHashMapWithExpectedSize(keys.length);
+    AccumulatedUnknowns unknowns = null;
     for (int i = 0; i < keys.length; i++) {
-      Object value = values[i].eval(resolver, frame);
+      Object value = EvalHelpers.evalStrictly(values[i], resolver, frame);
+
+      if (value instanceof AccumulatedUnknowns) {
+        unknowns = AccumulatedUnknowns.maybeMerge(unknowns, value);
+        continue;
+      }
 
       if (isOptional[i]) {
         if (!(value instanceof Optional)) {
           throw new IllegalArgumentException(
               String.format(
-                  "Cannot initialize optional entry 'single_double_wrapper' from non-optional value"
-                      + " %s",
-                  value));
+                  "Cannot initialize optional entry '%s' from non-optional value" + " %s",
+                  keys[i], value));
         }
 
         Optional<?> opt = (Optional<?>) value;
@@ -69,6 +75,10 @@ final class EvalCreateStruct extends PlannedInterpretable {
       }
 
       fieldValues.put(keys[i], value);
+    }
+
+    if (unknowns != null) {
+      return unknowns;
     }
 
     // Either a primitive (wrappers) or a struct is produced

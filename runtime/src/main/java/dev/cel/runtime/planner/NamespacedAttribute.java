@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.CelType;
@@ -23,14 +24,21 @@ import dev.cel.common.types.EnumType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.runtime.AccumulatedUnknowns;
+import dev.cel.runtime.CelAttribute;
+import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.InterpreterUtil;
+import dev.cel.runtime.PartialVars;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 @Immutable
 final class NamespacedAttribute implements Attribute {
   private final boolean disambiguateNames;
-  private final ImmutableSet<String> namespacedNames;
+  private final ImmutableMap<String, CelAttribute> candidateAttributes;
   private final ImmutableList<Qualifier> qualifiers;
   private final CelValueConverter celValueConverter;
   private final CelTypeProvider typeProvider;
@@ -40,11 +48,11 @@ final class NamespacedAttribute implements Attribute {
   }
 
   ImmutableSet<String> candidateVariableNames() {
-    return namespacedNames;
+    return candidateAttributes.keySet();
   }
 
   @Override
-  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
+  public Object resolve(long exprId, GlobalResolver ctx, ExecutionFrame frame) {
     GlobalResolver inputVars = ctx;
     // Unwrap any local activations to ensure that we reach the variables provided as input
     // to the expression in the event that we need to disambiguate between global and local
@@ -53,13 +61,33 @@ final class NamespacedAttribute implements Attribute {
       inputVars = unwrapToNonLocal(ctx);
     }
 
-    for (String name : namespacedNames) {
+    for (Map.Entry<String, CelAttribute> entry : candidateAttributes.entrySet()) {
+      String name = entry.getKey();
+      CelAttribute attr = entry.getValue();
+
       GlobalResolver resolver = ctx;
       if (disambiguateNames) {
         resolver = inputVars;
       }
 
       Object value = resolver.resolve(name);
+      value = InterpreterUtil.maybeAdaptToAccumulatedUnknowns(value);
+
+      PartialVars partialVars = frame.partialVars().orElse(null);
+
+      if (partialVars != null) {
+        ImmutableList<CelAttributePattern> patterns = partialVars.unknowns();
+        for (Qualifier qualifier : qualifiers) {
+          attr = attr.qualify(CelAttribute.Qualifier.fromGeneric(qualifier.value()));
+        }
+
+        CelAttributePattern partialMatch = findPartialMatchingPattern(attr, patterns).orElse(null);
+        if (partialMatch != null) {
+          return AccumulatedUnknowns.create(
+              ImmutableList.of(exprId), ImmutableList.of(partialMatch.simplify(attr)));
+        }
+      }
+
       if (value != null) {
         return applyQualifiers(value, celValueConverter, qualifiers);
       }
@@ -71,7 +99,7 @@ final class NamespacedAttribute implements Attribute {
       }
     }
 
-    return MissingAttribute.newMissingAttribute(namespacedNames);
+    return MissingAttribute.newMissingAttribute(candidateAttributes.keySet());
   }
 
   private @Nullable Object findIdent(String name) {
@@ -131,10 +159,17 @@ final class NamespacedAttribute implements Attribute {
 
   @Override
   public NamespacedAttribute addQualifier(Qualifier qualifier) {
+    ImmutableMap.Builder<String, CelAttribute> attributesBuilder = ImmutableMap.builder();
+    CelAttribute.Qualifier celQualifier = CelAttribute.Qualifier.fromGeneric(qualifier.value());
+
+    for (Map.Entry<String, CelAttribute> entry : candidateAttributes.entrySet()) {
+      attributesBuilder.put(entry.getKey(), entry.getValue().qualify(celQualifier));
+    }
+
     return new NamespacedAttribute(
         typeProvider,
         celValueConverter,
-        namespacedNames,
+        attributesBuilder.buildOrThrow(),
         disambiguateNames,
         ImmutableList.<Qualifier>builder().addAll(qualifiers).add(qualifier).build());
   }
@@ -150,37 +185,49 @@ final class NamespacedAttribute implements Attribute {
     return celValueConverter.maybeUnwrap(obj);
   }
 
+  private static Optional<CelAttributePattern> findPartialMatchingPattern(
+      CelAttribute attr, ImmutableList<CelAttributePattern> patterns) {
+    for (CelAttributePattern pattern : patterns) {
+      if (pattern.isPartialMatch(attr)) {
+        return Optional.of(pattern);
+      }
+    }
+    return Optional.empty();
+  }
+
   static NamespacedAttribute create(
       CelTypeProvider typeProvider,
       CelValueConverter celValueConverter,
       ImmutableSet<String> namespacedNames) {
-    ImmutableSet.Builder<String> namesBuilder = ImmutableSet.builder();
+    ImmutableMap.Builder<String, CelAttribute> attributesBuilder = ImmutableMap.builder();
     boolean disambiguateNames = false;
+
     for (String name : namespacedNames) {
+      String baseName = name;
       if (name.startsWith(".")) {
         disambiguateNames = true;
-        namesBuilder.add(name.substring(1));
-      } else {
-        namesBuilder.add(name);
+        baseName = name.substring(1);
       }
+      attributesBuilder.put(baseName, CelAttribute.fromQualifiedIdentifier(baseName));
     }
+
     return new NamespacedAttribute(
         typeProvider,
         celValueConverter,
-        namesBuilder.build(),
+        attributesBuilder.buildOrThrow(),
         disambiguateNames,
         ImmutableList.of());
   }
 
-  NamespacedAttribute(
+  private NamespacedAttribute(
       CelTypeProvider typeProvider,
       CelValueConverter celValueConverter,
-      ImmutableSet<String> namespacedNames,
+      ImmutableMap<String, CelAttribute> candidateAttributes,
       boolean disambiguateNames,
       ImmutableList<Qualifier> qualifiers) {
     this.typeProvider = typeProvider;
     this.celValueConverter = celValueConverter;
-    this.namespacedNames = namespacedNames;
+    this.candidateAttributes = candidateAttributes;
     this.disambiguateNames = disambiguateNames;
     this.qualifiers = qualifiers;
   }

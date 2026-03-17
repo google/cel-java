@@ -26,6 +26,8 @@ import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.InterpreterUtil;
+import dev.cel.runtime.PartialVars;
 import dev.cel.runtime.Program;
 import java.util.Collection;
 import java.util.Map;
@@ -58,47 +60,61 @@ abstract class PlannedProgram implements Program {
 
   @Override
   public Object eval() throws CelEvaluationException {
-    return evalOrThrow(interpretable(), GlobalResolver.EMPTY, EMPTY_FUNCTION_RESOLVER);
+    return evalOrThrow(interpretable(), GlobalResolver.EMPTY, EMPTY_FUNCTION_RESOLVER, null);
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
-    return evalOrThrow(interpretable(), Activation.copyOf(mapValue), EMPTY_FUNCTION_RESOLVER);
+    return evalOrThrow(interpretable(), Activation.copyOf(mapValue), EMPTY_FUNCTION_RESOLVER, null);
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
-    return evalOrThrow(interpretable(), Activation.copyOf(mapValue), lateBoundFunctionResolver);
+    return evalOrThrow(
+        interpretable(), Activation.copyOf(mapValue), lateBoundFunctionResolver, null);
   }
 
   @Override
   public Object eval(CelVariableResolver resolver) throws CelEvaluationException {
     return evalOrThrow(
-        interpretable(), (name) -> resolver.find(name).orElse(null), EMPTY_FUNCTION_RESOLVER);
+        interpretable(), (name) -> resolver.find(name).orElse(null), EMPTY_FUNCTION_RESOLVER, null);
   }
 
   @Override
   public Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
     return evalOrThrow(
-        interpretable(), (name) -> resolver.find(name).orElse(null), lateBoundFunctionResolver);
+        interpretable(),
+        (name) -> resolver.find(name).orElse(null),
+        lateBoundFunctionResolver,
+        null);
+  }
+
+  @Override
+  public Object eval(PartialVars partialVars) throws CelEvaluationException {
+    return evalOrThrow(
+        interpretable(),
+        (name) -> partialVars.resolver().find(name).orElse(null),
+        EMPTY_FUNCTION_RESOLVER,
+        partialVars);
   }
 
   private Object evalOrThrow(
       PlannedInterpretable interpretable,
       GlobalResolver resolver,
-      CelFunctionResolver functionResolver)
+      CelFunctionResolver functionResolver,
+      PartialVars partialVars)
       throws CelEvaluationException {
     try {
-      ExecutionFrame frame = ExecutionFrame.create(functionResolver, options());
+      ExecutionFrame frame = ExecutionFrame.create(functionResolver, partialVars, options());
       Object evalResult = interpretable.eval(resolver, frame);
       if (evalResult instanceof ErrorValue) {
         ErrorValue errorValue = (ErrorValue) evalResult;
         throw newCelEvaluationException(errorValue.exprId(), errorValue.value());
       }
 
-      return evalResult;
+      return InterpreterUtil.maybeAdaptToCelUnknownSet(evalResult);
     } catch (RuntimeException e) {
       throw newCelEvaluationException(interpretable.exprId(), e);
     }

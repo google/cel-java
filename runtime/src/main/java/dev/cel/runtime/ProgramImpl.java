@@ -61,6 +61,14 @@ abstract class ProgramImpl implements CelRuntime.Program {
   }
 
   @Override
+  public Object eval(PartialVars partialVars) throws CelEvaluationException {
+    return evalInternal(
+        UnknownContext.create(partialVars.resolver(), partialVars.unknowns()),
+        /* lateBoundFunctionResolver= */ Optional.empty(),
+        /* listener= */ Optional.empty());
+  }
+
+  @Override
   public Object trace(CelEvaluationListener listener) throws CelEvaluationException {
     return evalInternal(Activation.EMPTY, listener);
   }

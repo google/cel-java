@@ -18,6 +18,7 @@ import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 
 import com.google.common.base.Preconditions;
 import dev.cel.common.values.ErrorValue;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.GlobalResolver;
 
 final class EvalAnd extends PlannedInterpretable {
@@ -28,6 +29,7 @@ final class EvalAnd extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
     ErrorValue errorValue = null;
+    AccumulatedUnknowns unknowns = null;
     for (PlannedInterpretable arg : args) {
       Object argVal = evalNonstrictly(arg, resolver, frame);
       if (argVal instanceof Boolean) {
@@ -37,14 +39,19 @@ final class EvalAnd extends PlannedInterpretable {
         }
       } else if (argVal instanceof ErrorValue) {
         errorValue = (ErrorValue) argVal;
+      } else if (argVal instanceof AccumulatedUnknowns) {
+        unknowns = AccumulatedUnknowns.maybeMerge(unknowns, argVal);
       } else {
-        // TODO: Handle unknowns
         errorValue =
             ErrorValue.create(
                 arg.exprId(),
                 new IllegalArgumentException(
                     String.format("Expected boolean value, found: %s", argVal)));
       }
+    }
+
+    if (unknowns != null) {
+      return unknowns;
     }
 
     if (errorValue != null) {

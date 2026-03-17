@@ -16,6 +16,7 @@ package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.ConcatenatedListView;
 import dev.cel.runtime.GlobalResolver;
@@ -73,6 +74,9 @@ final class EvalFold extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object iterRangeRaw = iterRange.eval(resolver, frame);
+    if (iterRangeRaw instanceof AccumulatedUnknowns) {
+      return iterRangeRaw;
+    }
     Folder folder = new Folder(resolver, accuVar, iterVar, iterVar2);
     folder.accuVal = maybeWrapAccumulator(accuInit.eval(folder, frame));
 

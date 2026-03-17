@@ -49,10 +49,12 @@ import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
+import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.InterpreterUtil;
+import dev.cel.runtime.PartialVars;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -897,14 +899,12 @@ public class CelOptionalLibraryTest {
   @TestParameters("{source: '{?x: x}'}")
   public void optionalIndex_onMapWithUnknownInput_returnsUnknownResult(String source)
       throws Exception {
-    if (testMode.equals(TestMode.PLANNER_CHECKED) || testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
-      // TODO: Uncomment once unknowns is implemented
-      return;
-    }
     Cel cel = newCelBuilder().addVar("x", OptionalType.create(SimpleType.INT)).build();
     CelAbstractSyntaxTree ast = compile(cel, source);
 
-    Object result = cel.createProgram(ast).eval();
+    Object result =
+        cel.createProgram(ast)
+            .eval(PartialVars.of(CelAttributePattern.fromQualifiedIdentifier("x")));
 
     assertThat(InterpreterUtil.isUnknown(result)).isTrue();
   }
@@ -987,10 +987,6 @@ public class CelOptionalLibraryTest {
 
   @Test
   public void optionalIndex_onListWithUnknownInput_returnsUnknownResult() throws Exception {
-    if (testMode.equals(TestMode.PLANNER_CHECKED) || testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
-      // TODO: Uncomment once unknowns is implemented
-      return;
-    }
     Cel cel =
         newCelBuilder()
             .addVar("x", OptionalType.create(SimpleType.INT))
@@ -998,7 +994,9 @@ public class CelOptionalLibraryTest {
             .build();
     CelAbstractSyntaxTree ast = compile(cel, "[?x]");
 
-    Object result = cel.createProgram(ast).eval();
+    Object result =
+        cel.createProgram(ast)
+            .eval(PartialVars.of(CelAttributePattern.fromQualifiedIdentifier("x")));
 
     assertThat(InterpreterUtil.isUnknown(result)).isTrue();
   }
@@ -1018,6 +1016,29 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
+  public void optionalFieldSelect_fieldMarkedUnknown_returnsUnknownSet() throws Exception {
+    if (testMode.equals(TestMode.LEGACY_CHECKED)) {
+      // This case is not possible to setup for legacy runtime
+      return;
+    }
+
+    Cel cel =
+        newCelBuilder()
+            .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
+            .build();
+    CelAbstractSyntaxTree ast = compile(cel, "msg.?single_int32");
+
+    Object result =
+        cel.createProgram(ast)
+            .eval(
+                PartialVars.of(
+                    ImmutableMap.of("msg", TestAllTypes.newBuilder().setSingleInt32(42).build()),
+                    CelAttributePattern.fromQualifiedIdentifier("msg.single_int32")));
+
+    assertThat(InterpreterUtil.isUnknown(result)).isTrue();
+  }
+
+  @Test
   // LHS
   @TestParameters("{expression: 'optx.or(optional.of(1))'}")
   @TestParameters("{expression: 'optx.orValue(1)'}")
@@ -1026,10 +1047,6 @@ public class CelOptionalLibraryTest {
   @TestParameters("{expression: 'optional.none().orValue(optx)'}")
   public void optionalChainedFunctions_lhsIsUnknown_returnsUnknown(String expression)
       throws Exception {
-    if (testMode.equals(TestMode.PLANNER_CHECKED) || testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
-      // TODO: Uncomment once unknowns is implemented
-      return;
-    }
     Cel cel =
         newCelBuilder()
             .addVar("optx", OptionalType.create(SimpleType.INT))
@@ -1037,7 +1054,9 @@ public class CelOptionalLibraryTest {
             .build();
     CelAbstractSyntaxTree ast = compile(cel, expression);
 
-    Object result = cel.createProgram(ast).eval();
+    Object result =
+        cel.createProgram(ast)
+            .eval(PartialVars.of(CelAttributePattern.fromQualifiedIdentifier("optx")));
 
     assertThat(InterpreterUtil.isUnknown(result)).isTrue();
   }

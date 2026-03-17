@@ -1,0 +1,81 @@
+Source: x.single_int32 == 1 && x.single_timestamp <= timestamp("bad timestamp string")
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+, unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[2]}
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") && x.single_int32 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+, unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[8]}
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") && x.single_timestamp > timestamp("another bad timestamp string")
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+, unknown_attributes=[x.single_int32]}
+error:    evaluation error at test_location:89: Text 'another bad timestamp string' could not be parsed at index 0
+error_code:    BAD_FORMAT
+
+Source: x.single_int32 == 1 || x.single_timestamp <= timestamp("bad timestamp string")
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+, unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[2]}
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") || x.single_int32 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+, unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[8]}
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") || x.single_timestamp > timestamp("another bad timestamp string")
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+, unknown_attributes=[x.single_int32]}
+error:    evaluation error at test_location:89: Text 'another bad timestamp string' could not be parsed at index 0
+error_code:    BAD_FORMAT
+
+Source: x
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[1]}

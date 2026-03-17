@@ -14,6 +14,7 @@
 
 package dev.cel.runtime;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.annotations.Internal;
 import org.jspecify.annotations.Nullable;
@@ -55,12 +56,12 @@ public final class InterpreterUtil {
     return obj instanceof CelUnknownSet;
   }
 
-  static boolean isAccumulatedUnknowns(Object obj) {
+  public static boolean isAccumulatedUnknowns(Object obj) {
     return obj instanceof AccumulatedUnknowns;
   }
 
   /** If the argument is {@link CelUnknownSet}, adapts it into {@link AccumulatedUnknowns} */
-  static Object maybeAdaptToAccumulatedUnknowns(Object val) {
+  public static Object maybeAdaptToAccumulatedUnknowns(Object val) {
     if (!(val instanceof CelUnknownSet)) {
       return val;
     }
@@ -68,8 +69,18 @@ public final class InterpreterUtil {
     return adaptToAccumulatedUnknowns((CelUnknownSet) val);
   }
 
-  static AccumulatedUnknowns adaptToAccumulatedUnknowns(CelUnknownSet unknowns) {
+  public static AccumulatedUnknowns adaptToAccumulatedUnknowns(CelUnknownSet unknowns) {
     return AccumulatedUnknowns.create(unknowns.unknownExprIds(), unknowns.attributes());
+  }
+
+  public static Object maybeAdaptToCelUnknownSet(Object val) {
+    if (!(val instanceof AccumulatedUnknowns)) {
+      return val;
+    }
+
+    AccumulatedUnknowns unknowns = (AccumulatedUnknowns) val;
+    return CelUnknownSet.create(
+        ImmutableSet.copyOf(unknowns.attributes()), ImmutableSet.copyOf(unknowns.exprIds()));
   }
 
   /**

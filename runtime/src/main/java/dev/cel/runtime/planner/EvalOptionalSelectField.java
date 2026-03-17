@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.SelectableValue;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,10 @@ final class EvalOptionalSelectField extends PlannedInterpretable {
     }
 
     Object runtimeOperandValue = celValueConverter.toRuntimeValue(operandValue);
+    if (runtimeOperandValue instanceof AccumulatedUnknowns) {
+      return runtimeOperandValue;
+    }
+
     boolean hasField = false;
 
     if (runtimeOperandValue instanceof SelectableValue<?>) {
@@ -59,6 +64,10 @@ final class EvalOptionalSelectField extends PlannedInterpretable {
     Object resultValue = EvalHelpers.evalStrictly(selectAttribute, resolver, frame);
 
     if (resultValue instanceof Optional) {
+      return resultValue;
+    }
+
+    if (resultValue instanceof AccumulatedUnknowns) {
       return resultValue;
     }
 

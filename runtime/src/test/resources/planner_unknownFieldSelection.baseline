@@ -1,0 +1,111 @@
+Source: x
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=, unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[1]}
+
+Source: x
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=, unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[1]}
+
+Source: x.single_int32
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[2]}
+
+Source: x.single_int32
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[2]}
+
+Source: x.map_int32_int64[22]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[2]}
+
+Source: x.map_int32_int64[22]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x.map_int32_int64]}
+result:   CelUnknownSet{attributes=[x.map_int32_int64], unknownExprIds=[2]}
+
+Source: x.repeated_nested_message[1]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[2]}
+
+Source: x.repeated_nested_message[1]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x.repeated_nested_message]}
+result:   CelUnknownSet{attributes=[x.repeated_nested_message], unknownExprIds=[2]}
+
+Source: x.single_nested_message.bb
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[3]}
+
+Source: x.single_nested_message.bb
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x.single_nested_message.bb]}
+result:   CelUnknownSet{attributes=[x.single_nested_message.bb], unknownExprIds=[3]}
+
+Source: {1: x.single_int32}
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[5]}
+
+Source: {1: x.single_int32}
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[5]}
+
+Source: [1, x.single_int32]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x]}
+result:   CelUnknownSet{attributes=[x], unknownExprIds=[4]}
+
+Source: [1, x.single_int32]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {unknown_attributes=[x.single_int32]}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}

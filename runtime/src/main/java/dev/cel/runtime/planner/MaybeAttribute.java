@@ -28,10 +28,10 @@ final class MaybeAttribute implements Attribute {
   private final ImmutableList<NamespacedAttribute> attributes;
 
   @Override
-  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
+  public Object resolve(long exprId, GlobalResolver ctx, ExecutionFrame frame) {
     MissingAttribute maybeError = null;
     for (NamespacedAttribute attr : attributes) {
-      Object value = attr.resolve(ctx, frame);
+      Object value = attr.resolve(exprId, ctx, frame);
       if (value == null) {
         continue;
       }

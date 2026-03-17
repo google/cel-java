@@ -21,6 +21,7 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.exceptions.CelDuplicateKeyException;
 import dev.cel.common.exceptions.CelInvalidArgumentException;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 import java.util.HashSet;
@@ -46,38 +47,49 @@ final class EvalCreateMap extends PlannedInterpretable {
     ImmutableMap.Builder<Object, Object> builder =
         ImmutableMap.builderWithExpectedSize(keys.length);
     HashSet<Object> keysSeen = Sets.newHashSetWithExpectedSize(keys.length);
+    AccumulatedUnknowns unknowns = null;
 
     for (int i = 0; i < keys.length; i++) {
       PlannedInterpretable keyInterpretable = keys[i];
       Object key = keyInterpretable.eval(resolver, frame);
-      if (!(key instanceof String
-          || key instanceof Long
-          || key instanceof UnsignedLong
-          || key instanceof Boolean)) {
-        throw new LocalizedEvaluationException(
-            new CelInvalidArgumentException("Unsupported key type: " + key),
-            keyInterpretable.exprId());
-      }
 
-      boolean isDuplicate = !keysSeen.add(key);
-      if (!isDuplicate) {
-        if (key instanceof Long) {
-          long longVal = (Long) key;
-          if (longVal >= 0) {
-            isDuplicate = keysSeen.contains(UnsignedLong.valueOf(longVal));
+      if (key instanceof AccumulatedUnknowns) {
+        unknowns = AccumulatedUnknowns.maybeMerge(unknowns, key);
+      } else {
+        if (!(key instanceof String
+            || key instanceof Long
+            || key instanceof UnsignedLong
+            || key instanceof Boolean)) {
+          throw new LocalizedEvaluationException(
+              new CelInvalidArgumentException("Unsupported key type: " + key),
+              keyInterpretable.exprId());
+        }
+
+        boolean isDuplicate = !keysSeen.add(key);
+        if (!isDuplicate) {
+          if (key instanceof Long) {
+            long longVal = (Long) key;
+            if (longVal >= 0) {
+              isDuplicate = keysSeen.contains(UnsignedLong.valueOf(longVal));
+            }
+          } else if (key instanceof UnsignedLong) {
+            UnsignedLong ulongVal = (UnsignedLong) key;
+            isDuplicate = keysSeen.contains(ulongVal.longValue());
           }
-        } else if (key instanceof UnsignedLong) {
-          UnsignedLong ulongVal = (UnsignedLong) key;
-          isDuplicate = keysSeen.contains(ulongVal.longValue());
+        }
+
+        if (isDuplicate) {
+          throw new LocalizedEvaluationException(
+              CelDuplicateKeyException.of(key), keyInterpretable.exprId());
         }
       }
 
-      if (isDuplicate) {
-        throw new LocalizedEvaluationException(
-            CelDuplicateKeyException.of(key), keyInterpretable.exprId());
-      }
+      Object val = EvalHelpers.evalStrictly(values[i], resolver, frame);
 
-      Object val = values[i].eval(resolver, frame);
+      unknowns = AccumulatedUnknowns.maybeMerge(unknowns, val);
+      if (unknowns != null) {
+        continue;
+      }
 
       if (isOptional[i]) {
         if (!(val instanceof Optional)) {
@@ -94,11 +106,13 @@ final class EvalCreateMap extends PlannedInterpretable {
           continue;
         }
         val = opt.get();
-      } else {
-        System.out.println();
       }
 
       builder.put(key, val);
+    }
+
+    if (unknowns != null) {
+      return unknowns;
     }
 
     return builder.buildOrThrow();

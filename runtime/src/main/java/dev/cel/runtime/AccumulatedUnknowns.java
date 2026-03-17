@@ -15,18 +15,23 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An internal representation used for fast accumulation of unknown expr IDs and attributes. For
  * safety, this object should never be returned as an evaluated result and instead be adapted into
  * an immutable CelUnknownSet.
+ *
+ * <p>CEL Library Internals. Do Not Use.
  */
-final class AccumulatedUnknowns {
+@Internal
+public final class AccumulatedUnknowns {
   private static final int MAX_UNKNOWN_ATTRIBUTE_SIZE = 500_000;
   private final Set<Long> exprIds;
   private final Set<CelAttribute> attributes;
@@ -39,8 +44,21 @@ final class AccumulatedUnknowns {
     return attributes;
   }
 
+  /**
+   * Evaluates if the right hand side is an accumulated unknown, and if so, merges it into the
+   * accumulator.
+   */
+  public static @Nullable AccumulatedUnknowns maybeMerge(
+      @Nullable AccumulatedUnknowns accumulator, Object newValue) {
+    if (newValue instanceof AccumulatedUnknowns) {
+      AccumulatedUnknowns newUnknowns = (AccumulatedUnknowns) newValue;
+      return accumulator == null ? newUnknowns : accumulator.merge(newUnknowns);
+    }
+    return accumulator;
+  }
+
   @CanIgnoreReturnValue
-  AccumulatedUnknowns merge(AccumulatedUnknowns arg) {
+  public AccumulatedUnknowns merge(AccumulatedUnknowns arg) {
     enforceMaxAttributeSize(this.attributes, arg.attributes);
     this.exprIds.addAll(arg.exprIds);
     this.attributes.addAll(arg.attributes);
@@ -55,7 +73,8 @@ final class AccumulatedUnknowns {
     return create(ids, new ArrayList<>());
   }
 
-  static AccumulatedUnknowns create(Collection<Long> exprIds, Collection<CelAttribute> attributes) {
+  public static AccumulatedUnknowns create(
+      Collection<Long> exprIds, Collection<CelAttribute> attributes) {
     return new AccumulatedUnknowns(new HashSet<>(exprIds), new HashSet<>(attributes));
   }
 

@@ -18,6 +18,7 @@ import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
@@ -34,12 +35,19 @@ final class EvalVarArgsCall extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object[] argVals = new Object[args.length];
+    AccumulatedUnknowns unknowns = null;
     for (int i = 0; i < args.length; i++) {
       PlannedInterpretable arg = args[i];
       argVals[i] =
           resolvedOverload.isStrict()
               ? evalStrictly(arg, resolver, frame)
               : evalNonstrictly(arg, resolver, frame);
+
+      unknowns = AccumulatedUnknowns.maybeMerge(unknowns, argVals[i]);
+    }
+
+    if (unknowns != null) {
+      return unknowns;
     }
 
     return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVals);

@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.common.base.Preconditions;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 
@@ -28,8 +29,10 @@ final class EvalConditional extends PlannedInterpretable {
     PlannedInterpretable condition = args[0];
     PlannedInterpretable truthy = args[1];
     PlannedInterpretable falsy = args[2];
-    // TODO: Handle unknowns
     Object condResult = condition.eval(resolver, frame);
+    if (condResult instanceof AccumulatedUnknowns) {
+      return condResult;
+    }
     if (!(condResult instanceof Boolean)) {
       throw new IllegalArgumentException(
           String.format("Expected boolean value, found :%s", condResult));
