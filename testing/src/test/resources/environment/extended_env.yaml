@@ -15,32 +15,43 @@
 name: "extended-env"
 container: "cel.expr"
 extensions:
-  - name: "optional"
-    version: "2"
-  - name: "math"
-    version: "latest"
+- name: "optional"
+  version: "2"
+- name: "math"
+  version: "latest"
 variables:
-  - name: "msg"
-    type_name: "cel.expr.conformance.proto3.TestAllTypes"
+- name: "msg"
+  type_name: "cel.expr.conformance.proto3.TestAllTypes"
+  description: >-
+    msg represents all possible type permutation which
+    CEL understands from a proto perspective
 functions:
-  - name: "isEmpty"
-    overloads:
-    - id: "wrapper_string_isEmpty"
-      target:
-        type_name: "google.protobuf.StringValue"
-      return:
-        type_name: "bool"
-    - id: "list_isEmpty"
-      target:
-        type_name: "list"
-        params:
-        - type_name: "T"
-          is_type_param: true
-      return:
-        type_name: "bool"
+- name: "isEmpty"
+  description: |-
+    determines whether a list is empty,
+    or a string has no characters
+  overloads:
+  - id: "wrapper_string_isEmpty"
+    examples:
+    - "''.isEmpty() // true"
+    target:
+      type_name: "google.protobuf.StringValue"
+    return:
+      type_name: "bool"
+  - id: "list_isEmpty"
+    examples:
+    - "[].isEmpty() // true"
+    - "[1].isEmpty() // false"
+    target:
+      type_name: "list"
+      params:
+      - type_name: "T"
+        is_type_param: true
+    return:
+      type_name: "bool"
 features:
-  - name: cel.feature.macro_call_tracking
-    enabled: true
+- name: cel.feature.macro_call_tracking
+  enabled: true
 limits:
 - name: cel.limit.expression_code_points
   value: 1000

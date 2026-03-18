@@ -268,7 +268,7 @@ final class PolicyTestHelper {
         CelPolicy.Builder policyBuilder) {
       switch (tagName) {
         case "kind":
-          policyBuilder.putMetadata("kind", ctx.newValueString(node));
+          policyBuilder.putMetadata("kind", ctx.newYamlString(node));
           break;
         case "metadata":
           long metadataId = ctx.collectMetadata(node);
@@ -299,7 +299,7 @@ final class PolicyTestHelper {
         Rule.Builder ruleBuilder) {
       switch (tagName) {
         case "failurePolicy":
-          policyBuilder.putMetadata(tagName, ctx.newValueString(node));
+          policyBuilder.putMetadata(tagName, ctx.newYamlString(node));
           break;
         case "matchConstraints":
           long matchConstraintsId = ctx.collectMetadata(node);
@@ -343,13 +343,13 @@ final class PolicyTestHelper {
         case "expression":
           // The K8s expression to validate must return false in order to generate a violation
           // message.
-          ValueString conditionValue = ctx.newValueString(node);
+          ValueString conditionValue = ctx.newYamlString(node);
           conditionValue =
               conditionValue.toBuilder().setValue("!(" + conditionValue.value() + ")").build();
           matchBuilder.setCondition(conditionValue);
           break;
         case "messageExpression":
-          matchBuilder.setResult(Result.ofOutput(ctx.newValueString(node)));
+          matchBuilder.setResult(Result.ofOutput(ctx.newYamlString(node)));
           break;
         default:
           TagVisitor.super.visitMatchTag(ctx, id, tagName, node, policyBuilder, matchBuilder);

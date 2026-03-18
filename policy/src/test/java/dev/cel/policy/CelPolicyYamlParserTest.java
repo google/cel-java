@@ -100,6 +100,20 @@ public final class CelPolicyYamlParserTest {
   }
 
   @Test
+  public void parseYamlPolicy_withDescription_foldedStyle() throws Exception {
+    String policySource =
+        "name: 'policy_name'\n"
+            + "description: >-\n"
+            + "  this is a multiline string\n"
+            + "  that gets folded into a single line";
+
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    assertThat(policy.description().map(ValueString::value))
+        .hasValue("this is a multiline string that gets folded into a single line");
+  }
+
+  @Test
   public void parseYamlPolicy_withDisplayName() throws Exception {
     String policySource =
         "rule:\n"
@@ -144,7 +158,7 @@ public final class CelPolicyYamlParserTest {
     assertThat(policy.imports())
         .containsExactly(
             Import.create(8L, ValueString.of(9L, "foo")),
-            Import.create(12L, ValueString.of(13L, "    bar")))
+            Import.create(12L, ValueString.of(13L, "bar")))
         .inOrder();
   }
 

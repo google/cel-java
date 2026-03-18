@@ -44,9 +44,7 @@ public class CelEnvironmentTest {
     assertThat(environment.source()).isEmpty();
     assertThat(environment.name()).isEmpty();
     assertThat(environment.description()).isEmpty();
-    assertThat(environment.container().name()).isEmpty();
-    assertThat(environment.container().abbreviations()).isEmpty();
-    assertThat(environment.container().aliases()).isEmpty();
+    assertThat(environment.container()).isEmpty();
     assertThat(environment.extensions()).isEmpty();
     assertThat(environment.variables()).isEmpty();
     assertThat(environment.functions()).isEmpty();
@@ -65,10 +63,10 @@ public class CelEnvironmentTest {
                     .build())
             .build();
 
-    assertThat(environment.container().name()).isEqualTo("cntr");
-    assertThat(environment.container().abbreviations()).containsExactly("foo.Bar", "baz.Qux");
-    assertThat(environment.container().aliases())
-        .containsExactly("nm", "user.name", "id", "user.id");
+    CelContainer container = environment.container().get();
+    assertThat(container.name()).isEqualTo("cntr");
+    assertThat(container.abbreviations()).containsExactly("foo.Bar", "baz.Qux");
+    assertThat(container.aliases()).containsExactly("nm", "user.name", "id", "user.id");
   }
 
   @Test
@@ -81,9 +79,10 @@ public class CelEnvironmentTest {
             ExtensionConfig.latest("math"),
             ExtensionConfig.latest("optional"),
             ExtensionConfig.latest("protos"),
+            ExtensionConfig.latest("regex"),
             ExtensionConfig.latest("sets"),
             ExtensionConfig.latest("strings"),
-            ExtensionConfig.latest("comprehensions"));
+            ExtensionConfig.latest("two-var-comprehensions"));
     CelEnvironment environment =
         CelEnvironment.newBuilder().addExtensions(extensionConfigs).build();
 
