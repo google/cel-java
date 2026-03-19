@@ -675,9 +675,7 @@ public final class CelEnvironmentYamlParserTest {
             + " | - version: 0\n"
             + " | ..^"),
     ILLEGAL_LIBRARY_SUBSET_TAG(
-        "name: 'test_suite_name'\n"
-            + "stdlib:\n"
-            + "  unknown_tag: 'test_value'\n",
+        "name: 'test_suite_name'\n" + "stdlib:\n" + "  unknown_tag: 'test_value'\n",
         "ERROR: <input>:3:3: Unsupported library subset tag: unknown_tag\n"
             + " |   unknown_tag: 'test_value'\n"
             + " | ..^"),
@@ -859,30 +857,40 @@ public final class CelEnvironmentYamlParserTest {
             .setVariables(
                 VariableDecl.newBuilder()
                     .setName("msg")
+                    .setDescription(
+                        "msg represents all possible type permutation which CEL understands from a"
+                            + " proto perspective")
                     .setType(TypeDecl.create("cel.expr.conformance.proto3.TestAllTypes"))
                     .build())
             .setFunctions(
-                FunctionDecl.create(
-                    "isEmpty",
-                    ImmutableSet.of(
-                        OverloadDecl.newBuilder()
-                            .setId("wrapper_string_isEmpty")
-                            .setTarget(TypeDecl.create("google.protobuf.StringValue"))
-                            .setReturnType(TypeDecl.create("bool"))
-                            .build(),
-                        OverloadDecl.newBuilder()
-                            .setId("list_isEmpty")
-                            .setTarget(
-                                TypeDecl.newBuilder()
-                                    .setName("list")
-                                    .addParams(
-                                        TypeDecl.newBuilder()
-                                            .setName("T")
-                                            .setIsTypeParam(true)
-                                            .build())
-                                    .build())
-                            .setReturnType(TypeDecl.create("bool"))
-                            .build())))
+                FunctionDecl.newBuilder()
+                    .setName("isEmpty")
+                    .setDescription(
+                        "determines whether a list is empty,\nor a string has no characters")
+                    .setOverloads(
+                        ImmutableSet.of(
+                            OverloadDecl.newBuilder()
+                                .setId("wrapper_string_isEmpty")
+                                .setTarget(TypeDecl.create("google.protobuf.StringValue"))
+                                .addExamples("''.isEmpty() // true")
+                                .setReturnType(TypeDecl.create("bool"))
+                                .build(),
+                            OverloadDecl.newBuilder()
+                                .setId("list_isEmpty")
+                                .addExamples("[].isEmpty() // true")
+                                .addExamples("[1].isEmpty() // false")
+                                .setTarget(
+                                    TypeDecl.newBuilder()
+                                        .setName("list")
+                                        .addParams(
+                                            TypeDecl.newBuilder()
+                                                .setName("T")
+                                                .setIsTypeParam(true)
+                                                .build())
+                                        .build())
+                                .setReturnType(TypeDecl.create("bool"))
+                                .build()))
+                    .build())
             .setFeatures(CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true))
             .setLimits(
                 ImmutableSet.of(

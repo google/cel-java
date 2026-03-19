@@ -126,13 +126,13 @@ final class CelPolicyYamlParser implements CelPolicyParser {
             parseImports(policyBuilder, ctx, valueNode);
             break;
           case "name":
-            policyBuilder.setName(ctx.newValueString(valueNode));
+            policyBuilder.setName(ctx.newYamlString(valueNode));
             break;
           case "description":
-            policyBuilder.setDescription(ctx.newValueString(valueNode));
+            policyBuilder.setDescription(ctx.newYamlString(valueNode));
             break;
           case "display_name":
-            policyBuilder.setDisplayName(ctx.newValueString(valueNode));
+            policyBuilder.setDisplayName(ctx.newYamlString(valueNode));
             break;
           case "rule":
             policyBuilder.setRule(parseRule(ctx, policyBuilder, valueNode));
@@ -189,7 +189,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
           continue;
         }
 
-        policyBuilder.addImport(Import.create(valueId, ctx.newValueString(value)));
+        policyBuilder.addImport(Import.create(valueId, ctx.newYamlString(value)));
       }
     }
 
@@ -212,10 +212,10 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node value = nodeTuple.getValueNode();
         switch (fieldName) {
           case "id":
-            ruleBuilder.setRuleId(ctx.newValueString(value));
+            ruleBuilder.setRuleId(ctx.newYamlString(value));
             break;
           case "description":
-            ruleBuilder.setDescription(ctx.newValueString(value));
+            ruleBuilder.setDescription(ctx.newYamlString(value));
             break;
           case "variables":
             ruleBuilder.addVariables(parseVariables(ctx, policyBuilder, value));
@@ -267,7 +267,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node value = nodeTuple.getValueNode();
         switch (fieldName) {
           case "condition":
-            matchBuilder.setCondition(ctx.newValueString(value));
+            matchBuilder.setCondition(ctx.newSourceString(value));
             break;
           case "output":
             matchBuilder
@@ -275,7 +275,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
                 .filter(result -> result.kind().equals(Match.Result.Kind.RULE))
                 .ifPresent(
                     result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
-            matchBuilder.setResult(Match.Result.ofOutput(ctx.newValueString(value)));
+            matchBuilder.setResult(Match.Result.ofOutput(ctx.newSourceString(value)));
             break;
           case "explanation":
             matchBuilder
@@ -286,7 +286,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
                         ctx.reportError(
                             tagId,
                             "Explanation can only be set on output match cases, not nested rules"));
-            matchBuilder.setExplanation(ctx.newValueString(value));
+            matchBuilder.setExplanation(ctx.newYamlString(value));
             break;
           case "rule":
             matchBuilder
@@ -356,8 +356,8 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node keyNode = nodeTuple.getKeyNode();
         long keyId = ctx.collectMetadata(keyNode);
         builder
-            .setName(ctx.newValueString(keyNode))
-            .setExpression(ctx.newValueString(nodeTuple.getValueNode()));
+            .setName(ctx.newYamlString(keyNode))
+            .setExpression(ctx.newSourceString(nodeTuple.getValueNode()));
         iterations++;
 
         if (iterations > 1) {
@@ -385,16 +385,16 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         String keyName = ((ScalarNode) keyNode).getValue();
         switch (keyName) {
           case "name":
-            builder.setName(ctx.newValueString(valueNode));
+            builder.setName(ctx.newYamlString(valueNode));
             break;
           case "expression":
-            builder.setExpression(ctx.newValueString(valueNode));
+            builder.setExpression(ctx.newSourceString(valueNode));
             break;
           case "description":
-            builder.setDescription(ctx.newValueString(valueNode));
+            builder.setDescription(ctx.newYamlString(valueNode));
             break;
           case "display_name":
-            builder.setDisplayName(ctx.newValueString(valueNode));
+            builder.setDisplayName(ctx.newYamlString(valueNode));
             break;
           default:
             tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, policyBuilder, builder);
@@ -449,8 +449,13 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
     @Override
-    public ValueString newValueString(Node node) {
-      return ctx.newValueString(node);
+    public ValueString newYamlString(Node node) {
+      return ctx.newYamlString(node);
+    }
+
+    @Override
+    public ValueString newSourceString(Node node) {
+      return ctx.newSourceString(node);
     }
   }
 

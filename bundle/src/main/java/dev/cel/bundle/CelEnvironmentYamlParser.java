@@ -353,6 +353,9 @@ public final class CelEnvironmentYamlParser {
         case "name":
           builder.setName(newString(ctx, valueNode));
           break;
+        case "description":
+          builder.setDescription(newString(ctx, valueNode));
+          break;
         case "type":
           if (typeDeclBuilder != null) {
             ctx.reportError(
@@ -428,6 +431,9 @@ public final class CelEnvironmentYamlParser {
         case "overloads":
           builder.setOverloads(parseOverloads(ctx, valueNode));
           break;
+        case "description":
+          builder.setDescription(newString(ctx, valueNode).trim());
+          break;
         default:
           ctx.reportError(keyId, String.format("Unsupported function tag: %s", keyName));
           break;
@@ -479,6 +485,9 @@ public final class CelEnvironmentYamlParser {
           case "target":
             overloadDeclBuilder.setTarget(parseTypeDecl(ctx, valueNode));
             break;
+          case "examples":
+            overloadDeclBuilder.addExamples(parseOverloadExamples(ctx, valueNode));
+            break;
           default:
             ctx.reportError(keyId, String.format("Unsupported overload tag: %s", fieldName));
             break;
@@ -492,6 +501,25 @@ public final class CelEnvironmentYamlParser {
     }
 
     return overloadSetBuilder.build();
+  }
+
+  private static ImmutableList<String> parseOverloadExamples(ParserContext<Node> ctx, Node node) {
+    long listValueId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, listValueId, node, YamlNodeType.LIST)) {
+      return ImmutableList.of();
+    }
+    SequenceNode paramsListNode = (SequenceNode) node;
+    ImmutableList.Builder<String> builder = ImmutableList.builder();
+    for (Node elementNode : paramsListNode.getValue()) {
+      long elementNodeId = ctx.collectMetadata(elementNode);
+      if (!assertYamlType(ctx, elementNodeId, elementNode, YamlNodeType.STRING)) {
+        continue;
+      }
+
+      builder.add(((ScalarNode) elementNode).getValue());
+    }
+
+    return builder.build();
   }
 
   private static ImmutableList<TypeDecl> parseOverloadArguments(

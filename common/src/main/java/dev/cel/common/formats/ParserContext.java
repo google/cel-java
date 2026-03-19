@@ -42,6 +42,32 @@ public interface ParserContext<T> {
 
   Map<Long, Integer> getIdToOffsetMap();
 
-  /** NewString creates a new ValueString from the YAML node. */
-  ValueString newValueString(T node);
+  /**
+   * @deprecated Use {@link #newSourceString} instead.
+   */
+  @Deprecated
+  default ValueString newValueString(T node) {
+    return newSourceString(node);
+  }
+
+  /**
+   * NewYamlString creates a new ValueString from the YAML node, evaluated according to standard
+   * YAML parsing rules.
+   *
+   * <p>This respects the whitespace folding semantics defined by the node's scalar style (e.g.,
+   * folded string {@code >} versus literal string {@code |}). Use this method for general string
+   * fields such as {@code description}, {@code name}, or {@code id}.
+   */
+  ValueString newYamlString(T node);
+
+  /**
+   * NewRawString creates a new ValueString from the YAML node, preserving formatting for accurate
+   * source mapping.
+   *
+   * <p>This extracts the verbatim text directly from the source file, preserving raw block
+   * indentation and unmodified newlines. Use this method when the string represents code or a CEL
+   * expression where precise character-level offsets must be maintained for accurate diagnostic
+   * error reporting.
+   */
+  ValueString newSourceString(T node);
 }

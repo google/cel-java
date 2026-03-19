@@ -136,7 +136,7 @@ public final class YamlHelper {
   }
 
   public static String newString(ParserContext<Node> ctx, Node node) {
-    return ctx.newValueString(node).value();
+    return ctx.newYamlString(node).value();
   }
 
   private YamlHelper() {}
