@@ -43,6 +43,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
+import dev.cel.common.types.TypeType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerLibrary;
@@ -71,27 +72,28 @@ public abstract class CelEnvironment {
           "math", CanonicalCelExtension.MATH,
           "optional", CanonicalCelExtension.OPTIONAL,
           "protos", CanonicalCelExtension.PROTOS,
+          "regex", CanonicalCelExtension.REGEX,
           "sets", CanonicalCelExtension.SETS,
           "strings", CanonicalCelExtension.STRINGS,
-          "comprehensions", CanonicalCelExtension.COMPREHENSIONS);
+          "two-var-comprehensions", CanonicalCelExtension.COMPREHENSIONS);
 
   private static final ImmutableMap<String, ObjIntConsumer<CelOptions.Builder>> LIMIT_HANDLERS =
       ImmutableMap.of(
           "cel.limit.expression_code_points",
-          (options, value) -> options.maxExpressionCodePointSize(value),
+          CelOptions.Builder::maxExpressionCodePointSize,
           "cel.limit.parse_error_recovery",
-          (options, value) -> options.maxParseErrorRecoveryLimit(value),
+          CelOptions.Builder::maxParseErrorRecoveryLimit,
           "cel.limit.parse_recursion_depth",
-          (options, value) -> options.maxParseRecursionDepth(value));
+          CelOptions.Builder::maxParseRecursionDepth);
 
   private static final ImmutableMap<String, BooleanOptionConsumer> FEATURE_HANDLERS =
       ImmutableMap.of(
           "cel.feature.macro_call_tracking",
-          (options, enabled) -> options.populateMacroCalls(enabled),
+          CelOptions.Builder::populateMacroCalls,
           "cel.feature.backtick_escape_syntax",
-          (options, enabled) -> options.enableQuotedIdentifierSyntax(enabled),
+          CelOptions.Builder::enableQuotedIdentifierSyntax,
           "cel.feature.cross_type_numeric_comparisons",
-          (options, enabled) -> options.enableHeterogeneousNumericComparisons(enabled));
+          CelOptions.Builder::enableHeterogeneousNumericComparisons);
 
   /** Environment source in textual format (ex: textproto, YAML). */
   public abstract Optional<Source> source();
@@ -99,10 +101,8 @@ public abstract class CelEnvironment {
   /** Name of the environment. */
   public abstract String name();
 
-  /**
-   * Container, which captures default namespace and aliases for value resolution.
-   */
-  public abstract CelContainer container();
+  /** Container, which captures default namespace and aliases for value resolution. */
+  public abstract Optional<CelContainer> container();
 
   /**
    * An optional description of the environment (example: location of the file containing the config
@@ -226,7 +226,6 @@ public abstract class CelEnvironment {
     return new AutoValue_CelEnvironment.Builder()
         .setName("")
         .setDescription("")
-        .setContainer(CelContainer.ofName(""))
         .setVariables(ImmutableSet.of())
         .setFunctions(ImmutableSet.of())
         .setFeatures(ImmutableSet.of())
@@ -242,7 +241,6 @@ public abstract class CelEnvironment {
       CelCompilerBuilder compilerBuilder =
           celCompiler
               .toCompilerBuilder()
-              .setContainer(container())
               .setOptions(celOptions)
               .setTypeProvider(celTypeProvider)
               .addVarDeclarations(
@@ -253,6 +251,8 @@ public abstract class CelEnvironment {
                   functions().stream()
                       .map(f -> f.toCelFunctionDecl(celTypeProvider))
                       .collect(toImmutableList()));
+
+      container().ifPresent(compilerBuilder::setContainer);
 
       addAllCompilerExtensions(compilerBuilder, celOptions);
 
@@ -416,6 +416,8 @@ public abstract class CelEnvironment {
     /** The type of the variable. */
     public abstract TypeDecl type();
 
+    public abstract Optional<String> description();
+
     /** Builder for {@link VariableDecl}. */
     @AutoValue.Builder
     public abstract static class Builder implements RequiredFieldsChecker {
@@ -427,6 +429,8 @@ public abstract class CelEnvironment {
       public abstract VariableDecl.Builder setName(String name);
 
       public abstract VariableDecl.Builder setType(TypeDecl typeDecl);
+
+      public abstract VariableDecl.Builder setDescription(String name);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
@@ -459,6 +463,8 @@ public abstract class CelEnvironment {
 
     public abstract String name();
 
+    public abstract Optional<String> description();
+
     public abstract ImmutableSet<OverloadDecl> overloads();
 
     /** Builder for {@link FunctionDecl}. */
@@ -470,6 +476,8 @@ public abstract class CelEnvironment {
       public abstract Optional<ImmutableSet<OverloadDecl>> overloads();
 
       public abstract FunctionDecl.Builder setName(String name);
+
+      public abstract FunctionDecl.Builder setDescription(String description);
 
       public abstract FunctionDecl.Builder setOverloads(ImmutableSet<OverloadDecl> overloads);
 
@@ -519,6 +527,9 @@ public abstract class CelEnvironment {
     /** List of function overload type values. */
     public abstract ImmutableList<TypeDecl> arguments();
 
+    /** Examples for the overload. */
+    public abstract ImmutableList<String> examples();
+
     /** Return type of the overload. Required. */
     public abstract TypeDecl returnType();
 
@@ -537,7 +548,20 @@ public abstract class CelEnvironment {
       // This should stay package-private to encourage add/set methods to be used instead.
       abstract ImmutableList.Builder<TypeDecl> argumentsBuilder();
 
+      abstract ImmutableList.Builder<String> examplesBuilder();
+
       public abstract OverloadDecl.Builder setArguments(ImmutableList<TypeDecl> args);
+
+      @CanIgnoreReturnValue
+      public OverloadDecl.Builder addExamples(Iterable<String> examples) {
+        this.examplesBuilder().addAll(checkNotNull(examples));
+        return this;
+      }
+
+      @CanIgnoreReturnValue
+      public OverloadDecl.Builder addExamples(String... examples) {
+        return addExamples(Arrays.asList(examples));
+      }
 
       @CanIgnoreReturnValue
       public OverloadDecl.Builder addArguments(Iterable<TypeDecl> args) {
@@ -667,6 +691,10 @@ public abstract class CelEnvironment {
           CelType keyType = params().get(0).toCelType(celTypeProvider);
           CelType valueType = params().get(1).toCelType(celTypeProvider);
           return MapType.create(keyType, valueType);
+        case "type":
+          checkState(
+              params().size() == 1, "Expected 1 parameter for type, got %s", params().size());
+          return TypeType.create(params().get(0).toCelType(celTypeProvider));
         default:
           if (isTypeParam()) {
             return TypeParamType.create(name());
@@ -838,6 +866,7 @@ public abstract class CelEnvironment {
     SETS(
         (options, version) -> CelExtensions.sets(options),
         (options, version) -> CelExtensions.sets(options)),
+    REGEX((options, version) -> CelExtensions.regex(), (options, version) -> CelExtensions.regex()),
     LISTS((options, version) -> CelExtensions.lists(), (options, version) -> CelExtensions.lists()),
     COMPREHENSIONS(
         (options, version) -> CelExtensions.comprehensions(),
@@ -1054,7 +1083,7 @@ public abstract class CelEnvironment {
   }
 
   @FunctionalInterface
-  private static interface BooleanOptionConsumer {
+  private interface BooleanOptionConsumer {
     void accept(CelOptions.Builder options, boolean value);
   }
 }

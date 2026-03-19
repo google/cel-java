@@ -333,7 +333,7 @@ public class CelEnvironmentExporterTest {
 
     CelEnvironmentExporter exporter = CelEnvironmentExporter.newBuilder().build();
     CelEnvironment celEnvironment = exporter.export(cel);
-    CelContainer container = celEnvironment.container();
+    CelContainer container = celEnvironment.container().get();
     assertThat(container.name()).isEqualTo("cntnr");
     assertThat(container.abbreviations()).containsExactly("foo.Bar", "baz.Qux").inOrder();
     assertThat(container.aliases()).containsAtLeast("nm", "user.name", "id", "user.id").inOrder();
@@ -368,4 +368,3 @@ public class CelEnvironmentExporterTest {
             CelEnvironment.Limit.create("cel.limit.parse_recursion_depth", 10));
   }
 }
-

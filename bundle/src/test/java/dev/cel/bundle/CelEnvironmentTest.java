@@ -28,6 +28,10 @@ import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.TypeType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
@@ -44,9 +48,7 @@ public class CelEnvironmentTest {
     assertThat(environment.source()).isEmpty();
     assertThat(environment.name()).isEmpty();
     assertThat(environment.description()).isEmpty();
-    assertThat(environment.container().name()).isEmpty();
-    assertThat(environment.container().abbreviations()).isEmpty();
-    assertThat(environment.container().aliases()).isEmpty();
+    assertThat(environment.container()).isEmpty();
     assertThat(environment.extensions()).isEmpty();
     assertThat(environment.variables()).isEmpty();
     assertThat(environment.functions()).isEmpty();
@@ -65,10 +67,10 @@ public class CelEnvironmentTest {
                     .build())
             .build();
 
-    assertThat(environment.container().name()).isEqualTo("cntr");
-    assertThat(environment.container().abbreviations()).containsExactly("foo.Bar", "baz.Qux");
-    assertThat(environment.container().aliases())
-        .containsExactly("nm", "user.name", "id", "user.id");
+    CelContainer container = environment.container().get();
+    assertThat(container.name()).isEqualTo("cntr");
+    assertThat(container.abbreviations()).containsExactly("foo.Bar", "baz.Qux");
+    assertThat(container.aliases()).containsExactly("nm", "user.name", "id", "user.id");
   }
 
   @Test
@@ -81,9 +83,10 @@ public class CelEnvironmentTest {
             ExtensionConfig.latest("math"),
             ExtensionConfig.latest("optional"),
             ExtensionConfig.latest("protos"),
+            ExtensionConfig.latest("regex"),
             ExtensionConfig.latest("sets"),
             ExtensionConfig.latest("strings"),
-            ExtensionConfig.latest("comprehensions"));
+            ExtensionConfig.latest("two-var-comprehensions"));
     CelEnvironment environment =
         CelEnvironment.newBuilder().addExtensions(extensionConfigs).build();
 
@@ -434,5 +437,31 @@ public class CelEnvironmentTest {
 
     result = extendedCompiler.compile("1 == 1 && 1 != 1 + 1");
     assertThat(result.getErrorString()).contains("found no matching overload for '_+_'");
+  }
+
+  @Test
+  public void typeDecl_toCelType_type() {
+    CelTypeProvider typeProvider =
+        CelCompilerFactory.standardCelCompilerBuilder().build().getTypeProvider();
+    CelEnvironment.TypeDecl typeDecl =
+        CelEnvironment.TypeDecl.newBuilder()
+            .setName("type")
+            .addParams(CelEnvironment.TypeDecl.create("int"))
+            .build();
+
+    CelType celType = typeDecl.toCelType(typeProvider);
+
+    assertThat(celType).isEqualTo(TypeType.create(SimpleType.INT));
+  }
+
+  @Test
+  public void typeDecl_toCelType_type_wrongParamCount_throws() {
+    CelTypeProvider typeProvider =
+        CelCompilerFactory.standardCelCompilerBuilder().build().getTypeProvider();
+    CelEnvironment.TypeDecl typeDecl = CelEnvironment.TypeDecl.newBuilder().setName("type").build();
+
+    IllegalStateException e =
+        assertThrows(IllegalStateException.class, () -> typeDecl.toCelType(typeProvider));
+    assertThat(e).hasMessageThat().contains("Expected 1 parameter for type, got 0");
   }
 }

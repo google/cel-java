@@ -62,7 +62,18 @@ public final class YamlParserContextImpl implements ParserContext<Node> {
   }
 
   @Override
-  public ValueString newValueString(Node node) {
+  public ValueString newYamlString(Node node) {
+    long id = collectMetadata(node);
+    if (!assertYamlType(this, id, node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+      return ValueString.of(id, ERROR);
+    }
+
+    ScalarNode scalarNode = (ScalarNode) node;
+    return ValueString.of(id, scalarNode.getValue());
+  }
+
+  @Override
+  public ValueString newSourceString(Node node) {
     long id = collectMetadata(node);
     if (!assertYamlType(this, id, node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
       return ValueString.of(id, ERROR);
