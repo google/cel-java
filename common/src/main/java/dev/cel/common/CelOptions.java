@@ -177,6 +177,7 @@ public abstract class CelOptions {
         .enableUnsignedComparisonAndArithmeticIsUnsigned(true)
         .enableUnsignedLongs(true)
         .enableRegexPartialMatch(true)
+        .enableTimestampEpoch(true)
         .errorOnDuplicateMapKeys(true)
         .evaluateCanonicalTypesToNativeValues(true)
         .errorOnIntWrap(true)
