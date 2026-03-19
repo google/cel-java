@@ -1,0 +1,93 @@
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = ["//visibility:public"],
+    #        default_visibility = [
+    #            "//tools/ai:__pkg__",
+    #        ],
+)
+
+java_library(
+    name = "agentic_policy_compiler",
+    srcs = ["AgenticPolicyCompiler.java"],
+    deps = [
+        ":agent_context_java_proto",
+        ":agentic_policy_environment",
+        "//bundle:cel",
+        "//common:cel_ast",
+        "//common/formats:value_string",
+        "//common/formats:yaml_helper",
+        "//common/types",
+        "//policy",
+        "//policy:compiler",
+        "//policy:compiler_factory",
+        "//policy:parser",
+        "//policy:parser_factory",
+        "//policy:policy_parser_context",
+        "//policy:validation_exception",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "agentic_policy_environment",
+    srcs = [
+        "AgentClassifier.java",
+        "AgenticPolicyClassifiers.java",
+        "AgenticPolicyEnvironment.java",
+        "AgentMessageSet.java",
+    ],
+    resources = ["//tools/ai:ai_environments"],
+    deps = [
+        ":agent_context_extensions_java_proto",
+        ":agent_context_java_proto",
+        "//bundle:cel",
+        "//bundle:environment",
+        "//bundle:environment_exception",
+        "//bundle:environment_yaml_parser",
+        "//common:container",
+        "//common:options",
+        "//common/types",
+        "//common/types:message_type_provider",
+        "//common/types:type_providers",
+        "//parser:macro",
+        "//runtime:function_binding",
+        "//:auto_value",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+    ],
+)
+
+proto_library(
+    name = "agent_context_proto",
+    srcs = ["agent_context.proto"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:struct_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+java_proto_library(
+    name = "agent_context_java_proto",
+    deps = [":agent_context_proto"],
+)
+
+proto_library(
+    name = "agent_context_extensions_proto",
+    srcs = ["agent_context_extensions.proto"],
+    deps = [
+        ":agent_context_proto",
+    ],
+)
+
+java_proto_library(
+    name = "agent_context_extensions_java_proto",
+    deps = [":agent_context_extensions_proto"],
+)

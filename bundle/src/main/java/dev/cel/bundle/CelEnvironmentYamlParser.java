@@ -353,6 +353,9 @@ public final class CelEnvironmentYamlParser {
         case "name":
           builder.setName(newString(ctx, valueNode));
           break;
+        case "description":
+          builder.setDescription(newString(ctx, valueNode));
+          break;
         case "type":
           if (typeDeclBuilder != null) {
             ctx.reportError(
@@ -428,6 +431,9 @@ public final class CelEnvironmentYamlParser {
         case "overloads":
           builder.setOverloads(parseOverloads(ctx, valueNode));
           break;
+        case "description":
+          // TODO: Set description
+          break;
         default:
           ctx.reportError(keyId, String.format("Unsupported function tag: %s", keyName));
           break;
@@ -478,6 +484,9 @@ public final class CelEnvironmentYamlParser {
             break;
           case "target":
             overloadDeclBuilder.setTarget(parseTypeDecl(ctx, valueNode));
+            break;
+          case "examples":
+            // TODO: Set examples
             break;
           default:
             ctx.reportError(keyId, String.format("Unsupported overload tag: %s", fieldName));

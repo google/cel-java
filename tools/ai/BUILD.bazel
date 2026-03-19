@@ -1,0 +1,27 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "agentic_policy_environment",
+    exports = ["//tools/src/main/java/dev/cel/tools/ai:agentic_policy_environment"],
+)
+
+java_library(
+    name = "agentic_policy_compiler",
+    exports = ["//tools/src/main/java/dev/cel/tools/ai:agentic_policy_compiler"],
+)
+
+alias(
+    name = "ai_environments",
+    actual = "//tools/src/main/resources/environment:ai_environments",
+)
+
+alias(
+    name = "test_policies",
+    testonly = True,
+    actual = "//tools/src/test/resources/policy:test_policies",
+)

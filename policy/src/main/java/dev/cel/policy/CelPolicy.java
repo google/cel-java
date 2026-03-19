@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,8 +78,7 @@ public abstract class CelPolicy {
 
     public abstract Builder setPolicySource(CelPolicySource policySource);
 
-    // This should stay package-private to encourage add/set methods to be used instead.
-    abstract ImmutableMap.Builder<String, Object> metadataBuilder();
+    private final HashMap<String, Object> metadata = new HashMap<>();
 
     public abstract Builder setMetadata(ImmutableMap<String, Object> value);
 
@@ -88,6 +88,10 @@ public abstract class CelPolicy {
 
     public List<Import> imports() {
       return Collections.unmodifiableList(importList);
+    }
+
+    public Map<String, Object> metadata() {
+      return Collections.unmodifiableMap(metadata);
     }
 
     @CanIgnoreReturnValue
@@ -104,13 +108,13 @@ public abstract class CelPolicy {
 
     @CanIgnoreReturnValue
     public Builder putMetadata(String key, Object value) {
-      metadataBuilder().put(key, value);
+      metadata.put(key, value);
       return this;
     }
 
     @CanIgnoreReturnValue
     public Builder putMetadata(Map<String, Object> map) {
-      metadataBuilder().putAll(map);
+      metadata.putAll(map);
       return this;
     }
 

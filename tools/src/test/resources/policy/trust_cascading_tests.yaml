@@ -1,0 +1,56 @@
+description: "Trust Cascading Policy Tests"
+
+section:
+- name: "Trust Finding Scenarios"
+  tests:
+  - name: "Critical Compromise (Deny)"
+    input:
+      agent.context:
+        expr: >
+          AgentContext{
+            trust: TrustLevel{
+              level: "untrusted",
+              findings: [
+                Finding{ value: "compromised_session", confidence: 0.95 }
+              ]
+            }
+          }
+    output: >
+      {
+        "effect": "deny",
+        "message": "Critical Trust Failure: Session is potentially compromised."
+      }
+
+  - name: "Unverified Source (Replay)"
+    input:
+      agent.context:
+        expr: >
+          AgentContext{
+            trust: TrustLevel{
+              level: "untrusted",
+              findings: [
+                Finding{ value: "unverified_source", confidence: 0.85 }
+              ]
+            }
+          }
+    output: >
+      {
+        "effect": "replay",
+        "details": {
+           "reason": "Data source is unverified.",
+           "action": "verify_provenance"
+        }
+      }
+
+  - name: "Trusted Context (Allow)"
+    input:
+      agent.context:
+        expr: >
+          AgentContext{
+             trust: TrustLevel{ level: "trusted" }
+          }
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
+      }
