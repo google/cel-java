@@ -33,11 +33,10 @@ import org.junit.runners.JUnit4;
 public final class ActivationTest {
 
   private static final CelOptions TEST_OPTIONS =
-      CelOptions.current().enableTimestampEpoch(true).enableUnsignedLongs(true).build();
+      CelOptions.current().enableUnsignedLongs(true).build();
 
   private static final CelOptions TEST_OPTIONS_SKIP_UNSET_FIELDS =
       CelOptions.current()
-          .enableTimestampEpoch(true)
           .enableUnsignedLongs(true)
           .fromProtoUnsetFieldOption(CelOptions.ProtoUnsetFieldOptions.SKIP)
           .build();

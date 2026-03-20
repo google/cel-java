@@ -47,7 +47,7 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class ConstantFoldingOptimizerTest {
   private static final CelOptions CEL_OPTIONS =
-      CelOptions.current().populateMacroCalls(true).enableTimestampEpoch(true).build();
+      CelOptions.current().populateMacroCalls(true).build();
   private static final Cel CEL =
       CelFactory.standardCelBuilder()
           .addVar("x", SimpleType.DYN)

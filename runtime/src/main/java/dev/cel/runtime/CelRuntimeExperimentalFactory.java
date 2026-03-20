@@ -41,11 +41,7 @@ public final class CelRuntimeExperimentalFactory {
   public static CelRuntimeBuilder plannerRuntimeBuilder() {
     return CelRuntimeImpl.newBuilder()
         // CEL-Internal-2
-        .setOptions(
-            CelOptions.current()
-                .enableTimestampEpoch(true)
-                .enableHeterogeneousNumericComparisons(true)
-                .build());
+        .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build());
   }
 
   private CelRuntimeExperimentalFactory() {}

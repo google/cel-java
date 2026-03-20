@@ -114,7 +114,6 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   private static final CelOptions BASE_CEL_OPTIONS =
       CelOptions.current()
-          .enableTimestampEpoch(true)
           .enableHeterogeneousNumericComparisons(true)
           .enableOptionalSyntax(true)
           .comprehensionMaxIterations(1_000)

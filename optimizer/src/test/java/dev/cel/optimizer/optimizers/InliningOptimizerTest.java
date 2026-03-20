@@ -58,8 +58,7 @@ public class InliningOptimizerTest {
               "child",
               StructTypeReference.create(TestAllTypes.NestedMessage.getDescriptor().getFullName()))
           .addVar("shadowed_ident", SimpleType.INT)
-          .setOptions(
-              CelOptions.current().populateMacroCalls(true).enableTimestampEpoch(true).build())
+          .setOptions(CelOptions.current().populateMacroCalls(true).build())
           .build();
 
   @Test

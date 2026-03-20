@@ -50,11 +50,7 @@ public final class CelExperimentalFactory {
                 CelCheckerLegacyImpl.newBuilder().setStandardEnvironmentEnabled(true)),
             CelRuntimeImpl.newBuilder())
         // CEL-Internal-2
-        .setOptions(
-            CelOptions.current()
-                .enableHeterogeneousNumericComparisons(true)
-                .enableTimestampEpoch(true)
-                .build());
+        .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build());
   }
 
   private CelExperimentalFactory() {}

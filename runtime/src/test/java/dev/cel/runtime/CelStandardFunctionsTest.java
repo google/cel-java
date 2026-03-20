@@ -224,7 +224,7 @@ public class CelStandardFunctionsTest {
   public void timestampEpochDisabled_int64Identity_throws() {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
-            .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
+            .setOptions(CelOptions.current().build())
             .build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()

@@ -63,7 +63,7 @@ public class CelCheckerLegacyImplTest {
   public void toCheckerBuilder_singularFields_copied() {
     CelStandardDeclarations subsetDecls =
         CelStandardDeclarations.newBuilder().includeFunctions(StandardFunction.BOOL).build();
-    CelOptions celOptions = CelOptions.current().enableTimestampEpoch(true).build();
+    CelOptions celOptions = CelOptions.current().build();
     CelContainer celContainer = CelContainer.ofName("foo");
     CelType expectedResultType = SimpleType.BOOL;
     CelTypeProvider customTypeProvider =

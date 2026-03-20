@@ -105,8 +105,7 @@ public class SubexpressionOptimizerTest {
     return CelFactory.standardCelBuilder()
         .addMessageTypes(TestAllTypes.getDescriptor())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-        .setOptions(
-            CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())
+        .setOptions(CelOptions.current().populateMacroCalls(true).build())
         .addCompilerLibraries(CelExtensions.bindings())
         .addFunctionDeclarations(
             CelFunctionDecl.newFunctionDeclaration(

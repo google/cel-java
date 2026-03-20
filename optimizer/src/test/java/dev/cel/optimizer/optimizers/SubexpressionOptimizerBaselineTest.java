@@ -265,8 +265,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
         .addMessageTypes(TestAllTypes.getDescriptor())
         .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-        .setOptions(
-            CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())
+        .setOptions(CelOptions.current().populateMacroCalls(true).build())
         .addCompilerLibraries(
             CelExtensions.optional(), CelExtensions.bindings(), CelExtensions.comprehensions())
         .addRuntimeLibraries(CelExtensions.optional(), CelExtensions.comprehensions())

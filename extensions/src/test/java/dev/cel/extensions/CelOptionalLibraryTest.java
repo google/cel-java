@@ -123,11 +123,7 @@ public class CelOptionalLibraryTest {
     }
 
     return celBuilder
-        .setOptions(
-            CelOptions.current()
-                .enableTimestampEpoch(true)
-                .enableHeterogeneousNumericComparisons(true)
-                .build())
+        .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
         .addMessageTypes(TestAllTypes.getDescriptor())

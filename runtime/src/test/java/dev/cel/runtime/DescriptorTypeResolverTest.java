@@ -24,7 +24,6 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
-import dev.cel.common.CelOptions;
 import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.ProtoMessageTypeProvider;
@@ -44,7 +43,6 @@ public class DescriptorTypeResolverTest {
 
   private static final Cel CEL =
       CelFactory.standardCelBuilder()
-          .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
           .setTypeProvider(PROTO_MESSAGE_TYPE_PROVIDER)
           .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
           .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)

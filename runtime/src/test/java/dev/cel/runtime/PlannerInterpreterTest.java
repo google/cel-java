@@ -198,7 +198,6 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
     celRuntime =
         newBaseRuntimeBuilder(
                 CelOptions.current()
-                    .enableTimestampEpoch(true)
                     .enableHeterogeneousNumericComparisons(true)
                     .enableOptionalSyntax(true)
                     .comprehensionMaxIterations(1_000)

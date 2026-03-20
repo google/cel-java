@@ -39,8 +39,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class RegexLiteralValidatorTest {
-  private static final CelOptions CEL_OPTIONS =
-      CelOptions.current().enableTimestampEpoch(true).build();
+  private static final CelOptions CEL_OPTIONS = CelOptions.current().build();
 
   private static final Cel CEL = CelFactory.standardCelBuilder().setOptions(CEL_OPTIONS).build();
 

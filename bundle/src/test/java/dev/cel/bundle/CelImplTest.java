@@ -2109,7 +2109,6 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .addMessageTypes(descriptors)
             // CEL-Internal-2
-            .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
             .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast =
