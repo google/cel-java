@@ -17,7 +17,6 @@ package dev.cel.conformance;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 import static dev.cel.testing.utils.ExprValueUtils.DEFAULT_EXTENSION_REGISTRY;
-import static dev.cel.testing.utils.ExprValueUtils.DEFAULT_TYPE_REGISTRY;
 import static dev.cel.testing.utils.ExprValueUtils.fromValue;
 import static dev.cel.testing.utils.ExprValueUtils.toExprValue;
 
@@ -29,6 +28,7 @@ import dev.cel.expr.Value;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.protobuf.TypeRegistry;
 import dev.cel.checker.CelChecker;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
@@ -83,6 +83,12 @@ public final class ConformanceTest extends Statement {
           CelExtensions.sets(OPTIONS),
           CelExtensions.strings(),
           CelOptionalLibrary.INSTANCE);
+
+  static final TypeRegistry CONFORMANCE_TYPE_REGISTRY =
+      TypeRegistry.newBuilder()
+          .add(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
+          .add(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
+          .build();
 
   private static final CelParser PARSER_WITH_MACROS =
       CelParserFactory.standardCelParserBuilder()
@@ -151,7 +157,7 @@ public final class ConformanceTest extends Statement {
   private static Object fromExprValue(ExprValue value) throws Exception {
     switch (value.getKindCase()) {
       case VALUE:
-        return fromValue(value.getValue());
+        return fromValue(value.getValue(), CONFORMANCE_TYPE_REGISTRY, DEFAULT_EXTENSION_REGISTRY);
       default:
         throw new IllegalArgumentException(
             String.format("Unexpected binding value kind: %s", value.getKindCase()));
@@ -224,7 +230,7 @@ public final class ConformanceTest extends Statement {
         assertThat(result)
             .ignoringRepeatedFieldOrderOfFieldDescriptors(
                 MapValue.getDescriptor().findFieldByName("entries"))
-            .unpackingAnyUsing(DEFAULT_TYPE_REGISTRY, DEFAULT_EXTENSION_REGISTRY)
+            .unpackingAnyUsing(CONFORMANCE_TYPE_REGISTRY, DEFAULT_EXTENSION_REGISTRY)
             .isEqualTo(ExprValue.newBuilder().setValue(test.getValue()).build());
         break;
       case EVAL_ERROR:
@@ -237,7 +243,7 @@ public final class ConformanceTest extends Statement {
         assertThat(result)
             .ignoringRepeatedFieldOrderOfFieldDescriptors(
                 MapValue.getDescriptor().findFieldByName("entries"))
-            .unpackingAnyUsing(DEFAULT_TYPE_REGISTRY, DEFAULT_EXTENSION_REGISTRY)
+            .unpackingAnyUsing(CONFORMANCE_TYPE_REGISTRY, DEFAULT_EXTENSION_REGISTRY)
             .isEqualTo(ExprValue.newBuilder().setValue(test.getTypedResult().getResult()).build());
         assertThat(resultType).isEqualTo(test.getTypedResult().getDeducedType());
         break;

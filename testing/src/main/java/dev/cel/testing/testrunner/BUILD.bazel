@@ -163,10 +163,13 @@ java_library(
         ":result_matcher",
         "//:auto_value",
         "//bundle:cel",
+        "//common:cel_descriptor_util",
         "//common:options",
         "//policy:parser",
         "//runtime",
+        "//testing/testrunner:proto_descriptor_utils",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 

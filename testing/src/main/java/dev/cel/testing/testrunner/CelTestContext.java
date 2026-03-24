@@ -14,12 +14,21 @@
 package dev.cel.testing.testrunner;
 
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.FileDescriptor;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.TypeRegistry;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
+import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelOptions;
 import dev.cel.policy.CelPolicyParser;
 import dev.cel.runtime.CelLateFunctionBindings;
+import dev.cel.testing.utils.ProtoDescriptorUtils;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -63,6 +72,19 @@ public abstract class CelTestContext {
    */
   public abstract Optional<CelLateFunctionBindings> celLateFunctionBindings();
 
+  /** Interface for transforming bindings before evaluation. */
+  @FunctionalInterface
+  public interface BindingTransformer {
+    ImmutableMap<String, Object> transform(ImmutableMap<String, Object> bindings) throws Exception;
+  }
+
+  /**
+   * The binding transformer for the CEL test.
+   *
+   * <p>This transformer is used to transform the bindings before evaluation.
+   */
+  public abstract Optional<BindingTransformer> bindingTransformer();
+
   /**
    * The variable bindings for the CEL test.
    *
@@ -99,6 +121,39 @@ public abstract class CelTestContext {
    */
   public abstract Optional<String> fileDescriptorSetPath();
 
+  abstract ImmutableSet<Descriptor> messageTypes();
+
+  abstract ImmutableSet<FileDescriptor> fileTypes();
+
+  @Memoized
+  public Optional<TypeRegistry> typeRegistry() {
+    if (messageTypes().isEmpty() && fileTypes().isEmpty() && !fileDescriptorSetPath().isPresent()) {
+      return Optional.empty();
+    }
+    TypeRegistry.Builder builder = TypeRegistry.newBuilder();
+    if (!messageTypes().isEmpty()) {
+      builder.add(messageTypes());
+    }
+    if (!fileTypes().isEmpty()) {
+      builder.add(
+          CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileTypes())
+              .messageTypeDescriptors());
+    }
+    if (fileDescriptorSetPath().isPresent()) {
+      try {
+        builder.add(
+            ProtoDescriptorUtils.getAllDescriptorsFromJvm(fileDescriptorSetPath().get())
+                .messageTypeDescriptors());
+      } catch (IOException e) {
+        throw new IllegalStateException(
+            "Failed to load descriptors from path: " + fileDescriptorSetPath().get(), e);
+      }
+    }
+    return Optional.of(builder.build());
+  }
+
+  public abstract Optional<ExtensionRegistry> extensionRegistry();
+
   /** Returns a builder for {@link CelTestContext} with the current instance's values. */
   public abstract Builder toBuilder();
 
@@ -123,6 +178,8 @@ public abstract class CelTestContext {
     public abstract Builder setCelLateFunctionBindings(
         CelLateFunctionBindings celLateFunctionBindings);
 
+    public abstract Builder setBindingTransformer(BindingTransformer bindingTransformer);
+
     public abstract Builder setVariableBindings(Map<String, Object> variableBindings);
 
     public abstract Builder setResultMatcher(ResultMatcher resultMatcher);
@@ -132,6 +189,36 @@ public abstract class CelTestContext {
     public abstract Builder setConfigFile(String configFile);
 
     public abstract Builder setFileDescriptorSetPath(String fileDescriptorSetPath);
+
+    abstract ImmutableSet.Builder<Descriptor> messageTypesBuilder();
+
+    abstract ImmutableSet.Builder<FileDescriptor> fileTypesBuilder();
+
+    public Builder addMessageTypes(Descriptor... descriptors) {
+      for (Descriptor d : descriptors) {
+        messageTypesBuilder().add(d);
+      }
+      return this;
+    }
+
+    public Builder addMessageTypes(Iterable<Descriptor> descriptors) {
+      messageTypesBuilder().addAll(descriptors);
+      return this;
+    }
+
+    public Builder addFileTypes(FileDescriptor... fileDescriptors) {
+      for (FileDescriptor fd : fileDescriptors) {
+        fileTypesBuilder().add(fd);
+      }
+      return this;
+    }
+
+    public Builder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
+      fileTypesBuilder().addAll(fileDescriptors);
+      return this;
+    }
+
+    public abstract Builder setExtensionRegistry(ExtensionRegistry extensionRegistry);
 
     public abstract CelTestContext build();
   }

@@ -36,22 +36,36 @@ import java.util.Map;
  * CelTestSuiteTextProtoParser intakes a textproto document that describes the structure of a CEL
  * test suite, parses it then creates a {@link CelTestSuite}.
  */
-final class CelTestSuiteTextProtoParser {
+public final class CelTestSuiteTextProtoParser {
 
   /** Creates a new instance of {@link CelTestSuiteTextProtoParser}. */
-  static CelTestSuiteTextProtoParser newInstance() {
+  public static CelTestSuiteTextProtoParser newInstance() {
     return new CelTestSuiteTextProtoParser();
   }
 
-  CelTestSuite parse(String textProto) throws IOException, CelTestSuiteException {
-    TestSuite testSuite = parseTestSuite(textProto);
+  public CelTestSuite parse(String textProto) throws IOException, CelTestSuiteException {
+    return parse(
+        textProto, TypeRegistry.getEmptyTypeRegistry(), ExtensionRegistry.getEmptyRegistry());
+  }
+
+  public CelTestSuite parse(String textProto, TypeRegistry customTypeRegistry)
+      throws IOException, CelTestSuiteException {
+    return parse(textProto, customTypeRegistry, ExtensionRegistry.getEmptyRegistry());
+  }
+
+  public CelTestSuite parse(
+      String textProto, TypeRegistry customTypeRegistry, ExtensionRegistry customExtensionRegistry)
+      throws IOException, CelTestSuiteException {
+    TestSuite testSuite = parseTestSuite(textProto, customTypeRegistry, customExtensionRegistry);
     return parseCelTestSuite(testSuite);
   }
 
-  private TestSuite parseTestSuite(String textProto) throws IOException {
+  private TestSuite parseTestSuite(
+      String textProto, TypeRegistry customTypeRegistry, ExtensionRegistry customExtensionRegistry)
+      throws IOException {
     String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
-    TypeRegistry typeRegistry = TypeRegistry.getEmptyTypeRegistry();
-    ExtensionRegistry extensionRegistry = ExtensionRegistry.getEmptyRegistry();
+    TypeRegistry typeRegistry = customTypeRegistry;
+    ExtensionRegistry extensionRegistry = customExtensionRegistry;
     if (fileDescriptorSetPath != null) {
       extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptorSetPath);
       typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptorSetPath);

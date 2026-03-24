@@ -28,8 +28,6 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.TypeRegistry;
-import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.CelType;
@@ -55,7 +53,6 @@ public final class ExprValueUtils {
 
   private ExprValueUtils() {}
 
-  public static final TypeRegistry DEFAULT_TYPE_REGISTRY = newDefaultTypeRegistry();
   public static final ExtensionRegistry DEFAULT_EXTENSION_REGISTRY = newDefaultExtensionRegistry();
 
   /**
@@ -68,10 +65,9 @@ public final class ExprValueUtils {
    * @throws IOException If there's an error during conversion.
    */
   public static Object fromValue(Value value, String fileDescriptorSetPath) throws IOException {
-    if (value.getKindCase().equals(Value.KindCase.OBJECT_VALUE)) {
-      return parseAny(value.getObjectValue(), fileDescriptorSetPath);
-    }
-    return toNativeObject(value);
+    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptorSetPath);
+    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptorSetPath);
+    return fromValue(value, typeRegistry, extensionRegistry);
   }
 
   /**
@@ -81,19 +77,38 @@ public final class ExprValueUtils {
    * @return The converted Java object.
    * @throws IOException If there's an error during conversion.
    */
-  public static Object fromValue(Value value) throws IOException {
+
+  /**
+   * Converts a {@link Value} to a Java native object using custom registries.
+   *
+   * @param value The {@link Value} to convert.
+   * @param typeRegistry The type registry to use for object resolution.
+   * @param extensionRegistry The extension registry to use for object resolution.
+   * @return The converted Java object.
+   * @throws IOException If there's an error during conversion.
+   */
+  public static Object fromValue(
+      Value value, TypeRegistry typeRegistry, ExtensionRegistry extensionRegistry)
+      throws IOException {
     if (value.getKindCase().equals(Value.KindCase.OBJECT_VALUE)) {
       Descriptor descriptor =
-          DEFAULT_TYPE_REGISTRY.getDescriptorForTypeUrl(value.getObjectValue().getTypeUrl());
+          typeRegistry.getDescriptorForTypeUrl(value.getObjectValue().getTypeUrl());
+      if (descriptor == null) {
+        throw new IOException(
+            "Unknown type, descriptor was not found in registry: "
+                + value.getObjectValue().getTypeUrl());
+      }
       Message prototype = getDefaultInstance(descriptor);
       return prototype
           .getParserForType()
-          .parseFrom(value.getObjectValue().getValue(), DEFAULT_EXTENSION_REGISTRY);
+          .parseFrom(value.getObjectValue().getValue(), extensionRegistry);
     }
-    return toNativeObject(value);
+    return toNativeObject(value, typeRegistry, extensionRegistry);
   }
 
-  private static Object toNativeObject(Value value) throws IOException {
+  private static Object toNativeObject(
+      Value value, TypeRegistry typeRegistry, ExtensionRegistry extensionRegistry)
+      throws IOException {
     switch (value.getKindCase()) {
       case NULL_VALUE:
         return dev.cel.common.values.NullValue.NULL_VALUE;
@@ -118,7 +133,9 @@ public final class ExprValueUtils {
           ImmutableMap.Builder<Object, Object> builder =
               ImmutableMap.builderWithExpectedSize(map.getEntriesCount());
           for (MapValue.Entry entry : map.getEntriesList()) {
-            builder.put(fromValue(entry.getKey()), fromValue(entry.getValue()));
+            builder.put(
+                fromValue(entry.getKey(), typeRegistry, extensionRegistry),
+                fromValue(entry.getValue(), typeRegistry, extensionRegistry));
           }
           return builder.buildOrThrow();
         }
@@ -128,7 +145,7 @@ public final class ExprValueUtils {
           ImmutableList.Builder<Object> builder =
               ImmutableList.builderWithExpectedSize(list.getValuesCount());
           for (Value element : list.getValuesList()) {
-            builder.add(fromValue(element));
+            builder.add(fromValue(element, typeRegistry, extensionRegistry));
           }
           return builder.build();
         }
@@ -287,19 +304,6 @@ public final class ExprValueUtils {
         String.format("Unexpected result type: %s", object.getClass()));
   }
 
-  private static Message parseAny(Any value, String fileDescriptorSetPath) throws IOException {
-    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptorSetPath);
-    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptorSetPath);
-    Descriptor descriptor = typeRegistry.getDescriptorForTypeUrl(value.getTypeUrl());
-    return unpackAny(value, descriptor, extensionRegistry);
-  }
-
-  private static Message unpackAny(
-      Any value, Descriptor descriptor, ExtensionRegistry extensionRegistry) throws IOException {
-    Message defaultInstance = getDefaultInstance(descriptor);
-    return defaultInstance.getParserForType().parseFrom(value.getValue(), extensionRegistry);
-  }
-
   private static Message getDefaultInstance(Descriptor descriptor) {
     return DefaultInstanceMessageFactory.getInstance()
         .getPrototype(descriptor)
@@ -316,13 +320,5 @@ public final class ExprValueUtils {
     return extensionRegistry;
   }
 
-  private static TypeRegistry newDefaultTypeRegistry() {
-    CelDescriptors allDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            ImmutableList.of(
-                dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor().getFile(),
-                dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor().getFile()));
 
-    return TypeRegistry.newBuilder().add(allDescriptors.messageTypeDescriptors()).build();
-  }
 }

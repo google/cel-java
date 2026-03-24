@@ -44,14 +44,14 @@ import org.yaml.snakeyaml.nodes.SequenceNode;
  * CelTestSuiteYamlParser intakes a YAML document that describes the structure of a CEL test suite,
  * parses it then creates a {@link CelTestSuite}.
  */
-final class CelTestSuiteYamlParser {
+public final class CelTestSuiteYamlParser {
 
   /** Creates a new instance of {@link CelTestSuiteYamlParser}. */
-  static CelTestSuiteYamlParser newInstance() {
+  public static CelTestSuiteYamlParser newInstance() {
     return new CelTestSuiteYamlParser();
   }
 
-  CelTestSuite parse(String celTestSuiteYamlContent) throws CelTestSuiteException {
+  public CelTestSuite parse(String celTestSuiteYamlContent) throws CelTestSuiteException {
     return parseYaml(celTestSuiteYamlContent, "<input>");
   }
 
@@ -86,7 +86,7 @@ final class CelTestSuiteYamlParser {
   }
 
   private CelTestSuite.Builder parseTestSuite(ParserContext<Node> ctx, Node node) {
-    CelTestSuite.Builder builder = CelTestSuite.newBuilder();
+    CelTestSuite.Builder builder = CelTestSuite.newBuilder().setName("");
     long id = ctx.collectMetadata(node);
     if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
       ctx.reportError(id, "Unknown test suite type: " + node.getTag());
@@ -110,6 +110,7 @@ final class CelTestSuiteYamlParser {
         case "description":
           builder.setDescription(newString(ctx, valueNode));
           break;
+        case "section":
         case "sections":
           builder.setSections(parseSections(ctx, valueNode));
           break;
@@ -143,7 +144,7 @@ final class CelTestSuiteYamlParser {
       return CelTestSection.newBuilder().build();
     }
 
-    CelTestSection.Builder celTestSectionBuilder = CelTestSection.newBuilder();
+    CelTestSection.Builder celTestSectionBuilder = CelTestSection.newBuilder().setDescription("");
     MappingNode sectionNode = (MappingNode) node;
     for (NodeTuple nodeTuple : sectionNode.getValue()) {
       Node keyNode = nodeTuple.getKeyNode();
@@ -185,7 +186,7 @@ final class CelTestSuiteYamlParser {
 
   private CelTestCase parseTestCase(ParserContext<Node> ctx, Node node) {
     long valueId = ctx.collectMetadata(node);
-    CelTestCase.Builder celTestCaseBuilder = CelTestCase.newBuilder();
+    CelTestCase.Builder celTestCaseBuilder = CelTestCase.newBuilder().setDescription("");
     if (!assertYamlType(ctx, valueId, node, YamlNodeType.MAP)) {
       ctx.reportError(valueId, "Testcase is not a map: " + node.getTag());
       return celTestCaseBuilder.build();

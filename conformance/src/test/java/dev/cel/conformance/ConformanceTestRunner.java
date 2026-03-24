@@ -15,7 +15,6 @@
 package dev.cel.conformance;
 
 import static dev.cel.testing.utils.ExprValueUtils.DEFAULT_EXTENSION_REGISTRY;
-import static dev.cel.testing.utils.ExprValueUtils.DEFAULT_TYPE_REGISTRY;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -50,7 +49,9 @@ public final class ConformanceTestRunner extends ParentRunner<ConformanceTest> {
         SPLITTER.splitToList(System.getProperty("dev.cel.conformance.ConformanceTests.tests"));
     try {
       TextFormat.Parser parser =
-          TextFormat.Parser.newBuilder().setTypeRegistry(DEFAULT_TYPE_REGISTRY).build();
+          TextFormat.Parser.newBuilder()
+              .setTypeRegistry(ConformanceTest.CONFORMANCE_TYPE_REGISTRY)
+              .build();
       ImmutableSortedMap.Builder<String, SimpleTestFile> testFiles =
           ImmutableSortedMap.naturalOrder();
       for (String testPath : testPaths) {
