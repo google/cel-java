@@ -98,6 +98,7 @@ import dev.cel.compiler.CelCompilerImpl;
 import dev.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelParserImpl;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelAttribute;
@@ -113,7 +114,8 @@ import dev.cel.runtime.CelRuntimeLegacyImpl;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
-import dev.cel.testing.testdata.SingleFileProto.SingleFile;
+import dev.cel.testing.testdata.SingleFile;
+import dev.cel.testing.testdata.SingleFileExtensionsProto;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -2142,20 +2144,90 @@ public final class CelImplTest {
   }
 
   @Test
-  public void eval_withJsonFieldName() throws Exception {
-    Cel cel =
-        standardCelBuilderWithMacros()
-            .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
-            .addMessageTypes(SingleFile.getDescriptor())
-            .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
-            .build();
-    CelAbstractSyntaxTree ast = cel.compile("file.camelCased").getAst();
+  public void eval_withJsonFieldName(@TestParameter RuntimeEnv runtimeEnv) throws Exception {
+    Cel cel = runtimeEnv.cel;
+    CelAbstractSyntaxTree ast =
+        cel.compile(
+                "file.int32_snake_case_json_name == 1 && "
+                    + "file.int64CamelCaseJsonName == 2 && "
+                    + "file.uint32DefaultJsonName == 3u && "
+                    + "file.`uint64-custom-json-name` == 4u && "
+                    + "file.single_string == 'shadows' && "
+                    + "file.singleString == 'shadowed'")
+            .getAst();
 
-    Object result =
-        cel.createProgram(ast)
-            .eval(ImmutableMap.of("file", SingleFile.newBuilder().setSnakeCased("foo").build()));
+    boolean result =
+        (boolean)
+            cel.createProgram(ast)
+                .eval(
+                    ImmutableMap.of(
+                        "file",
+                        SingleFile.newBuilder()
+                            .setInt32SnakeCaseJsonName(1)
+                            .setInt64CamelCaseJsonName(2L)
+                            .setUint32DefaultJsonName(3)
+                            .setUint64CustomJsonName(4)
+                            .setStringJsonNameShadows("shadows")
+                            .setSingleString("shadowed")
+                            .setExtension(SingleFileExtensionsProto.int64CamelCaseJsonName, 5L)
+                            .build()));
 
-    assertThat(result).isEqualTo("foo");
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void eval_withJsonFieldName_fieldsFallBack(@TestParameter RuntimeEnv runtimeEnv) throws Exception {
+    Cel cel = runtimeEnv.cel;
+    CelAbstractSyntaxTree ast =
+        cel.compile(
+                "dyn(file).int32_snake_case_json_name == 1 && "
+                    + "dyn(file).`uint64-custom-json-name` == 4u && "
+                    + "dyn(file).single_string == 'shadows' && "
+                    + "dyn(file).string_json_name_shadows == 'shadows' && "
+                    + "dyn(file).singleString == 'shadowed'")
+            .getAst();
+
+    boolean result =
+        (boolean)
+            cel.createProgram(ast)
+                .eval(
+                    ImmutableMap.of(
+                        "file",
+                        SingleFile.newBuilder()
+                            .setInt32SnakeCaseJsonName(1)
+                            .setInt64CamelCaseJsonName(2L)
+                            .setUint32DefaultJsonName(3)
+                            .setUint64CustomJsonName(4)
+                            .setStringJsonNameShadows("shadows")
+                            .setSingleString("shadowed")
+                            .build()));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void eval_withJsonFieldName_extensionFields(@TestParameter RuntimeEnv runtimeEnv) throws Exception {
+    Cel cel = runtimeEnv.cel;
+    CelAbstractSyntaxTree ast =
+        cel.compile(
+                "proto.getExt(file, dev.cel.testing.testdata.int64CamelCaseJsonName) == 5 &&"
+                    + " proto.getExt(file, dev.cel.testing.testdata.single_string) == 'foo'")
+            .getAst();
+
+    boolean result =
+        (boolean)
+            cel.createProgram(ast)
+                .eval(
+                    ImmutableMap.of(
+                        "file",
+                        SingleFile.newBuilder()
+                            .setInt64CamelCaseJsonName(2L)
+                            .setExtension(SingleFileExtensionsProto.int64CamelCaseJsonName, 5L)
+                            .setSingleString("This should not be used")
+                            .setExtension(SingleFileExtensionsProto.singleString, "foo")
+                            .build()));
+
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -2171,7 +2243,7 @@ public final class CelImplTest {
             .addMessageTypes(SingleFile.getDescriptor())
             .setOptions(CelOptions.current().enableJsonFieldNames(false).build())
             .build();
-    CelAbstractSyntaxTree ast = celCompiler.compile("file.camelCased").getAst();
+    CelAbstractSyntaxTree ast = celCompiler.compile("file.int64CamelCaseJsonName").getAst();
 
     CelEvaluationException e =
         assertThrows(
@@ -2183,7 +2255,8 @@ public final class CelImplTest {
     assertThat(e)
         .hasMessageThat()
         .contains(
-            "field 'camelCased' is not declared in message 'dev.cel.testing.testdata.SingleFile");
+            "field 'int64CamelCaseJsonName' is not declared in message"
+                + " 'dev.cel.testing.testdata.SingleFile");
   }
 
   @Test
@@ -2194,7 +2267,7 @@ public final class CelImplTest {
             .addMessageTypes(SingleFile.getDescriptor())
             .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("file.camelCased").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("file.int64CamelCaseJsonName").getAst();
 
     assertThat(ast.getSource().getExtensions())
         .contains(
@@ -2242,5 +2315,35 @@ public final class CelImplTest {
         return null;
       }
     };
+  }
+
+  private enum RuntimeEnv {
+    LEGACY(setupEnv(CelFactory.standardCelBuilder())),
+    PLANNER(setupEnv(CelExperimentalFactory.plannerCelBuilder()))
+    ;
+
+    private final Cel cel;
+
+    private static Cel setupEnv(CelBuilder celBuilder) {
+      ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
+      SingleFileExtensionsProto.registerAllExtensions(extensionRegistry);
+      return celBuilder
+          .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+          .addMessageTypes(SingleFile.getDescriptor())
+          .addFileTypes(SingleFileExtensionsProto.getDescriptor())
+          .addCompilerLibraries(CelExtensions.protos())
+          .setExtensionRegistry(extensionRegistry)
+          .setOptions(
+              CelOptions.current()
+                  .enableJsonFieldNames(true)
+                  .enableHeterogeneousNumericComparisons(true)
+                  .enableQuotedIdentifierSyntax(true)
+                  .build())
+          .build();
+    }
+
+    RuntimeEnv(Cel cel) {
+      this.cel = cel;
+    }
   }
 }

@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-syntax = "proto3";
+edition = "2024";
 
 package dev.cel.testing.testdata;
 
 option java_package = "dev.cel.testing.testdata";
-option java_outer_classname = "SingleFileProto";
 
 message SingleFile {
   message Path {
@@ -26,5 +25,14 @@ message SingleFile {
 
   string name = 1;
   Path path = 2;
-  string snake_cased = 3 [json_name = "camelCased"];
+  int32 int32_snake_case_json_name = 4 [json_name = "int32_snake_case_json_name"];
+  int64 int64_camel_case_json_name = 5 [json_name = "int64CamelCaseJsonName"];
+  uint32 uint32_default_json_name = 6;
+  uint64 uint64_custom_json_name = 7 [json_name = "uint64-custom-json-name"];
+
+  // Collides with normal field name.
+  string string_json_name_shadows = 8 [json_name = "single_string"];
+  string single_string = 9;
+
+  extensions 1000 to max;
 }

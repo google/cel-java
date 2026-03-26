@@ -92,17 +92,17 @@ public abstract class ProtoMessageValue extends StructValue<String> {
 
   private FieldDescriptor findField(
       CelDescriptorPool celDescriptorPool, Descriptor descriptor, String fieldName) {
-    FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
-    if (fieldDescriptor != null) {
-      return fieldDescriptor;
-    }
-
     if (enableJsonFieldNames()) {
       for (FieldDescriptor fd : descriptor.getFields()) {
         if (fd.getJsonName().equals(fieldName)) {
           return fd;
         }
       }
+    }
+
+    FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
+    if (fieldDescriptor != null) {
+      return fieldDescriptor;
     }
 
     return celDescriptorPool

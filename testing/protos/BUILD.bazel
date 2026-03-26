@@ -10,6 +10,11 @@ alias(
 )
 
 alias(
+    name = "single_file_extension_java_proto",
+    actual = "//testing/src/test/resources/protos:single_file_extension_java_proto",
+)
+
+alias(
     name = "multi_file_java_proto",
     actual = "//testing/src/test/resources/protos:multi_file_java_proto",
 )

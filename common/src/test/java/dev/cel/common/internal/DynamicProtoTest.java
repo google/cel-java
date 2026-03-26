@@ -37,7 +37,7 @@ import com.google.type.Expr;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.testing.testdata.MultiFile;
-import dev.cel.testing.testdata.SingleFileProto.SingleFile;
+import dev.cel.testing.testdata.SingleFile;
 import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;

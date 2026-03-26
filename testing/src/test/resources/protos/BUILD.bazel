@@ -26,6 +26,19 @@ java_proto_library(
 )
 
 proto_library(
+    name = "single_file_extension_proto",
+    srcs = ["single_file_extensions.proto"],
+    deps = [":single_file_proto"],
+)
+
+java_proto_library(
+    name = "single_file_extension_java_proto",
+    tags = [
+    ],
+    deps = [":single_file_extension_proto"],
+)
+
+proto_library(
     name = "multi_file_proto",
     srcs = [
         "multi_file.proto",

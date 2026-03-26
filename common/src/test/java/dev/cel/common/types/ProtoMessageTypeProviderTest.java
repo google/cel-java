@@ -23,7 +23,7 @@ import dev.cel.common.types.CelTypeProvider.CombinedCelTypeProvider;
 import dev.cel.common.types.StructType.Field;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
-import dev.cel.testing.testdata.SingleFileProto.SingleFile;
+import dev.cel.testing.testdata.SingleFile;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -269,8 +269,8 @@ public final class ProtoMessageTypeProviderTest {
         (ProtoMessageType) typeProvider.findType(SingleFile.getDescriptor().getFullName()).get();
 
     // Note that these are the same fields, with json_name option set
-    Optional<Field> snakeCasedField = msgType.findField("snake_cased");
-    Optional<Field> jsonNameField = msgType.findField("camelCased");
+    Optional<Field> snakeCasedField = msgType.findField("int64_camel_case_json_name");
+    Optional<Field> jsonNameField = msgType.findField("int64CamelCaseJsonName");
 
     assertThat(snakeCasedField).isEmpty();
     assertThat(jsonNameField).isPresent();

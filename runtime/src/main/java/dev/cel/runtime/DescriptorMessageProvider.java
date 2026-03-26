@@ -173,30 +173,28 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   }
 
   private FieldDescriptor findField(Descriptor descriptor, String fieldName) {
-    FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
-    if (fieldDescriptor == null) {
-      Optional<FieldDescriptor> maybeFieldDescriptor =
-          protoMessageFactory.getDescriptorPool().findExtensionDescriptor(descriptor, fieldName);
-      if (maybeFieldDescriptor.isPresent()) {
-        fieldDescriptor = maybeFieldDescriptor.get();
-      }
-    }
-
-    if (fieldDescriptor == null && celOptions.enableJsonFieldNames()) {
+    if (celOptions.enableJsonFieldNames()) {
       for (FieldDescriptor fd : descriptor.getFields()) {
         if (fd.getJsonName().equals(fieldName)) {
-          fieldDescriptor = fd;
-          break;
+          return fd;
         }
       }
     }
 
-    if (fieldDescriptor == null) {
-      throw new IllegalArgumentException(
-          String.format(
-              "field '%s' is not declared in message '%s'", fieldName, descriptor.getFullName()));
+    FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
+    if (fieldDescriptor != null) {
+      return fieldDescriptor;
     }
-    return fieldDescriptor;
+    fieldDescriptor =
+        protoMessageFactory.getDescriptorPool().findExtensionDescriptor(descriptor, fieldName).orElse(null);
+    if (fieldDescriptor != null) {
+      return fieldDescriptor;
+    }
+
+
+    throw new IllegalArgumentException(
+        String.format(
+            "field '%s' is not declared in message '%s'", fieldName, descriptor.getFullName()));
   }
 
   private static MessageOrBuilder assertFullProtoMessage(Object candidate, String fieldName) {

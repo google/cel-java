@@ -68,17 +68,17 @@ public class ProtoMessageValueProvider implements CelValueProvider {
   }
 
   private FieldDescriptor findField(Descriptor descriptor, String fieldName) {
-    FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
-    if (fieldDescriptor != null) {
-      return fieldDescriptor;
-    }
-
     if (celOptions.enableJsonFieldNames()) {
       for (FieldDescriptor fd : descriptor.getFields()) {
         if (fd.getJsonName().equals(fieldName)) {
           return fd;
         }
       }
+    }
+
+    FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
+    if (fieldDescriptor != null) {
+      return fieldDescriptor;
     }
 
     return protoMessageFactory
