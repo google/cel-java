@@ -106,6 +106,13 @@ public final class TestRunnerLibrary {
     }
   }
 
+  /** Runs the test with the provided AST. */
+  public static void runTest(
+      CelAbstractSyntaxTree ast, CelTestCase testCase, CelTestContext celTestContext)
+      throws Exception {
+    evaluate(ast, testCase, celTestContext, /* celCoverageIndex= */ null);
+  }
+
   @VisibleForTesting
   static void evaluateTestCase(CelTestCase testCase, CelTestContext celTestContext)
       throws Exception {
