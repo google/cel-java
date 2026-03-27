@@ -120,7 +120,6 @@ _TESTS_TO_SKIP_LEGACY = [
     # Skip until fixed.
     "fields/qualified_identifier_resolution/map_value_repeat_key_heterogeneous",
     # TODO: Add strings.format and strings.quote.
-    "string_ext/quote",
     "string_ext/format",
     "string_ext/format_errors",
 
@@ -149,7 +148,6 @@ _TESTS_TO_SKIP_LEGACY = [
 
 _TESTS_TO_SKIP_PLANNER = [
     # TODO: Add strings.format and strings.quote.
-    "string_ext/quote",
     "string_ext/format",
     "string_ext/format_errors",
 
