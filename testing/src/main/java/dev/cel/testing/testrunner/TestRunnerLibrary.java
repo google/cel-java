@@ -31,11 +31,13 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
+import com.google.protobuf.TypeRegistry;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelEnvironment;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
@@ -205,6 +207,16 @@ public final class TestRunnerLibrary {
               .build();
     }
 
+    if (!celTestContext.fileTypes().isEmpty()) {
+      extendedCel =
+          extendedCel
+              .toCelBuilder()
+              .addMessageTypes(
+                  CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(celTestContext.fileTypes())
+                      .messageTypeDescriptors())
+              .build();
+    }
+
     CelEnvironment environment = CelEnvironment.newBuilder().build();
 
     // Extend the cel object with the config file if provided.
@@ -302,8 +314,15 @@ public final class TestRunnerLibrary {
         return getEvaluationResultWithMessage(
             getEvaluatedContextExpr(testCase, celTestContext), program, celCoverageIndex);
       case BINDINGS:
-        return getEvaluationResultWithBindings(
-            getBindings(testCase, celTestContext), program, celCoverageIndex);
+        ImmutableMap<String, Object> bindings = getBindings(testCase, celTestContext);
+        if (celTestContext.bindingTransformer().isPresent()) {
+          try {
+            bindings = celTestContext.bindingTransformer().get().transform(bindings);
+          } catch (Exception e) {
+            throw new CelEvaluationException("Binding transformation failed: " + e.getMessage(), e);
+          }
+        }
+        return getEvaluationResultWithBindings(bindings, program, celCoverageIndex);
       case NO_INPUT:
         ImmutableMap.Builder<String, Object> newBindings = ImmutableMap.builder();
         for (Map.Entry<String, Object> entry : celTestContext.variableBindings().entrySet()) {
@@ -396,10 +415,23 @@ public final class TestRunnerLibrary {
   private static Object getValueFromBinding(Object value, CelTestContext celTestContext)
       throws IOException {
     if (value instanceof Value) {
-      if (celTestContext.fileDescriptorSetPath().isPresent()) {
-        return fromValue((Value) value, celTestContext.fileDescriptorSetPath().get());
+      if (celTestContext.typeRegistry().isPresent()
+          || celTestContext.extensionRegistry().isPresent()) {
+        if (celTestContext.typeRegistry().isPresent()) {
+          ExtensionRegistry extensionRegistry =
+              celTestContext.extensionRegistry().orElse(ExtensionRegistry.getEmptyRegistry());
+          return fromValue((Value) value, celTestContext.typeRegistry().get(), extensionRegistry);
+        } else if (celTestContext.extensionRegistry().isPresent()) {
+          return fromValue(
+              (Value) value,
+              TypeRegistry.newBuilder().build(),
+              celTestContext.extensionRegistry().get());
+        } else if (celTestContext.fileDescriptorSetPath().isPresent()) {
+          return fromValue((Value) value, celTestContext.fileDescriptorSetPath().get());
+        }
       }
-      return fromValue((Value) value);
+      return fromValue(
+          (Value) value, TypeRegistry.newBuilder().build(), ExtensionRegistry.getEmptyRegistry());
     }
     return value;
   }

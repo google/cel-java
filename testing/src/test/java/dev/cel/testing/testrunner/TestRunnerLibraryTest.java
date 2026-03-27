@@ -26,6 +26,7 @@ import dev.cel.checker.ProtoTypeMask;
 import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -280,5 +281,75 @@ public class TestRunnerLibraryTest {
             .setCelExpression(CelExpressionSource.fromRawExpr("1 > 0"))
             .build(),
         celCoverageIndex);
+  }
+
+  @Test
+  public void runTest_withBindingTransformer() throws Exception {
+    CelTestCase testCase =
+        CelTestCase.newBuilder()
+            .setName("binding_transformer_test")
+            .setDescription("Test binding transformer")
+            .setInput(
+                CelTestCase.Input.ofBindings(
+                    ImmutableMap.of("x", CelTestCase.Input.Binding.ofValue(1L))))
+            .setOutput(CelTestCase.Output.ofResultValue(3L)) // 1 + 1 (transformed) + 1 (expr) = 3
+            .build();
+
+    TestRunnerLibrary.evaluateTestCase(
+        testCase,
+        CelTestContext.newBuilder()
+            .setCelExpression(CelExpressionSource.fromRawExpr("x + 1"))
+            .setCel(CelFactory.standardCelBuilder().addVar("x", SimpleType.INT).build())
+            .setBindingTransformer(
+                bindings -> {
+                  ImmutableMap.Builder<String, Object> transformed = ImmutableMap.builder();
+                  for (Map.Entry<String, Object> entry : bindings.entrySet()) {
+                    if (entry.getKey().equals("x")) {
+                      transformed.put("x", (Long) entry.getValue() + 1L);
+                    } else {
+                      transformed.put(entry);
+                    }
+                  }
+                  return transformed.buildOrThrow();
+                })
+            .build());
+  }
+
+  @Test
+  public void runTest_withMessageTypes() throws Exception {
+    CelTestCase testCase =
+        CelTestCase.newBuilder()
+            .setName("message_types_consolidation_test")
+            .setDescription("Test message types consolidation")
+            .setOutput(CelTestCase.Output.ofResultValue(true))
+            .build();
+
+    TestRunnerLibrary.evaluateTestCase(
+        testCase,
+        CelTestContext.newBuilder()
+            .setCelExpression(
+                CelExpressionSource.fromRawExpr(
+                    "cel.expr.conformance.proto3.TestAllTypes{single_int64: 1} =="
+                        + " cel.expr.conformance.proto3.TestAllTypes{single_int64: 1}"))
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .build());
+  }
+
+  @Test
+  public void typeRegistry_withFileTypes() throws Exception {
+    CelTestContext celTestContext =
+        CelTestContext.newBuilder()
+            .setCelExpression(CelExpressionSource.fromRawExpr("true"))
+            .setCel(CelFactory.standardCelBuilder().build())
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .build();
+
+    assertThat(
+            celTestContext
+                .typeRegistry()
+                .get()
+                .find("cel.expr.conformance.proto3.TestAllTypes")
+                .getFullName())
+        .isEqualTo("cel.expr.conformance.proto3.TestAllTypes");
   }
 }

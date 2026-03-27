@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelIssue;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.formats.CelFileSource;
 import dev.cel.common.formats.ParserContext;
 import dev.cel.common.formats.YamlHelper.YamlNodeType;
@@ -43,15 +44,18 @@ import org.yaml.snakeyaml.nodes.SequenceNode;
 /**
  * CelTestSuiteYamlParser intakes a YAML document that describes the structure of a CEL test suite,
  * parses it then creates a {@link CelTestSuite}.
+ *
+ * <p>CEL Library Internals. Do Not Use.
  */
-final class CelTestSuiteYamlParser {
+@Internal
+public final class CelTestSuiteYamlParser {
 
   /** Creates a new instance of {@link CelTestSuiteYamlParser}. */
-  static CelTestSuiteYamlParser newInstance() {
+  public static CelTestSuiteYamlParser newInstance() {
     return new CelTestSuiteYamlParser();
   }
 
-  CelTestSuite parse(String celTestSuiteYamlContent) throws CelTestSuiteException {
+  public CelTestSuite parse(String celTestSuiteYamlContent) throws CelTestSuiteException {
     return parseYaml(celTestSuiteYamlContent, "<input>");
   }
 
@@ -110,6 +114,7 @@ final class CelTestSuiteYamlParser {
         case "description":
           builder.setDescription(newString(ctx, valueNode));
           break;
+        case "section":
         case "sections":
           builder.setSections(parseSections(ctx, valueNode));
           break;
