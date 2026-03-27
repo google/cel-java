@@ -137,6 +137,17 @@ public final class CelStringExtensions
                 SimpleType.STRING,
                 SimpleType.STRING)),
         CelFunctionBinding.from("string_lower_ascii", String.class, Ascii::toLowerCase)),
+    QUOTE(
+        CelFunctionDecl.newFunctionDeclaration(
+            "strings.quote",
+            CelOverloadDecl.newGlobalOverload(
+                "strings_quote",
+                "Takes the given string and makes it safe to print (without any formatting"
+                    + " due to escape sequences). If any invalid UTF-8 characters are"
+                    + " encountered, they are replaced with \\uFFFD.",
+                SimpleType.STRING,
+                ImmutableList.of(SimpleType.STRING))),
+        CelFunctionBinding.from("strings_quote", String.class, CelStringExtensions::quote)),
     REPLACE(
         CelFunctionDecl.newFunctionDeclaration(
             "replace",
@@ -164,6 +175,16 @@ public final class CelStringExtensions
             "string_replace_string_string_int",
             ImmutableList.of(String.class, String.class, String.class, Long.class),
             CelStringExtensions::replace)),
+    REVERSE(
+        CelFunctionDecl.newFunctionDeclaration(
+            "reverse",
+            CelOverloadDecl.newMemberOverload(
+                "string_reverse",
+                "Returns a new string whose characters are the same as the target string,"
+                    + " only formatted in reverse order.",
+                SimpleType.STRING,
+                SimpleType.STRING)),
+        CelFunctionBinding.from("string_reverse", String.class, CelStringExtensions::reverse)),
     SPLIT(
         CelFunctionDecl.newFunctionDeclaration(
             "split",
@@ -449,6 +470,57 @@ public final class CelStringExtensions
     return -1L;
   }
 
+  private static String quote(String s) {
+    StringBuilder sb = new StringBuilder(s.length() + 2);
+    sb.append('"');
+    for (int i = 0; i < s.length(); ) {
+      int codePoint = s.codePointAt(i);
+      if (!Character.isValidCodePoint(codePoint)
+          || Character.isLowSurrogate(s.charAt(i))
+          || (Character.isHighSurrogate(s.charAt(i))
+              && (i + 1 >= s.length() || !Character.isLowSurrogate(s.charAt(i + 1))))) {
+        sb.append('\uFFFD');
+        i++;
+        continue;
+      }
+      switch (codePoint) {
+        case '\u0007':
+          sb.append("\\a");
+          break;
+        case '\b':
+          sb.append("\\b");
+          break;
+        case '\f':
+          sb.append("\\f");
+          break;
+        case '\n':
+          sb.append("\\n");
+          break;
+        case '\r':
+          sb.append("\\r");
+          break;
+        case '\t':
+          sb.append("\\t");
+          break;
+        case '\u000B':
+          sb.append("\\v");
+          break;
+        case '\\':
+          sb.append("\\\\");
+          break;
+        case '"':
+          sb.append("\\\"");
+          break;
+        default:
+          sb.appendCodePoint(codePoint);
+          break;
+      }
+      i += Character.charCount(codePoint);
+    }
+    sb.append('"');
+    return sb.toString();
+  }
+
   private static String replaceAll(Object[] objects) {
     return replace((String) objects[0], (String) objects[1], (String) objects[2], -1);
   }
@@ -502,6 +574,10 @@ public final class CelStringExtensions
         && (end = Math.toIntExact(safeIndexOf(textCpa, searchCpa, end + minSearchLength))) > 0);
 
     return sb.append(textCpa.slice(start, textCpa.length())).toString();
+  }
+
+  private static String reverse(String s) {
+    return new StringBuilder(s).reverse().toString();
   }
 
   private static List<String> split(String str, String separator) {

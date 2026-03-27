@@ -70,7 +70,9 @@ public final class CelStringExtensionsTest {
             "lastIndexOf",
             "lowerAscii",
             "replace",
+            "reverse",
             "split",
+            "strings.quote",
             "substring",
             "trim",
             "upperAscii");
@@ -1465,6 +1467,58 @@ public final class CelStringExtensionsTest {
             .eval();
 
     assertThat(evaluatedResult).isEqualTo(true);
+  }
+
+  @Test
+  @TestParameters("{string: 'abcd', expectedResult: 'dcba'}")
+  @TestParameters("{string: '', expectedResult: ''}")
+  @TestParameters("{string: 'a', expectedResult: 'a'}")
+  @TestParameters("{string: 'hello world', expectedResult: 'dlrow olleh'}")
+  @TestParameters("{string: 'ab가cd', expectedResult: 'dc가ba'}")
+  public void reverse_success(String string, String expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("s.reverse()").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+
+    assertThat(evaluatedResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void reverse_unicode() throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("s.reverse()").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", "😁😑😦"));
+
+    assertThat(evaluatedResult).isEqualTo("😦😑😁");
+  }
+
+  @Test
+  @TestParameters("{string: 'hello', expectedResult: '\"hello\"'}")
+  @TestParameters("{string: '', expectedResult: '\"\"'}")
+  @TestParameters("{string: 'contains \\\"quotes\\\"', expectedResult: '\"contains \\\\\\\"quotes\\\\\\\"\"'}")
+  public void quote_success(String string, String expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+
+    assertThat(evaluatedResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void quote_escapesSpecialCharacters() throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult =
+        program.eval(
+            ImmutableMap.of(
+                "s", "\u0007bell\u000Bvtab\bback\ffeed\rret\nline\ttab\\slash 가 😁"));
+
+    assertThat(evaluatedResult)
+        .isEqualTo("\"\\abell\\vvtab\\bback\\ffeed\\rret\\nline\\ttab\\\\slash 가 😁\"");
   }
 
   @Test
