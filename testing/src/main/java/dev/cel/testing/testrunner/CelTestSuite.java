@@ -93,7 +93,7 @@ public abstract class CelTestSuite {
     public abstract Builder toBuilder();
 
     public static Builder newBuilder() {
-      return new AutoValue_CelTestSuite_CelTestSection.Builder();
+      return new AutoValue_CelTestSuite_CelTestSection.Builder().setDescription("");
     }
 
     /** Class representing a CEL test case within a test section. */
@@ -237,7 +237,8 @@ public abstract class CelTestSuite {
 
       public static Builder newBuilder() {
         return new AutoValue_CelTestSuite_CelTestSection_CelTestCase.Builder()
-            .setInput(Input.ofNoInput()); // Default input to no input.
+            .setInput(Input.ofNoInput()) // Default input to no input.
+            .setDescription("");
       }
     }
   }
