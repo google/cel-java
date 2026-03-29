@@ -475,10 +475,7 @@ public final class CelStringExtensions
     sb.append('"');
     for (int i = 0; i < s.length(); ) {
       int codePoint = s.codePointAt(i);
-      if (!Character.isValidCodePoint(codePoint)
-          || Character.isLowSurrogate(s.charAt(i))
-          || (Character.isHighSurrogate(s.charAt(i))
-              && (i + 1 >= s.length() || !Character.isLowSurrogate(s.charAt(i + 1))))) {
+      if (isMalformedUtf16(s, i, codePoint)) {
         sb.append('\uFFFD');
         i++;
         continue;
@@ -519,6 +516,19 @@ public final class CelStringExtensions
     }
     sb.append('"');
     return sb.toString();
+  }
+
+  private static boolean isMalformedUtf16(String s, int index, int codePoint) {
+    char currentChar = s.charAt(index);
+    if (!Character.isValidCodePoint(codePoint)) {
+      return true;
+    }
+    if (Character.isLowSurrogate(currentChar)) {
+      return true;
+    }
+    // Check for unpaired high surrogate
+    return Character.isHighSurrogate(currentChar)
+        && (index + 1 >= s.length() || !Character.isLowSurrogate(s.charAt(index + 1)));
   }
 
   private static String replaceAll(Object[] objects) {

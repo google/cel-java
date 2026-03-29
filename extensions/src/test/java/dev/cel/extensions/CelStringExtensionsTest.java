@@ -33,6 +33,8 @@ import dev.cel.extensions.CelStringExtensions.Function;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
+
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1485,19 +1487,23 @@ public final class CelStringExtensionsTest {
   }
 
   @Test
-  public void reverse_unicode() throws Exception {
+  @TestParameters("{string: '😁😑😦', expectedResult: '😦😑😁'}")
+  @TestParameters("{string: '\u180e\u200b\u200c\u200d\u2060\ufeff', expectedResult: '\ufeff\u2060\u200d\u200c\u200b\u180e'}")
+  public void reverse_unicode(String string, String expectedResult) throws Exception {
     CelAbstractSyntaxTree ast = COMPILER.compile("s.reverse()").getAst();
     CelRuntime.Program program = RUNTIME.createProgram(ast);
 
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", "😁😑😦"));
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
 
-    assertThat(evaluatedResult).isEqualTo("😦😑😁");
+    assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
 
   @Test
   @TestParameters("{string: 'hello', expectedResult: '\"hello\"'}")
   @TestParameters("{string: '', expectedResult: '\"\"'}")
   @TestParameters("{string: 'contains \\\"quotes\\\"', expectedResult: '\"contains \\\\\\\"quotes\\\\\\\"\"'}")
+  @TestParameters("{string: 'ends with \\\\', expectedResult: '\"ends with \\\\\\\\\"'}")
+  @TestParameters("{string: '\\\\ starts with', expectedResult: '\"\\\\\\\\ starts with\"'}")
   public void quote_success(String string, String expectedResult) throws Exception {
     CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
     CelRuntime.Program program = RUNTIME.createProgram(ast);
@@ -1505,6 +1511,18 @@ public final class CelStringExtensionsTest {
     Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void quote_singleWithDoubleQuotes() throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile(
+        "strings.quote('single-quote with \"double quote\"') == \"\\\"single-quote with \\\\\\\"double quote\\\\\\\"\\\"\""
+    ).getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval();
+
+    assertThat(evaluatedResult).isEqualTo(true);
   }
 
   @Test
@@ -1519,6 +1537,19 @@ public final class CelStringExtensionsTest {
 
     assertThat(evaluatedResult)
         .isEqualTo("\"\\abell\\vvtab\\bback\\ffeed\\rret\\nline\\ttab\\\\slash 가 😁\"");
+  }
+
+  @Test
+  public void quote_escapesMalformed() throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult =
+        program.eval(
+            ImmutableMap.of(
+                "s", new String(new byte[]{'f','i','l','l','e','r',' ',(byte)0x9f}, StandardCharsets.UTF_8)));
+
+    assertThat(evaluatedResult).isEqualTo("\"filler \uFFFD\"");
   }
 
   @Test
