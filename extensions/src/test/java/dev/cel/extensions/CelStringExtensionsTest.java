@@ -1540,16 +1540,28 @@ public final class CelStringExtensionsTest {
   }
 
   @Test
-  public void quote_escapesMalformed() throws Exception {
+  @TestParameters({"{rawString: !!binary 'ZmlsbGVyIJ8=', expectedResult: '\"filler \uFFFD\"'}"}) // "filler \x9f"
+  public void quote_escapesMalformed(byte[] rawString, String expectedResult) throws Exception {
     CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
     CelRuntime.Program program = RUNTIME.createProgram(ast);
 
-    Object evaluatedResult =
-        program.eval(
-            ImmutableMap.of(
-                "s", new String(new byte[]{'f','i','l','l','e','r',' ',(byte)0x9f}, StandardCharsets.UTF_8)));
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", new String(rawString, StandardCharsets.UTF_8)));
 
-    assertThat(evaluatedResult).isEqualTo("\"filler \uFFFD\"");
+    assertThat(evaluatedResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void quote_escapesMalformed_endWithHighSurrogate() throws Exception {
+    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
+    assertThat(program.eval(ImmutableMap.of("s", "end with high surrogate \uD83D")))
+        .isEqualTo("\"end with high surrogate \uFFFD\"");
+  }
+
+  @Test
+  public void quote_escapesMalformed_unpairedHighSurrogate() throws Exception {
+    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
+    assertThat(program.eval(ImmutableMap.of("s", "bad pair \uD83DA")))
+        .isEqualTo("\"bad pair \uFFFDA\"");
   }
 
   @Test
