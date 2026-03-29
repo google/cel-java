@@ -474,6 +474,19 @@ Examples:
      'TacoCat'.lowerAscii()      // returns 'tacocat'
      'TacoCÆt Xii'.lowerAscii()  // returns 'tacocÆt xii'
 
+### Quote
+
+Takes the given string and makes it safe to print (without any formatting due
+to escape sequences).
+If any invalid UTF-8 characters are encountered, they are replaced with \uFFFD.
+
+    strings.quote(<string>)
+
+Examples:
+
+    strings.quote('single-quote with "double quote"') // returns '"single-quote with \"double quote\""'
+    strings.quote("two escape sequences \a\n") // returns '"two escape sequences \\a\\n"'
+
 ### Replace
 
 Returns a new string based on the target, which replaces the occurrences of a
@@ -492,6 +505,20 @@ Examples:
     'hello hello'.replace('he', 'we', -1) // returns 'wello wello'
     'hello hello'.replace('he', 'we', 1)  // returns 'wello hello'
     'hello hello'.replace('he', 'we', 0)  // returns 'hello hello'
+
+### Reverse
+
+Returns a new string whose characters are the same as the target string, only
+formatted in reverse order.
+This function relies on converting strings to Unicode code point arrays in
+order to reverse.
+
+    <string>.reverse() -> <string>
+
+Examples:
+
+    'gums'.reverse() // returns 'smug'
+    'John Smith'.reverse() // returns 'htimS nhoJ'
 
 ### Split
 
