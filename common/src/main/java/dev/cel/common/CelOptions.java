@@ -139,7 +139,7 @@ public abstract class CelOptions {
         .retainRepeatedUnaryOperators(false)
         .retainUnbalancedLogicalExpressions(false)
         .enableHiddenAccumulatorVar(true)
-        .enableQuotedIdentifierSyntax(false)
+        .enableQuotedIdentifierSyntax(true)
         // Type-Checker options
         .enableCompileTimeOverloadResolution(false)
         .enableHomogeneousLiterals(false)
