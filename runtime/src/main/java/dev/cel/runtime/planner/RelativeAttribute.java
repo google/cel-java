@@ -40,8 +40,9 @@ final class RelativeAttribute implements Attribute {
 
     obj = celValueConverter.toRuntimeValue(obj);
 
-    for (Qualifier qualifier : qualifiers) {
-      obj = qualifier.qualify(obj);
+    // Avoid enhanced for loop to prevent UnmodifiableIterator from being allocated
+    for (int i = 0; i < qualifiers.size(); i++) {
+      obj = qualifiers.get(i).qualify(obj);
     }
 
     return celValueConverter.maybeUnwrap(obj);

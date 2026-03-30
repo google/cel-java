@@ -77,8 +77,9 @@ final class NamespacedAttribute implements Attribute {
 
       if (partialVars != null) {
         ImmutableList<CelAttributePattern> patterns = partialVars.unknowns();
-        for (Qualifier qualifier : qualifiers) {
-          attr = attr.qualify(CelAttribute.Qualifier.fromGeneric(qualifier.value()));
+        // Avoid enhanced for loop to prevent UnmodifiableIterator from being allocated
+        for (int i = 0; i < qualifiers.size(); i++) {
+          attr = attr.qualify(CelAttribute.Qualifier.fromGeneric(qualifiers.get(i).value()));
         }
 
         CelAttributePattern partialMatch = findPartialMatchingPattern(attr, patterns).orElse(null);
@@ -178,8 +179,9 @@ final class NamespacedAttribute implements Attribute {
       Object value, CelValueConverter celValueConverter, ImmutableList<Qualifier> qualifiers) {
     Object obj = celValueConverter.toRuntimeValue(value);
 
-    for (Qualifier qualifier : qualifiers) {
-      obj = qualifier.qualify(obj);
+    // Avoid enhanced for loop to prevent UnmodifiableIterator from being allocated
+    for (int i = 0; i < qualifiers.size(); i++) {
+      obj = qualifiers.get(i).qualify(obj);
     }
 
     return celValueConverter.maybeUnwrap(obj);
