@@ -343,7 +343,7 @@ public final class ProgramPlanner {
 
   private PlannedInterpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
     CelStruct struct = celExpr.struct();
-    CelType structType = resolveStructType(struct);
+    CelType structType = resolveStructType(celExpr, ctx);
 
     ImmutableList<Entry> entries = struct.entries();
     String[] keys = new String[entries.size()];
@@ -489,7 +489,17 @@ public final class ProgramPlanner {
     return ResolvedFunction.newBuilder().setFunctionName(functionName).setTarget(target).build();
   }
 
-  private CelType resolveStructType(CelStruct struct) {
+  private CelType resolveStructType(CelExpr expr, PlannerContext ctx) {
+    CelType checkedType = ctx.typeMap().get(expr.id());
+    if (checkedType != null) {
+      CelKind kind = checkedType.kind();
+      // Type-checked ASTs do not need a type-provider lookup as long as it's of expected kind.
+      if (isValidStructKind(kind)) {
+        return checkedType;
+      }
+    }
+
+    CelStruct struct = expr.struct();
     String messageName = struct.messageName();
     for (String typeName : container.resolveCandidateNames(messageName)) {
       CelType structType = typeProvider.findType(typeName).orElse(null);
@@ -499,9 +509,7 @@ public final class ProgramPlanner {
 
       CelKind kind = structType.kind();
 
-      if (!kind.equals(CelKind.STRUCT)
-          && !kind.equals(CelKind.TIMESTAMP)
-          && !kind.equals(CelKind.DURATION)) {
+      if (!isValidStructKind(kind)) {
         throw new IllegalArgumentException(
             String.format(
                 "Expected struct type for %s, got %s", structType.name(), structType.kind()));
@@ -511,6 +519,12 @@ public final class ProgramPlanner {
     }
 
     throw new IllegalArgumentException("Undefined type name: " + messageName);
+  }
+
+  private static boolean isValidStructKind(CelKind kind) {
+    return kind.equals(CelKind.STRUCT)
+        || kind.equals(CelKind.TIMESTAMP)
+        || kind.equals(CelKind.DURATION);
   }
 
   /** Converts a given expression into a qualified name, if possible. */
