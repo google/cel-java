@@ -145,6 +145,35 @@ final class FunctionBindingImpl implements CelFunctionBinding {
               .collect(toImmutableList()));
     }
 
+    @Override
+    public Object apply(Object arg) throws CelEvaluationException {
+      for (CelFunctionBinding overload : overloadBindings) {
+        if (CelFunctionOverload.canHandle(arg, overload.getArgTypes(), overload.isStrict())) {
+          return overload.getDefinition().apply(arg);
+        }
+      }
+      throw new CelOverloadNotFoundException(
+          functionName,
+          overloadBindings.stream()
+              .map(CelFunctionBinding::getOverloadId)
+              .collect(toImmutableList()));
+    }
+
+    @Override
+    public Object apply(Object arg1, Object arg2) throws CelEvaluationException {
+      for (CelFunctionBinding overload : overloadBindings) {
+        if (CelFunctionOverload.canHandle(
+            arg1, arg2, overload.getArgTypes(), overload.isStrict())) {
+          return overload.getDefinition().apply(arg1, arg2);
+        }
+      }
+      throw new CelOverloadNotFoundException(
+          functionName,
+          overloadBindings.stream()
+              .map(CelFunctionBinding::getOverloadId)
+              .collect(toImmutableList()));
+    }
+
     ImmutableSet<CelFunctionBinding> getOverloadBindings() {
       return overloadBindings;
     }

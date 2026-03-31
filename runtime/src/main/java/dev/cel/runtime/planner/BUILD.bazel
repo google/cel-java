@@ -17,6 +17,7 @@ java_library(
         ":error_metadata",
         ":eval_and",
         ":eval_attribute",
+        ":eval_binary",
         ":eval_conditional",
         ":eval_const",
         ":eval_create_list",
@@ -226,6 +227,21 @@ java_library(
         ":execution_frame",
         ":planned_interpretable",
         "//common/values",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "//runtime:resolved_overload",
+    ],
+)
+
+java_library(
+    name = "eval_binary",
+    srcs = ["EvalBinary.java"],
+    deps = [
+        ":eval_helpers",
+        ":execution_frame",
+        ":planned_interpretable",
+        "//common/values",
+        "//runtime:accumulated_unknowns",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "//runtime:resolved_overload",

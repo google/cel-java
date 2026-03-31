@@ -200,19 +200,48 @@ public final class DefaultDispatcher implements CelFunctionResolver {
       for (Map.Entry<String, OverloadEntry> entry : overloads.entrySet()) {
         String overloadId = entry.getKey();
         OverloadEntry overloadEntry = entry.getValue();
+        CelFunctionOverload overloadImpl = overloadEntry.overload();
+
+        CelFunctionOverload guardedApply;
+        if (overloadImpl instanceof DynamicDispatchOverload) {
+          // Dynamic dispatcher already does its own internal canHandle checks
+          guardedApply = overloadImpl;
+        } else {
+          boolean isStrict = overloadEntry.isStrict();
+          ImmutableList<Class<?>> argTypes = overloadEntry.argTypes();
+
+          guardedApply =
+              new CelFunctionOverload() {
+                @Override
+                public Object apply(Object[] args) throws CelEvaluationException {
+                  if (CelFunctionOverload.canHandle(args, argTypes, isStrict)) {
+                    return overloadImpl.apply(args);
+                  }
+                  throw new CelOverloadNotFoundException(overloadId);
+                }
+
+                @Override
+                public Object apply(Object arg) throws CelEvaluationException {
+                  if (CelFunctionOverload.canHandle(arg, argTypes, isStrict)) {
+                    return overloadImpl.apply(arg);
+                  }
+                  throw new CelOverloadNotFoundException(overloadId);
+                }
+
+                @Override
+                public Object apply(Object arg1, Object arg2) throws CelEvaluationException {
+                  if (CelFunctionOverload.canHandle(arg1, arg2, argTypes, isStrict)) {
+                    return overloadImpl.apply(arg1, arg2);
+                  }
+                  throw new CelOverloadNotFoundException(overloadId);
+                }
+              };
+        }
+
         resolvedOverloads.put(
             overloadId,
             CelResolvedOverload.of(
-                overloadId,
-                args ->
-                    guardedOp(
-                        overloadId,
-                        args,
-                        overloadEntry.argTypes(),
-                        overloadEntry.isStrict(),
-                        overloadEntry.overload()),
-                overloadEntry.isStrict(),
-                overloadEntry.argTypes()));
+                overloadId, guardedApply, overloadEntry.isStrict(), overloadEntry.argTypes()));
       }
 
       return new DefaultDispatcher(resolvedOverloads.buildOrThrow());
@@ -221,23 +250,6 @@ public final class DefaultDispatcher implements CelFunctionResolver {
     private Builder() {
       this.overloads = new HashMap<>();
     }
-  }
-
-  /** Creates an invocation guard around the overload definition. */
-  private static Object guardedOp(
-      String functionName,
-      Object[] args,
-      ImmutableList<Class<?>> argTypes,
-      boolean isStrict,
-      CelFunctionOverload overload)
-      throws CelEvaluationException {
-    // Argument checking for DynamicDispatch is handled inside the overload's apply method itself.
-    if (overload instanceof DynamicDispatchOverload
-        || CelFunctionOverload.canHandle(args, argTypes, isStrict)) {
-      return overload.apply(args);
-    }
-
-    throw new CelOverloadNotFoundException(functionName);
   }
 
   DefaultDispatcher(ImmutableMap<String, CelResolvedOverload> overloads) {

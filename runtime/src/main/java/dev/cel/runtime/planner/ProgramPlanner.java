@@ -276,6 +276,9 @@ public final class ProgramPlanner {
         return EvalZeroArity.create(expr.id(), resolvedOverload, celValueConverter);
       case 1:
         return EvalUnary.create(expr.id(), resolvedOverload, evaluatedArgs[0], celValueConverter);
+      case 2:
+        return EvalBinary.create(
+            expr.id(), resolvedOverload, evaluatedArgs[0], evaluatedArgs[1], celValueConverter);
       default:
         return EvalVarArgsCall.create(
             expr.id(), resolvedOverload, evaluatedArgs, celValueConverter);

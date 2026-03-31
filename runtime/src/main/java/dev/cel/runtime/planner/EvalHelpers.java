@@ -61,17 +61,44 @@ final class EvalHelpers {
     try {
       Object result = overload.getDefinition().apply(args);
       return valueConverter.maybeUnwrap(valueConverter.toRuntimeValue(result));
-    } catch (CelRuntimeException e) {
-      // Function dispatch failure that's already been handled -- just propagate.
-      throw e;
     } catch (RuntimeException e) {
-      // Unexpected function dispatch failure.
-      throw new IllegalArgumentException(
-          String.format(
-              "Function '%s' failed with arg(s) '%s'",
-              overload.getOverloadId(), Joiner.on(", ").join(args)),
-          e);
+      throw handleDispatchException(e, overload, args);
     }
+  }
+
+  static Object dispatch(CelResolvedOverload overload, CelValueConverter valueConverter, Object arg)
+      throws CelEvaluationException {
+    try {
+      Object result = overload.getDefinition().apply(arg);
+      return valueConverter.maybeUnwrap(valueConverter.toRuntimeValue(result));
+    } catch (RuntimeException e) {
+      throw handleDispatchException(e, overload, arg);
+    }
+  }
+
+  static Object dispatch(
+      CelResolvedOverload overload, CelValueConverter valueConverter, Object arg1, Object arg2)
+      throws CelEvaluationException {
+    try {
+      Object result = overload.getDefinition().apply(arg1, arg2);
+      return valueConverter.maybeUnwrap(valueConverter.toRuntimeValue(result));
+    } catch (RuntimeException e) {
+      throw handleDispatchException(e, overload, arg1, arg2);
+    }
+  }
+
+  private static RuntimeException handleDispatchException(
+      RuntimeException e, CelResolvedOverload overload, Object... args) {
+    if (e instanceof CelRuntimeException) {
+      // Function dispatch failure that's already been handled -- just propagate.
+      return e;
+    }
+    // Unexpected function dispatch failure.
+    return new IllegalArgumentException(
+        String.format(
+            "Function '%s' failed with arg(s) '%s'",
+            overload.getOverloadId(), Joiner.on(", ").join(args)),
+        e);
   }
 
   private EvalHelpers() {}

@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,41 +18,58 @@ import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
 
-final class EvalUnary extends PlannedInterpretable {
+final class EvalBinary extends PlannedInterpretable {
 
   private final CelResolvedOverload resolvedOverload;
-  private final PlannedInterpretable arg;
+  private final PlannedInterpretable arg1;
+  private final PlannedInterpretable arg2;
   private final CelValueConverter celValueConverter;
 
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
-    Object argVal =
+    Object argVal1 =
         resolvedOverload.isStrict()
-            ? evalStrictly(arg, resolver, frame)
-            : evalNonstrictly(arg, resolver, frame);
-    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVal);
+            ? evalStrictly(arg1, resolver, frame)
+            : evalNonstrictly(arg1, resolver, frame);
+    Object argVal2 =
+        resolvedOverload.isStrict()
+            ? evalStrictly(arg2, resolver, frame)
+            : evalNonstrictly(arg2, resolver, frame);
+
+    AccumulatedUnknowns unknowns = AccumulatedUnknowns.maybeMerge(null, argVal1);
+    unknowns = AccumulatedUnknowns.maybeMerge(unknowns, argVal2);
+
+    if (unknowns != null) {
+      return unknowns;
+    }
+
+    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVal1, argVal2);
   }
 
-  static EvalUnary create(
+  static EvalBinary create(
       long exprId,
       CelResolvedOverload resolvedOverload,
-      PlannedInterpretable arg,
+      PlannedInterpretable arg1,
+      PlannedInterpretable arg2,
       CelValueConverter celValueConverter) {
-    return new EvalUnary(exprId, resolvedOverload, arg, celValueConverter);
+    return new EvalBinary(exprId, resolvedOverload, arg1, arg2, celValueConverter);
   }
 
-  private EvalUnary(
+  private EvalBinary(
       long exprId,
       CelResolvedOverload resolvedOverload,
-      PlannedInterpretable arg,
+      PlannedInterpretable arg1,
+      PlannedInterpretable arg2,
       CelValueConverter celValueConverter) {
     super(exprId);
     this.resolvedOverload = resolvedOverload;
-    this.arg = arg;
+    this.arg1 = arg1;
+    this.arg2 = arg2;
     this.celValueConverter = celValueConverter;
   }
 }

@@ -54,7 +54,20 @@ public interface CelFunctionBinding {
   @SuppressWarnings("unchecked")
   static <T> CelFunctionBinding from(
       String overloadId, Class<T> arg, CelFunctionOverload.Unary<T> impl) {
-    return from(overloadId, ImmutableList.of(arg), (args) -> impl.apply((T) args[0]));
+    return from(
+        overloadId,
+        ImmutableList.of(arg),
+        new CelFunctionOverload() {
+          @Override
+          public Object apply(Object[] args) throws CelEvaluationException {
+            return impl.apply((T) args[0]);
+          }
+
+          @Override
+          public Object apply(Object arg1) throws CelEvaluationException {
+            return impl.apply((T) arg1);
+          }
+        });
   }
 
   /**
@@ -65,7 +78,19 @@ public interface CelFunctionBinding {
   static <T1, T2> CelFunctionBinding from(
       String overloadId, Class<T1> arg1, Class<T2> arg2, CelFunctionOverload.Binary<T1, T2> impl) {
     return from(
-        overloadId, ImmutableList.of(arg1, arg2), (args) -> impl.apply((T1) args[0], (T2) args[1]));
+        overloadId,
+        ImmutableList.of(arg1, arg2),
+        new CelFunctionOverload() {
+          @Override
+          public Object apply(Object[] args) throws CelEvaluationException {
+            return impl.apply((T1) args[0], (T2) args[1]);
+          }
+
+          @Override
+          public Object apply(Object arg1, Object arg2) throws CelEvaluationException {
+            return impl.apply((T1) arg1, (T2) arg2);
+          }
+        });
   }
 
   /** Create a function binding from the {@code overloadId}, {@code argTypes}, and {@code impl}. */
