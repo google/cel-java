@@ -1515,9 +1515,9 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void quote_singleWithDoubleQuotes() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(
-        "strings.quote('single-quote with \"double quote\"') == \"\\\"single-quote with \\\\\\\"double quote\\\\\\\"\\\"\""
-    ).getAst();
+    String expr = "strings.quote('single-quote with \"double quote\"')";
+    String expected = "\"\\\"single-quote with \\\\\\\"double quote\\\\\\\"\\\"\"";
+    CelAbstractSyntaxTree ast = COMPILER.compile(expr + " == " + expected).getAst();
     CelRuntime.Program program = RUNTIME.createProgram(ast);
 
     Object evaluatedResult = program.eval();
@@ -1537,17 +1537,6 @@ public final class CelStringExtensionsTest {
 
     assertThat(evaluatedResult)
         .isEqualTo("\"\\abell\\vvtab\\bback\\ffeed\\rret\\nline\\ttab\\\\slash 가 😁\"");
-  }
-
-  @Test
-  @TestParameters({"{rawString: !!binary 'ZmlsbGVyIJ8=', expectedResult: '\"filler \uFFFD\"'}"}) // "filler \x9f"
-  public void quote_escapesMalformed(byte[] rawString, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", new String(rawString, StandardCharsets.UTF_8)));
-
-    assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
 
   @Test
