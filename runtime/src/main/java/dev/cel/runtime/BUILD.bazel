@@ -129,7 +129,6 @@ java_library(
         "//:auto_value",
         "//common:error_codes",
         "//common/annotations",
-        "//common/exceptions:overload_not_found",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -151,7 +150,6 @@ cel_android_library(
         "//:auto_value",
         "//common:error_codes",
         "//common/annotations",
-        "//common/exceptions:overload_not_found",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
@@ -790,6 +788,7 @@ java_library(
     name = "function_overload",
     srcs = [
         "CelFunctionOverload.java",
+        "OptimizedFunctionOverload.java",
     ],
     tags = [
     ],
@@ -805,6 +804,7 @@ cel_android_library(
     name = "function_overload_android",
     srcs = [
         "CelFunctionOverload.java",
+        "OptimizedFunctionOverload.java",
     ],
     deps = [
         ":evaluation_exception",
@@ -1306,9 +1306,12 @@ java_library(
     tags = [
     ],
     deps = [
+        ":evaluation_exception",
+        ":function_binding",
         ":function_overload",
         "//:auto_value",
         "//common/annotations",
+        "//common/exceptions:overload_not_found",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -1320,9 +1323,12 @@ cel_android_library(
     tags = [
     ],
     deps = [
+        ":evaluation_exception",
+        ":function_binding_android",
         ":function_overload_android",
         "//:auto_value",
         "//common/annotations",
+        "//common/exceptions:overload_not_found",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
     ],

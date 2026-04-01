@@ -59,7 +59,7 @@ final class EvalHelpers {
       CelResolvedOverload overload, CelValueConverter valueConverter, Object[] args)
       throws CelEvaluationException {
     try {
-      Object result = overload.getDefinition().apply(args);
+      Object result = overload.invoke(args);
       return valueConverter.maybeUnwrap(valueConverter.toRuntimeValue(result));
     } catch (RuntimeException e) {
       throw handleDispatchException(e, overload, args);
@@ -69,7 +69,7 @@ final class EvalHelpers {
   static Object dispatch(CelResolvedOverload overload, CelValueConverter valueConverter, Object arg)
       throws CelEvaluationException {
     try {
-      Object result = overload.getDefinition().apply(arg);
+      Object result = overload.invoke(arg);
       return valueConverter.maybeUnwrap(valueConverter.toRuntimeValue(result));
     } catch (RuntimeException e) {
       throw handleDispatchException(e, overload, arg);
@@ -80,7 +80,7 @@ final class EvalHelpers {
       CelResolvedOverload overload, CelValueConverter valueConverter, Object arg1, Object arg2)
       throws CelEvaluationException {
     try {
-      Object result = overload.getDefinition().apply(arg1, arg2);
+      Object result = overload.invoke(arg1, arg2);
       return valueConverter.maybeUnwrap(valueConverter.toRuntimeValue(result));
     } catch (RuntimeException e) {
       throw handleDispatchException(e, overload, arg1, arg2);

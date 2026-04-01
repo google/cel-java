@@ -26,7 +26,6 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.runtime.FunctionBindingImpl.DynamicDispatchOverload;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -202,46 +201,10 @@ public final class DefaultDispatcher implements CelFunctionResolver {
         OverloadEntry overloadEntry = entry.getValue();
         CelFunctionOverload overloadImpl = overloadEntry.overload();
 
-        CelFunctionOverload guardedApply;
-        if (overloadImpl instanceof DynamicDispatchOverload) {
-          // Dynamic dispatcher already does its own internal canHandle checks
-          guardedApply = overloadImpl;
-        } else {
-          boolean isStrict = overloadEntry.isStrict();
-          ImmutableList<Class<?>> argTypes = overloadEntry.argTypes();
-
-          guardedApply =
-              new CelFunctionOverload() {
-                @Override
-                public Object apply(Object[] args) throws CelEvaluationException {
-                  if (CelFunctionOverload.canHandle(args, argTypes, isStrict)) {
-                    return overloadImpl.apply(args);
-                  }
-                  throw new CelOverloadNotFoundException(overloadId);
-                }
-
-                @Override
-                public Object apply(Object arg) throws CelEvaluationException {
-                  if (CelFunctionOverload.canHandle(arg, argTypes, isStrict)) {
-                    return overloadImpl.apply(arg);
-                  }
-                  throw new CelOverloadNotFoundException(overloadId);
-                }
-
-                @Override
-                public Object apply(Object arg1, Object arg2) throws CelEvaluationException {
-                  if (CelFunctionOverload.canHandle(arg1, arg2, argTypes, isStrict)) {
-                    return overloadImpl.apply(arg1, arg2);
-                  }
-                  throw new CelOverloadNotFoundException(overloadId);
-                }
-              };
-        }
-
         resolvedOverloads.put(
             overloadId,
             CelResolvedOverload.of(
-                overloadId, guardedApply, overloadEntry.isStrict(), overloadEntry.argTypes()));
+                overloadId, overloadImpl, overloadEntry.isStrict(), overloadEntry.argTypes()));
       }
 
       return new DefaultDispatcher(resolvedOverloads.buildOrThrow());

@@ -18,6 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import java.util.List;
 
 /**
@@ -52,6 +53,33 @@ public abstract class CelResolvedOverload {
   /** The function definition. */
   public abstract CelFunctionOverload getDefinition();
 
+  abstract OptimizedFunctionOverload getOptimizedDefinition();
+
+  public Object invoke(Object[] args) throws CelEvaluationException {
+    // Note: canHandle check is handled separately in DynamicDispatchOverload
+    if (isDynamicDispatch()
+        || CelFunctionOverload.canHandle(args, getParameterTypes(), isStrict())) {
+      return getDefinition().apply(args);
+    }
+    throw new CelOverloadNotFoundException(getOverloadId());
+  }
+
+  public Object invoke(Object arg) throws CelEvaluationException {
+    if (isDynamicDispatch()
+        || CelFunctionOverload.canHandle(arg, getParameterTypes(), isStrict())) {
+      return getOptimizedDefinition().apply(arg);
+    }
+    throw new CelOverloadNotFoundException(getOverloadId());
+  }
+
+  public Object invoke(Object arg1, Object arg2) throws CelEvaluationException {
+    if (isDynamicDispatch()
+        || CelFunctionOverload.canHandle(arg1, arg2, getParameterTypes(), isStrict())) {
+      return getOptimizedDefinition().apply(arg1, arg2);
+    }
+    throw new CelOverloadNotFoundException(getOverloadId());
+  }
+
   /**
    * Creates a new resolved overload from the given overload id, parameter types, and definition.
    */
@@ -71,8 +99,12 @@ public abstract class CelResolvedOverload {
       CelFunctionOverload definition,
       boolean isStrict,
       List<Class<?>> parameterTypes) {
+    OptimizedFunctionOverload optimizedDef =
+        (definition instanceof OptimizedFunctionOverload)
+            ? (OptimizedFunctionOverload) definition
+            : definition::apply;
     return new AutoValue_CelResolvedOverload(
-        overloadId, ImmutableList.copyOf(parameterTypes), isStrict, definition);
+        overloadId, ImmutableList.copyOf(parameterTypes), isStrict, definition, optimizedDef);
   }
 
   /**
@@ -80,5 +112,9 @@ public abstract class CelResolvedOverload {
    */
   boolean canHandle(Object[] arguments) {
     return CelFunctionOverload.canHandle(arguments, getParameterTypes(), isStrict());
+  }
+
+  private boolean isDynamicDispatch() {
+    return getDefinition() instanceof FunctionBindingImpl.DynamicDispatchOverload;
   }
 }

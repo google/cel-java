@@ -26,15 +26,6 @@ public interface CelFunctionOverload {
   /** Evaluate a set of arguments throwing a {@code CelException} on error. */
   Object apply(Object[] args) throws CelEvaluationException;
 
-  /** Fast-path for unary function execution to avoid Object[] allocation. */
-  default Object apply(Object arg) throws CelEvaluationException {
-    return apply(new Object[] {arg});
-  }
-
-  /** Fast-path for binary function execution to avoid Object[] allocation. */
-  default Object apply(Object arg1, Object arg2) throws CelEvaluationException {
-    return apply(new Object[] {arg1, arg2});
-  }
 
   /**
    * Helper interface for describing unary functions where the type-parameter is used to improve

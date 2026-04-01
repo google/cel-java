@@ -126,7 +126,7 @@ final class FunctionBindingImpl implements CelFunctionBinding {
   }
 
   @Immutable
-  static final class DynamicDispatchOverload implements CelFunctionOverload {
+  static final class DynamicDispatchOverload implements OptimizedFunctionOverload {
     private final String functionName;
     private final ImmutableSet<CelFunctionBinding> overloadBindings;
 
@@ -149,7 +149,8 @@ final class FunctionBindingImpl implements CelFunctionBinding {
     public Object apply(Object arg) throws CelEvaluationException {
       for (CelFunctionBinding overload : overloadBindings) {
         if (CelFunctionOverload.canHandle(arg, overload.getArgTypes(), overload.isStrict())) {
-          return overload.getDefinition().apply(arg);
+          OptimizedFunctionOverload def = (OptimizedFunctionOverload) overload.getDefinition();
+          return def.apply(arg);
         }
       }
       throw new CelOverloadNotFoundException(
@@ -164,7 +165,8 @@ final class FunctionBindingImpl implements CelFunctionBinding {
       for (CelFunctionBinding overload : overloadBindings) {
         if (CelFunctionOverload.canHandle(
             arg1, arg2, overload.getArgTypes(), overload.isStrict())) {
-          return overload.getDefinition().apply(arg1, arg2);
+          OptimizedFunctionOverload def = (OptimizedFunctionOverload) overload.getDefinition();
+          return def.apply(arg1, arg2);
         }
       }
       throw new CelOverloadNotFoundException(

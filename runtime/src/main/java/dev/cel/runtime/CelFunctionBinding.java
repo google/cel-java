@@ -51,13 +51,13 @@ public interface CelFunctionBinding {
   boolean isStrict();
 
   /** Create a unary function binding from the {@code overloadId}, {@code arg}, and {@code impl}. */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked") // Safe from CelFunctionOverload.canHandle check before invocation
   static <T> CelFunctionBinding from(
       String overloadId, Class<T> arg, CelFunctionOverload.Unary<T> impl) {
     return from(
         overloadId,
         ImmutableList.of(arg),
-        new CelFunctionOverload() {
+        new OptimizedFunctionOverload() {
           @Override
           public Object apply(Object[] args) throws CelEvaluationException {
             return impl.apply((T) args[0]);
@@ -74,13 +74,13 @@ public interface CelFunctionBinding {
    * Create a binary function binding from the {@code overloadId}, {@code arg1}, {@code arg2}, and
    * {@code impl}.
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked") // Safe from CelFunctionOverload.canHandle check before invocation
   static <T1, T2> CelFunctionBinding from(
       String overloadId, Class<T1> arg1, Class<T2> arg2, CelFunctionOverload.Binary<T1, T2> impl) {
     return from(
         overloadId,
         ImmutableList.of(arg1, arg2),
-        new CelFunctionOverload() {
+        new OptimizedFunctionOverload() {
           @Override
           public Object apply(Object[] args) throws CelEvaluationException {
             return impl.apply((T1) args[0], (T2) args[1]);
