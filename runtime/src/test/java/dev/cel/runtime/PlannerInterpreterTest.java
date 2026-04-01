@@ -283,6 +283,11 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
     declareVariable("unknown_list", ListType.create(SimpleType.INT));
     source = "unknown_list.map(x, x)";
     runTest(variables, CelAttributePattern.fromQualifiedIdentifier("unknown_list"));
+
+    clearAllDeclarations();
+    declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
+    source = "cel.bind(x, [1, 2, 3], 1 in x)";
+    runTest(variables, CelAttributePattern.fromQualifiedIdentifier("x"));
   }
 
   @Test

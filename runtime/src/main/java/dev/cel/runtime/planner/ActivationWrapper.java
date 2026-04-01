@@ -19,4 +19,7 @@ import dev.cel.runtime.GlobalResolver;
 /** Identifies a resolver that can be unwrapped to bypass local variable state. */
 public interface ActivationWrapper extends GlobalResolver {
   GlobalResolver unwrap();
+
+  /** Returns true if the given name is bound by this local activation wrapper. */
+  boolean isLocallyBound(String name);
 }

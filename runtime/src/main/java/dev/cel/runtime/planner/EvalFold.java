@@ -176,6 +176,11 @@ final class EvalFold extends PlannedInterpretable {
     }
 
     @Override
+    public boolean isLocallyBound(String name) {
+      return name.equals(accuVar) || name.equals(iterVar) || name.equals(iterVar2);
+    }
+
+    @Override
     public @Nullable Object resolve(String name) {
       if (name.equals(accuVar)) {
         return accuVal;

@@ -75,7 +75,7 @@ final class NamespacedAttribute implements Attribute {
 
       PartialVars partialVars = frame.partialVars().orElse(null);
 
-      if (partialVars != null) {
+      if (partialVars != null && !isLocallyBound(resolver, name)) {
         ImmutableList<CelAttributePattern> patterns = partialVars.unknowns();
         // Avoid enhanced for loop to prevent UnmodifiableIterator from being allocated
         for (int i = 0; i < qualifiers.size(); i++) {
@@ -149,6 +149,17 @@ final class NamespacedAttribute implements Attribute {
             () ->
                 new NoSuchElementException(
                     String.format("Field %s was not found on enum %s", enumType.name(), field)));
+  }
+
+  private boolean isLocallyBound(GlobalResolver resolver, String name) {
+    while (resolver instanceof ActivationWrapper) {
+      ActivationWrapper wrapper = (ActivationWrapper) resolver;
+      if (wrapper.isLocallyBound(name)) {
+        return true;
+      }
+      resolver = wrapper.unwrap();
+    }
+    return false;
   }
 
   private GlobalResolver unwrapToNonLocal(GlobalResolver resolver) {

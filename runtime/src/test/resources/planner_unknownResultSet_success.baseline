@@ -459,3 +459,15 @@ single_timestamp {
 }
 , unknown_attributes=[unknown_list]}
 result:   CelUnknownSet{attributes=[unknown_list], unknownExprIds=[1]}
+
+Source: cel.bind(x, [1, 2, 3], 1 in x)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+, unknown_attributes=[x]}
+result:   true

@@ -87,6 +87,7 @@ java_library(
         "//common/types:message_type_provider",
         "//common/types:type_providers",
         "//common/values:cel_byte_string",
+        "//extensions",
         "//extensions:optional_library",
         "//runtime",
         "//runtime:function_binding",

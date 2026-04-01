@@ -74,6 +74,7 @@ import dev.cel.common.values.CelByteString;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
@@ -153,7 +154,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     this.celCompiler =
         celCompiler
             .toCompilerBuilder()
-            .addLibraries(CelOptionalLibrary.INSTANCE)
+            .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
             .setOptions(celOptions)
             .build();
   }
