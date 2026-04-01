@@ -17,7 +17,6 @@ package dev.cel.runtime;
 import com.google.auto.value.AutoOneOf;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
@@ -184,9 +183,13 @@ public abstract class CelAttribute {
    */
   public static CelAttribute fromQualifiedIdentifier(String qualifiedIdentifier) {
     ImmutableList.Builder<Qualifier> qualifiers = ImmutableList.builder();
-    Splitter.on(".")
-        .split(qualifiedIdentifier)
-        .forEach((element) -> qualifiers.add(Qualifier.ofString(element)));
+    int start = 0;
+    int next;
+    while ((next = qualifiedIdentifier.indexOf('.', start)) != -1) {
+      qualifiers.add(Qualifier.ofString(qualifiedIdentifier.substring(start, next)));
+      start = next + 1;
+    }
+    qualifiers.add(Qualifier.ofString(qualifiedIdentifier.substring(start)));
     return new AutoValue_CelAttribute(qualifiers.build());
   }
 
@@ -206,7 +209,7 @@ public abstract class CelAttribute {
       return EMPTY;
     }
     return new AutoValue_CelAttribute(
-        ImmutableList.<Qualifier>builder().addAll(qualifiers()).add(qualifier).build());
+        ImmutableList.<Qualifier>builderWithExpectedSize(qualifiers().size() + 1).addAll(qualifiers()).add(qualifier).build());
   }
 
   @Override

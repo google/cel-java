@@ -52,7 +52,7 @@ public final class DefaultMessageFactory implements ProtoMessageFactory {
         DefaultInstanceMessageFactory.getInstance().getPrototype(descriptor.get());
 
     if (message.isPresent()) {
-      return message.map(Message::toBuilder);
+      return message.map(Message::newBuilderForType);
     }
 
     return Optional.of(DynamicMessage.newBuilder(descriptor.get()));

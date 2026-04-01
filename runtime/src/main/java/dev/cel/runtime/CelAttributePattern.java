@@ -18,7 +18,6 @@ import static java.lang.Math.min;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 
@@ -62,9 +61,13 @@ public abstract class CelAttributePattern {
    */
   public static CelAttributePattern fromQualifiedIdentifier(String qualifiedIdentifier) {
     ImmutableList.Builder<CelAttribute.Qualifier> qualifiers = ImmutableList.builder();
-    Splitter.on(".")
-        .split(qualifiedIdentifier)
-        .forEach((String element) -> qualifiers.add(CelAttribute.Qualifier.ofString(element)));
+    int start = 0;
+    int next;
+    while ((next = qualifiedIdentifier.indexOf('.', start)) != -1) {
+      qualifiers.add(CelAttribute.Qualifier.ofString(qualifiedIdentifier.substring(start, next)));
+      start = next + 1;
+    }
+    qualifiers.add(CelAttribute.Qualifier.ofString(qualifiedIdentifier.substring(start)));
     return new AutoValue_CelAttributePattern(qualifiers.build());
   }
 
@@ -74,7 +77,7 @@ public abstract class CelAttributePattern {
   /** Create a new attribute pattern that specifies a subfield of this pattern. */
   public CelAttributePattern qualify(CelAttribute.Qualifier qualifier) {
     return new AutoValue_CelAttributePattern(
-        ImmutableList.<CelAttribute.Qualifier>builder()
+        ImmutableList.<CelAttribute.Qualifier>builderWithExpectedSize(qualifiers().size() + 1)
             .addAll(qualifiers())
             .add(qualifier)
             .build());
