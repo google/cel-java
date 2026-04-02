@@ -30,7 +30,6 @@ import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.Operator;
 import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
@@ -47,7 +46,10 @@ import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.CelOptimizationException;
+import dev.cel.runtime.CelAttribute.Qualifier;
+import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.PartialVars;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -282,7 +284,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       throws CelOptimizationException {
     Object result;
     try {
-      result = evaluateExpr(cel, CelMutableExprConverter.fromMutableExpr(node.expr()));
+      result = evaluateExpr(cel, node);
     } catch (CelValidationException | CelEvaluationException e) {
       throw new CelOptimizationException(
           "Constant folding failure. Failed to evaluate subtree due to: " + e.getMessage(), e);
@@ -674,13 +676,23 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   @CanIgnoreReturnValue
-  private static Object evaluateExpr(Cel cel, CelExpr expr)
+  private static Object evaluateExpr(Cel cel, CelNavigableMutableExpr navigableMutableExpr)
       throws CelValidationException, CelEvaluationException {
+    ImmutableList<CelAttributePattern> attributePatterns =
+        navigableMutableExpr
+            .allNodes()
+            .filter(node -> node.getKind().equals(Kind.IDENT))
+            .map(node -> node.expr().ident().name())
+            .filter(Qualifier::isLegalIdentifier)
+            .map(CelAttributePattern::create)
+            .collect(toImmutableList());
     CelAbstractSyntaxTree ast =
-        CelAbstractSyntaxTree.newParsedAst(expr, CelSource.newBuilder().build());
+        CelAbstractSyntaxTree.newParsedAst(
+            CelMutableExprConverter.fromMutableExpr(navigableMutableExpr.expr()),
+            CelSource.newBuilder().build());
     ast = cel.check(ast).getAst();
 
-    return cel.createProgram(ast).eval();
+    return cel.createProgram(ast).eval(PartialVars.of(attributePatterns));
   }
 
   /** Options to configure how Constant Folding behave. */

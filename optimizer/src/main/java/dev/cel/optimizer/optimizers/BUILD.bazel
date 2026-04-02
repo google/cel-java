@@ -35,6 +35,8 @@ java_library(
         "//optimizer:mutable_ast",
         "//optimizer:optimization_exception",
         "//runtime",
+        "//runtime:partial_vars",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],

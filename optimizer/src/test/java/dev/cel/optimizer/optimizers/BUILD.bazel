@@ -11,6 +11,7 @@ java_library(
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
+        "//bundle:cel_experimental_factory",
         "//common:cel_ast",
         "//common:cel_source",
         "//common:compiler_common",

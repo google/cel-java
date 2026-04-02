@@ -37,7 +37,12 @@ public abstract class PartialVars {
 
   /** Constructs a new {@code PartialVars} from one or more {@link CelAttributePattern}s. */
   public static PartialVars of(CelAttributePattern... unknownAttributes) {
-    return of((unused) -> Optional.empty(), ImmutableList.copyOf(unknownAttributes));
+    return of(ImmutableList.copyOf(unknownAttributes));
+  }
+
+  /** Constructs a new {@code PartialVars} from a list of {@link CelAttributePattern}s. */
+  public static PartialVars of(Iterable<CelAttributePattern> unknownAttributes) {
+    return of((unused) -> Optional.empty(), unknownAttributes);
   }
 
   /**
