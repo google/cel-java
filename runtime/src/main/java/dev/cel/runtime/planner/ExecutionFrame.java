@@ -30,6 +30,7 @@ final class ExecutionFrame {
   private final CelFunctionResolver functionResolver;
   private final PartialVars partialVars;
   private int iterationCount;
+  private BlockMemoizer blockMemoizer;
 
   Optional<CelResolvedOverload> findOverload(
       String functionName, Collection<String> overloadIds, Object[] args)
@@ -47,6 +48,17 @@ final class ExecutionFrame {
     if (++iterationCount > comprehensionIterationLimit) {
       throw new CelIterationLimitExceededException(comprehensionIterationLimit);
     }
+  }
+
+  void setBlockMemoizer(BlockMemoizer blockMemoizer) {
+    if (this.blockMemoizer != null) {
+      throw new IllegalStateException("BlockMemoizer is already initialized");
+    }
+    this.blockMemoizer = blockMemoizer;
+  }
+
+  BlockMemoizer getBlockMemoizer() {
+    return blockMemoizer;
   }
 
   static ExecutionFrame create(

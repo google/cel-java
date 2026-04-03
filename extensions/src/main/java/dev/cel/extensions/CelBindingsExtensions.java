@@ -22,7 +22,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
@@ -62,7 +66,15 @@ public final class CelBindingsExtensions
 
   @Override
   public ImmutableSet<CelFunctionDecl> functions() {
-    return ImmutableSet.of();
+    // TODO: Add bindings for block once decorator support is available.
+    return ImmutableSet.of(
+        CelFunctionDecl.newFunctionDeclaration(
+            "cel.@block",
+            CelOverloadDecl.newGlobalOverload(
+                "cel_block_list",
+                TypeParamType.create("T"),
+                ListType.create(SimpleType.DYN),
+                TypeParamType.create("T"))));
   }
 
   @Override

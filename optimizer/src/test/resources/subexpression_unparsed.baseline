@@ -526,7 +526,7 @@ Result: [[[foofoo, foofoo, foofoo, foofoo], [foofoo, foofoo, foofoo, foofoo]], [
 Test case: MACRO_SHADOWED_VARIABLE_COMP_V2_1
 Source: [x - y - 1 > 3 ? x - y - 1 : 5].exists(x, y, x - y - 1 > 3) || x - y - 1 > 3
 =====>
-Result: CelUnknownSet{attributes=[], unknownExprIds=[6]}
+Result: false
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([x - y - 1, @index0 > 3], [@index1 ? @index0 : 5].exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index1)
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([x - y, @index0 - 1, @index1 > 3, @index2 ? @index1 : 5, [@index3]], @index4.exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index2)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([x - y - 1, @index0 > 3, [@index1 ? @index0 : 5]], @index2.exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index1)
