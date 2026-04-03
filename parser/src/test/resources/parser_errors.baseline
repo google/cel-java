@@ -85,6 +85,24 @@ ERROR: <input>:1:43: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-'
  | "\a\b\f\n\r\t\v\'\"\\\? Illegal escape \>"
  | ..........................................^
 
+I: '?'
+=====>
+E: ERROR: <input>:1:1: Invalid unicode code point
+ | '?'
+ | ^
+
+I: '?'
+=====>
+E: ERROR: <input>:1:1: Invalid unicode code point
+ | '?'
+ | ^
+
+I: r"\?"
+=====>
+E: ERROR: <input>:1:1: Invalid unicode code point
+ | r"\?"
+ | ^
+
 I: as
 =====>
 E: ERROR: <input>:1:1: reserved identifier: as

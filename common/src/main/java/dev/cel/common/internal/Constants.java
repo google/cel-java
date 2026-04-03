@@ -207,6 +207,9 @@ public final class Constants {
             continue;
           }
           skipNewline = false;
+          if (codePoint >= MIN_SURROGATE && codePoint <= MAX_SURROGATE) {
+            throw new ParseException("Invalid unicode code point", seqOffset);
+          }
           buffer.appendCodePoint(codePoint);
         } else {
           // Normalize '\r' and '\r\n' to '\n'.
@@ -231,6 +234,9 @@ public final class Constants {
           // For raw literals, all escapes are valid and those characters come through literally in
           // the string.
           buffer.appendCodePoint('\\');
+          if (codePoint >= MIN_SURROGATE && codePoint <= MAX_SURROGATE) {
+            throw new ParseException("Invalid unicode code point", seqOffset);
+          }
           buffer.appendCodePoint(codePoint);
           continue;
         }

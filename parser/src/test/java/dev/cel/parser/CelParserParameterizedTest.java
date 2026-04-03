@@ -248,6 +248,10 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(PARSER, "1 + +");
     runTest(PARSER, "\"\\xFh\"");
     runTest(PARSER, "\"\\a\\b\\f\\n\\r\\t\\v\\'\\\"\\\\\\? Illegal escape \\>\"");
+    runTest(PARSER, "'\uD800'");
+    runTest(PARSER, "'\uDFFF'");
+    runTest(PARSER, "r\"\\\uD800\"");
+
     runTest(PARSER, "as");
     runTest(PARSER, "break");
     runTest(PARSER, "const");
