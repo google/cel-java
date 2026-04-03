@@ -142,6 +142,7 @@ java_library(
     deps = [
         "//common:compiler_common",
         "//common/ast",
+        "//common/types",
         "//compiler:compiler_builder",
         "//extensions:extension_library",
         "//parser:macro",

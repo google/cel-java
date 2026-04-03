@@ -63,7 +63,8 @@ public final class CelBindingsExtensionsTest {
         CelExtensions.getExtensionLibrary("bindings", CelOptions.DEFAULT);
     assertThat(library.name()).isEqualTo("bindings");
     assertThat(library.latest().version()).isEqualTo(0);
-    assertThat(library.version(0).functions()).isEmpty();
+    assertThat(library.version(0).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly("cel.@block");
     assertThat(library.version(0).macros().stream().map(CelMacro::getFunction))
         .containsExactly("bind");
   }

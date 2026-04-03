@@ -164,6 +164,11 @@ public final class ProgramPlanner {
     }
 
     String identName = celExpr.ident().name();
+    PlannedInterpretable blockSlot = maybeInterceptBlockSlot(celExpr.id(), identName).orElse(null);
+    if (blockSlot != null) {
+      return blockSlot;
+    }
+
     if (ctx.isLocalVar(identName)) {
       return EvalAttribute.create(celExpr.id(), attributeFactory.newAbsoluteAttribute(identName));
     }
@@ -196,11 +201,42 @@ public final class ProgramPlanner {
       return EvalConstant.create(id, identType);
     }
 
+    String identName = identRef.name();
+    PlannedInterpretable blockSlot = maybeInterceptBlockSlot(id, identName).orElse(null);
+    if (blockSlot != null) {
+      return blockSlot;
+    }
+
     return EvalAttribute.create(id, attributeFactory.newAbsoluteAttribute(identRef.name()));
+  }
+
+  private Optional<PlannedInterpretable> maybeInterceptBlockSlot(long id, String identName) {
+    if (!identName.startsWith("@index")) {
+      return Optional.empty();
+    }
+    if (identName.length() <= 6) {
+      throw new IllegalArgumentException("Malformed block slot identifier: " + identName);
+    }
+    try {
+      int slotIndex = Integer.parseInt(identName.substring(6));
+      if (slotIndex < 0) {
+        throw new IllegalArgumentException("Negative block slot index: " + identName);
+      }
+      return Optional.of(EvalBlock.EvalBlockSlot.create(id, slotIndex));
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid block slot index: " + identName, e);
+    }
   }
 
   private PlannedInterpretable planCall(CelExpr expr, PlannerContext ctx) {
     ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
+    String functionName = resolvedFunction.functionName();
+
+    PlannedInterpretable blockCall = maybeInterceptBlockCall(functionName, expr, ctx).orElse(null);
+    if (blockCall != null) {
+      return blockCall;
+    }
+
     CelExpr target = resolvedFunction.target().orElse(null);
     int argCount = expr.call().args().size();
     if (target != null) {
@@ -220,7 +256,6 @@ public final class ProgramPlanner {
       evaluatedArgs[argIndex + offset] = plan(args.get(argIndex), ctx);
     }
 
-    String functionName = resolvedFunction.functionName();
     Operator operator = Operator.findReverse(functionName).orElse(null);
     if (operator != null) {
       switch (operator) {
@@ -283,6 +318,28 @@ public final class ProgramPlanner {
         return EvalVarArgsCall.create(
             expr.id(), resolvedOverload, evaluatedArgs, celValueConverter);
     }
+  }
+
+  private Optional<PlannedInterpretable> maybeInterceptBlockCall(
+      String functionName, CelExpr expr, PlannerContext ctx) {
+    if (!functionName.equals("cel.@block")) {
+      return Optional.empty();
+    }
+
+    CelCall blockCall = expr.call();
+
+    if (blockCall.args().size() != 2) {
+      throw new IllegalArgumentException(
+          "Expected 2 arguments for cel.@block call. Got: " + blockCall.args().size());
+    }
+
+    CelList exprList = blockCall.args().get(0).list();
+    PlannedInterpretable[] slotExprs = new PlannedInterpretable[exprList.elements().size()];
+    for (int i = 0; i < slotExprs.length; i++) {
+      slotExprs[i] = plan(exprList.elements().get(i), ctx);
+    }
+    PlannedInterpretable resultExpr = plan(blockCall.args().get(1), ctx);
+    return Optional.of(EvalBlock.create(expr.id(), slotExprs, resultExpr));
   }
 
   /**
