@@ -168,6 +168,7 @@ public class CelExtensionsTest {
             "join",
             "lastIndexOf",
             "lowerAscii",
+            "strings.quote",
             "replace",
             "split",
             "substring",

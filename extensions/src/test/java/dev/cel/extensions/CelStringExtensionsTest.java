@@ -70,7 +70,9 @@ public final class CelStringExtensionsTest {
             "lastIndexOf",
             "lowerAscii",
             "replace",
+            "reverse",
             "split",
+            "strings.quote",
             "substring",
             "trim",
             "upperAscii");
@@ -1465,6 +1467,100 @@ public final class CelStringExtensionsTest {
             .eval();
 
     assertThat(evaluatedResult).isEqualTo(true);
+  }
+
+  @Test
+  @TestParameters("{string: 'abcd', expectedResult: 'dcba'}")
+  @TestParameters("{string: '', expectedResult: ''}")
+  @TestParameters("{string: 'a', expectedResult: 'a'}")
+  @TestParameters("{string: 'hello world', expectedResult: 'dlrow olleh'}")
+  @TestParameters("{string: 'ab가cd', expectedResult: 'dc가ba'}")
+  public void reverse_success(String string, String expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("s.reverse()").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+
+    assertThat(evaluatedResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{string: '😁😑😦', expectedResult: '😦😑😁'}")
+  @TestParameters(
+      "{string: '\u180e\u200b\u200c\u200d\u2060\ufeff', expectedResult:"
+          + " '\ufeff\u2060\u200d\u200c\u200b\u180e'}")
+  public void reverse_unicode(String string, String expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("s.reverse()").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+
+    assertThat(evaluatedResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{string: 'hello', expectedResult: '\"hello\"'}")
+  @TestParameters("{string: '', expectedResult: '\"\"'}")
+  @TestParameters(
+      "{string: 'contains \\\"quotes\\\"', expectedResult: '\"contains \\\\\\\"quotes\\\\\\\"\"'}")
+  @TestParameters("{string: 'ends with \\\\', expectedResult: '\"ends with \\\\\\\\\"'}")
+  @TestParameters("{string: '\\\\ starts with', expectedResult: '\"\\\\\\\\ starts with\"'}")
+  public void quote_success(String string, String expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+
+    assertThat(evaluatedResult).isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void quote_singleWithDoubleQuotes() throws Exception {
+    String expr = "strings.quote('single-quote with \"double quote\"')";
+    String expected = "\"\\\"single-quote with \\\\\\\"double quote\\\\\\\"\\\"\"";
+    CelAbstractSyntaxTree ast = COMPILER.compile(expr + " == " + expected).getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult = program.eval();
+
+    assertThat(evaluatedResult).isEqualTo(true);
+  }
+
+  @Test
+  public void quote_escapesSpecialCharacters() throws Exception {
+    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
+    CelRuntime.Program program = RUNTIME.createProgram(ast);
+
+    Object evaluatedResult =
+        program.eval(
+            ImmutableMap.of("s", "\u0007bell\u000Bvtab\bback\ffeed\rret\nline\ttab\\slash 가 😁"));
+
+    assertThat(evaluatedResult)
+        .isEqualTo("\"\\abell\\vvtab\\bback\\ffeed\\rret\\nline\\ttab\\\\slash 가 😁\"");
+  }
+
+  @Test
+  public void quote_escapesMalformed_endWithHighSurrogate() throws Exception {
+    CelRuntime.Program program =
+        RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
+    assertThat(program.eval(ImmutableMap.of("s", "end with high surrogate \uD83D")))
+        .isEqualTo("\"end with high surrogate \uFFFD\"");
+  }
+
+  @Test
+  public void quote_escapesMalformed_unpairedHighSurrogate() throws Exception {
+    CelRuntime.Program program =
+        RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
+    assertThat(program.eval(ImmutableMap.of("s", "bad pair \uD83DA")))
+        .isEqualTo("\"bad pair \uFFFDA\"");
+  }
+
+  @Test
+  public void quote_escapesMalformed_unpairedLowSurrogate() throws Exception {
+    CelRuntime.Program program =
+        RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
+    assertThat(program.eval(ImmutableMap.of("s", "bad pair \uDC00A")))
+        .isEqualTo("\"bad pair \uFFFDA\"");
   }
 
   @Test
