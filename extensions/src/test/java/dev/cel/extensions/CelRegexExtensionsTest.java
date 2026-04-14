@@ -20,25 +20,38 @@ import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
-import dev.cel.compiler.CelCompiler;
-import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.testing.CelRuntimeFlavor;
 import java.util.Optional;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class CelRegexExtensionsTest {
 
-  private static final CelCompiler COMPILER =
-      CelCompilerFactory.standardCelCompilerBuilder().addLibraries(CelExtensions.regex()).build();
-  private static final CelRuntime RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(CelExtensions.regex()).build();
+  @TestParameter public CelRuntimeFlavor runtimeFlavor;
+  @TestParameter public boolean isParseOnly;
+
+  private Cel cel;
+
+  @Before
+  public void setUp() {
+    // Legacy runtime does not support parsed-only evaluation mode.
+    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
+    this.cel =
+        runtimeFlavor
+            .builder()
+            .addCompilerLibraries(CelExtensions.regex())
+            .addRuntimeLibraries(CelExtensions.regex())
+            .build();
+  }
+
 
   @Test
   public void library() {
@@ -80,11 +93,7 @@ public final class CelRegexExtensionsTest {
   public void replaceAll_success(String target, String regex, String replaceStr, String res)
       throws Exception {
     String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
-    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
-
-    Object result = program.eval();
-
-    assertThat(result).isEqualTo(res);
+    assertThat(eval(expr)).isEqualTo(res);
   }
 
   @Test
@@ -93,11 +102,7 @@ public final class CelRegexExtensionsTest {
         "regex.replace("
             + "    regex.replace('%(foo) %(bar) %2','%\\\\((\\\\w+)\\\\)','${\\\\1}'),"
             + "    '%(\\\\d+)', '$\\\\1')";
-    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
-
-    Object result = program.eval();
-
-    assertThat(result).isEqualTo("${foo} ${bar} $2");
+    assertThat(eval(expr)).isEqualTo("${foo} ${bar} $2");
   }
 
   @Test
@@ -118,11 +123,7 @@ public final class CelRegexExtensionsTest {
   public void replaceCount_success(String t, String re, String rep, long i, String res)
       throws Exception {
     String expr = String.format("regex.replace('%s', '%s', '%s', %d)", t, re, rep, i);
-    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
-
-    Object result = program.eval();
-
-    assertThat(result).isEqualTo(res);
+    assertThat(eval(expr)).isEqualTo(res);
   }
 
   @Test
@@ -131,10 +132,8 @@ public final class CelRegexExtensionsTest {
   public void replace_invalidRegex_throwsException(String target, String regex, String replaceStr)
       throws Exception {
     String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> eval(expr));
 
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e).hasCauseThat().hasMessageThat().contains("Failed to compile regex: ");
@@ -143,10 +142,8 @@ public final class CelRegexExtensionsTest {
   @Test
   public void replace_invalidCaptureGroupReplaceStr_throwsException() throws Exception {
     String expr = "regex.replace('test', '(.)', '\\\\2')";
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> eval(expr));
 
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e)
@@ -158,10 +155,8 @@ public final class CelRegexExtensionsTest {
   @Test
   public void replace_trailingBackslashReplaceStr_throwsException() throws Exception {
     String expr = "regex.replace('id=123', 'id=(?P<value>\\\\d+)', '\\\\')";
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> eval(expr));
 
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e)
@@ -173,10 +168,8 @@ public final class CelRegexExtensionsTest {
   @Test
   public void replace_invalidGroupReferenceReplaceStr_throwsException() throws Exception {
     String expr = "regex.replace('id=123', 'id=(?P<value>\\\\d+)', '\\\\a')";
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> eval(expr));
 
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e)
@@ -199,9 +192,7 @@ public final class CelRegexExtensionsTest {
   @TestParameters("{target: 'brand', regex: 'brand', expectedResult: 'brand'}")
   public void extract_success(String target, String regex, String expectedResult) throws Exception {
     String expr = String.format("regex.extract('%s', '%s')", target, regex);
-    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
-
-    Object result = program.eval();
+    Object result = eval(expr);
 
     assertThat(result).isInstanceOf(Optional.class);
     assertThat((Optional<?>) result).hasValue(expectedResult);
@@ -213,9 +204,7 @@ public final class CelRegexExtensionsTest {
   @TestParameters("{target: '', regex: '\\\\w+'}")
   public void extract_no_match(String target, String regex) throws Exception {
     String expr = String.format("regex.extract('%s', '%s')", target, regex);
-    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
-
-    Object result = program.eval();
+    Object result = eval(expr);
 
     assertThat(result).isInstanceOf(Optional.class);
     assertThat((Optional<?>) result).isEmpty();
@@ -227,10 +216,8 @@ public final class CelRegexExtensionsTest {
   public void extract_multipleCaptureGroups_throwsException(String target, String regex)
       throws Exception {
     String expr = String.format("regex.extract('%s', '%s')", target, regex);
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> eval(expr));
 
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e)
@@ -263,9 +250,7 @@ public final class CelRegexExtensionsTest {
 
   @Test
   public void extractAll_success(@TestParameter ExtractAllTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(testCase.expr).getAst();
-
-    Object result = RUNTIME.createProgram(ast).eval();
+    Object result = eval(testCase.expr);
 
     assertThat(result).isEqualTo(testCase.expectedResult);
   }
@@ -281,15 +266,19 @@ public final class CelRegexExtensionsTest {
   public void extractAll_multipleCaptureGroups_throwsException(String target, String regex)
       throws Exception {
     String expr = String.format("regex.extractAll('%s', '%s')", target, regex);
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> eval(expr));
 
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e)
         .hasCauseThat()
         .hasMessageThat()
         .contains("Regular expression has more than one capturing group:");
+  }
+
+  private Object eval(String expr) throws Exception {
+    CelAbstractSyntaxTree ast =
+        isParseOnly ? cel.parse(expr).getAst() : cel.compile(expr).getAst();
+    return cel.createProgram(ast).eval();
   }
 }
