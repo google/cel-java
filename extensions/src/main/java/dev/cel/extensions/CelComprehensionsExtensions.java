@@ -118,29 +118,18 @@ public final class CelComprehensionsExtensions
   @Override
   public void setRuntimeOptions(
       CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality, CelOptions celOptions) {
-    for (Function function : functions) {
-      for (CelOverloadDecl overload : function.functionDecl.overloads()) {
-        switch (overload.overloadId()) {
-          case MAP_INSERT_OVERLOAD_MAP_MAP:
-            runtimeBuilder.addFunctionBindings(
-                CelFunctionBinding.from(
-                    MAP_INSERT_OVERLOAD_MAP_MAP,
-                    Map.class,
-                    Map.class,
-                    (map1, map2) -> mapInsertMap(map1, map2, runtimeEquality)));
-            break;
-          case MAP_INSERT_OVERLOAD_KEY_VALUE:
-            runtimeBuilder.addFunctionBindings(
-                CelFunctionBinding.from(
-                    MAP_INSERT_OVERLOAD_KEY_VALUE,
-                    ImmutableList.of(Map.class, Object.class, Object.class),
-                    args -> mapInsertKeyValue(args, runtimeEquality)));
-            break;
-          default:
-            // Nothing to add.
-        }
-      }
-    }
+    runtimeBuilder.addFunctionBindings(
+        CelFunctionBinding.fromOverloads(
+            MAP_INSERT_FUNCTION,
+            CelFunctionBinding.from(
+                MAP_INSERT_OVERLOAD_MAP_MAP,
+                Map.class,
+                Map.class,
+                (map1, map2) -> mapInsertMap(map1, map2, runtimeEquality)),
+            CelFunctionBinding.from(
+                MAP_INSERT_OVERLOAD_KEY_VALUE,
+                ImmutableList.of(Map.class, Object.class, Object.class),
+                args -> mapInsertKeyValue(args, runtimeEquality))));
   }
 
   @Override

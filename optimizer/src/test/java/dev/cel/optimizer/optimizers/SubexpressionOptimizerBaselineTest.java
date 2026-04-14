@@ -83,8 +83,13 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
           .addFunctionBindings(
               // This is pure, but for the purposes of excluding it as a CSE candidate, pretend that
               // it isn't.
-              CelFunctionBinding.from("non_pure_custom_func_overload", Long.class, val -> val),
-              CelFunctionBinding.from("pure_custom_func_overload", Long.class, val -> val))
+              CelFunctionBinding.fromOverloads(
+                  "non_pure_custom_func",
+                  CelFunctionBinding.from("non_pure_custom_func_overload", Long.class, val -> val)))
+          .addFunctionBindings(
+              CelFunctionBinding.fromOverloads(
+                  "pure_custom_func",
+                  CelFunctionBinding.from("pure_custom_func_overload", Long.class, val -> val)))
           .addVar("x", SimpleType.DYN)
           .addVar("y", SimpleType.DYN)
           .addVar("opt_x", OptionalType.create(SimpleType.DYN))
@@ -150,6 +155,28 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
     CelAbstractSyntaxTree optimizedAst = cseTestOptimizer.newCseOptimizer(runtimeEnv).optimize(ast);
 
     Object optimizedEvalResult = runtimeEnv.cel.createProgram(optimizedAst).eval(inputMap);
+    assertThat(optimizedEvalResult).isEqualTo(expectedEvalResult);
+  }
+
+  @Test
+  public void allOptimizers_producesSameEvaluationResult_parsedOnly(
+      @TestParameter CseTestCase cseTestCase, @TestParameter CseTestOptimizer cseTestOptimizer)
+      throws Exception {
+    skipBaselineVerification();
+    if (runtimeEnv == RuntimeEnv.LEGACY) {
+      return;
+    }
+    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile(cseTestCase.source).getAst();
+    ImmutableMap<String, Object> inputMap =
+        ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L, "y", 6L, "opt_x", Optional.of(5L));
+    Object expectedEvalResult = runtimeEnv.cel.createProgram(ast).eval(inputMap);
+
+    CelAbstractSyntaxTree optimizedAst = cseTestOptimizer.newCseOptimizer(runtimeEnv).optimize(ast);
+    CelAbstractSyntaxTree parsedOnlyOptimizedAst =
+        CelAbstractSyntaxTree.newParsedAst(optimizedAst.getExpr(), optimizedAst.getSource());
+
+    Object optimizedEvalResult =
+        runtimeEnv.cel.createProgram(parsedOnlyOptimizedAst).eval(inputMap);
     assertThat(optimizedEvalResult).isEqualTo(expectedEvalResult);
   }
 

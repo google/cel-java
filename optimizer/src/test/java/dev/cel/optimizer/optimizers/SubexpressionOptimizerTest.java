@@ -417,6 +417,19 @@ public class SubexpressionOptimizerTest {
   }
 
   @Test
+  public void block_success_parsedOnly(@TestParameter BlockTestCase testCase) throws Exception {
+    if (runtimeEnv == RuntimeEnv.LEGACY) {
+      return;
+    }
+    CelAbstractSyntaxTree ast =
+        compileUsingInternalFunctions(testCase.source, /* parsedOnly= */ true);
+
+    Object evaluatedResult = runtimeEnv.celForEvaluatingBlock.createProgram(ast).eval();
+
+    assertThat(evaluatedResult).isNotNull();
+  }
+
+  @Test
   @SuppressWarnings("Immutable") // Test only
   public void lazyEval_blockIndexNeverReferenced() throws Exception {
     AtomicInteger invocation = new AtomicInteger();
@@ -694,7 +707,7 @@ public class SubexpressionOptimizerTest {
    * Converts AST containing cel.block related test functions to internal functions (e.g: cel.block
    * -> cel.@block)
    */
-  private CelAbstractSyntaxTree compileUsingInternalFunctions(String expression)
+  private CelAbstractSyntaxTree compileUsingInternalFunctions(String expression, boolean parsedOnly)
       throws CelValidationException {
     CelAbstractSyntaxTree astToModify =
         runtimeEnv.celForEvaluatingBlock.compile(expression).getAst();
@@ -719,6 +732,14 @@ public class SubexpressionOptimizerTest {
               indexExpr.ident().setName(internalIdentName);
             });
 
+    if (parsedOnly) {
+      return mutableAst.toParsedAst();
+    }
     return runtimeEnv.celForEvaluatingBlock.check(mutableAst.toParsedAst()).getAst();
+  }
+
+  private CelAbstractSyntaxTree compileUsingInternalFunctions(String expression)
+      throws CelValidationException {
+    return compileUsingInternalFunctions(expression, false);
   }
 }
