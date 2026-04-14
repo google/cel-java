@@ -17,7 +17,6 @@ java_library(
     deps = [
         "//:java_truth",
         "//bundle:cel",
-        "//bundle:cel_experimental_factory",
         "//bundle:cel_impl",
         "//bundle:environment",
         "//bundle:environment_exception",
@@ -56,6 +55,7 @@ java_library(
         "//runtime:evaluation_listener",
         "//runtime:function_binding",
         "//runtime:unknown_attributes",
+        "//testing:cel_runtime_flavor",
         "//testing/protos:single_file_extension_java_proto",
         "//testing/protos:single_file_java_proto",
         "@cel_spec//proto/cel/expr:checked_java_proto",

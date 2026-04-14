@@ -12,6 +12,11 @@ java_library(
 )
 
 java_library(
+    name = "cel_runtime_flavor",
+    exports = ["//testing/src/main/java/dev/cel/testing:cel_runtime_flavor"],
+)
+
+java_library(
     name = "line_differ",
     exports = ["//testing/src/main/java/dev/cel/testing:line_differ"],
 )

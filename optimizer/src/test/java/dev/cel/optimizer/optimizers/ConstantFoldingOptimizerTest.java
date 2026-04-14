@@ -23,8 +23,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
-import dev.cel.bundle.CelExperimentalFactory;
-import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
@@ -44,6 +42,8 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.testing.CelRuntimeFlavor;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,72 +57,57 @@ public class ConstantFoldingOptimizerTest {
 
   private static final CelUnparser CEL_UNPARSER = CelUnparserFactory.newUnparser();
 
-  @SuppressWarnings("ImmutableEnumChecker") // test only
-  private enum RuntimeEnv {
-    LEGACY(setupEnv(CelFactory.standardCelBuilder())),
-    PLANNER(setupEnv(CelExperimentalFactory.plannerCelBuilder()));
+  @TestParameter CelRuntimeFlavor runtimeFlavor;
 
-    private final Cel cel;
-    private final CelOptimizer celOptimizer;
+  private Cel cel;
+  private CelOptimizer celOptimizer;
 
-    private static Cel setupEnv(CelBuilder celBuilder) {
-      return celBuilder
-          .addVar("x", SimpleType.DYN)
-          .addVar("y", SimpleType.DYN)
-          .addVar("list_var", ListType.create(SimpleType.STRING))
-          .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.STRING))
-          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .addFunctionDeclarations(
-              CelFunctionDecl.newFunctionDeclaration(
-                  "get_true",
-                  CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)),
-              CelFunctionDecl.newFunctionDeclaration(
-                  "get_list",
-                  CelOverloadDecl.newGlobalOverload(
-                      "get_list_overload",
-                      ListType.create(SimpleType.INT),
-                      ListType.create(SimpleType.INT))))
-          .addFunctionBindings(
-              CelFunctionBinding.from("get_true_overload", ImmutableList.of(), unused -> true))
-          .addMessageTypes(TestAllTypes.getDescriptor())
-          .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
-          .setOptions(CEL_OPTIONS)
-          .addCompilerLibraries(
-              CelExtensions.bindings(),
-              CelOptionalLibrary.INSTANCE,
-              CelExtensions.math(CEL_OPTIONS),
-              CelExtensions.strings(),
-              CelExtensions.sets(CEL_OPTIONS),
-              CelExtensions.encoders(CEL_OPTIONS))
-          .addRuntimeLibraries(
-              CelOptionalLibrary.INSTANCE,
-              CelExtensions.math(CEL_OPTIONS),
-              CelExtensions.strings(),
-              CelExtensions.sets(CEL_OPTIONS),
-              CelExtensions.encoders(CEL_OPTIONS))
-          .build();
-    }
-
-    RuntimeEnv(Cel cel) {
-      this.cel = cel;
-      this.celOptimizer =
-          CelOptimizerFactory.standardCelOptimizerBuilder(cel)
-              .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
-              .build();
-    }
-
-    private CelBuilder newCelBuilder() {
-      switch (this) {
-        case LEGACY:
-          return CelFactory.standardCelBuilder();
-        case PLANNER:
-          return CelExperimentalFactory.plannerCelBuilder();
-      }
-      throw new AssertionError("Unknown RuntimeEnv: " + this);
-    }
+  @Before
+  public void setUp() {
+    this.cel = setupEnv(runtimeFlavor.builder());
+    this.celOptimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(this.cel)
+            .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
+            .build();
   }
 
-  @TestParameter RuntimeEnv runtimeEnv;
+  private static Cel setupEnv(CelBuilder celBuilder) {
+    return celBuilder
+        .addVar("x", SimpleType.DYN)
+        .addVar("y", SimpleType.DYN)
+        .addVar("list_var", ListType.create(SimpleType.STRING))
+        .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.STRING))
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addFunctionDeclarations(
+            CelFunctionDecl.newFunctionDeclaration(
+                "get_true",
+                CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)),
+            CelFunctionDecl.newFunctionDeclaration(
+                "get_list",
+                CelOverloadDecl.newGlobalOverload(
+                    "get_list_overload",
+                    ListType.create(SimpleType.INT),
+                    ListType.create(SimpleType.INT))))
+        .addFunctionBindings(
+            CelFunctionBinding.from("get_true_overload", ImmutableList.of(), unused -> true))
+        .addMessageTypes(TestAllTypes.getDescriptor())
+        .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+        .setOptions(CEL_OPTIONS)
+        .addCompilerLibraries(
+            CelExtensions.bindings(),
+            CelOptionalLibrary.INSTANCE,
+            CelExtensions.math(CEL_OPTIONS),
+            CelExtensions.strings(),
+            CelExtensions.sets(CEL_OPTIONS),
+            CelExtensions.encoders(CEL_OPTIONS))
+        .addRuntimeLibraries(
+            CelOptionalLibrary.INSTANCE,
+            CelExtensions.math(CEL_OPTIONS),
+            CelExtensions.strings(),
+            CelExtensions.sets(CEL_OPTIONS),
+            CelExtensions.encoders(CEL_OPTIONS))
+        .build();
+  }
 
   @Test
   @TestParameters("{source: 'null', expected: 'null'}")
@@ -270,9 +255,9 @@ public class ConstantFoldingOptimizerTest {
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    CelAbstractSyntaxTree optimizedAst = runtimeEnv.celOptimizer.optimize(ast);
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(expected);
   }
@@ -317,8 +302,8 @@ public class ConstantFoldingOptimizerTest {
   public void constantFold_macros_macroCallMetadataPopulated(String source, String expected)
       throws Exception {
     Cel cel =
-        runtimeEnv
-            .newCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.DYN)
             .addVar("y", SimpleType.DYN)
             .addMessageTypes(TestAllTypes.getDescriptor())
@@ -363,8 +348,8 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'false ? false : cel.bind(a, true, a)'}")
   public void constantFold_macros_withoutMacroCallMetadata(String source) throws Exception {
     Cel cel =
-        runtimeEnv
-            .newCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.DYN)
             .addVar("y", SimpleType.DYN)
             .addMessageTypes(TestAllTypes.getDescriptor())
@@ -418,20 +403,20 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'get_list([1, 2]).map(x, x * 2)'}")
   @TestParameters("{source: '[(x - 1 > 3) ? (x - 1) : 5].exists(x, x - 1 > 3)'}")
   public void constantFold_noOp(String source) throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    CelAbstractSyntaxTree optimizedAst = runtimeEnv.celOptimizer.optimize(ast);
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(source);
   }
 
   @Test
   public void constantFold_addFoldableFunction_success() throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile("get_true() == get_true()").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("get_true() == get_true()").getAst();
     ConstantFoldingOptions options =
         ConstantFoldingOptions.newBuilder().addFoldableFunctions("get_true").build();
     CelOptimizer optimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(ConstantFoldingOptimizer.newInstance(options))
             .build();
 
@@ -442,7 +427,7 @@ public class ConstantFoldingOptimizerTest {
 
   @Test
   public void constantFold_withExpectedResultTypeSet_success() throws Exception {
-    Cel cel = runtimeEnv.newCelBuilder().setResultType(SimpleType.STRING).build();
+    Cel cel = runtimeFlavor.builder().setResultType(SimpleType.STRING).build();
     CelOptimizer optimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
@@ -458,8 +443,8 @@ public class ConstantFoldingOptimizerTest {
   public void constantFold_withMacroCallPopulated_comprehensionsAreReplacedWithNotSet()
       throws Exception {
     Cel cel =
-        runtimeEnv
-            .newCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.DYN)
             .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .setOptions(CEL_OPTIONS)
@@ -532,9 +517,9 @@ public class ConstantFoldingOptimizerTest {
 
   @Test
   public void constantFold_astProducesConsistentlyNumberedIds() throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile("[1] + [2] + [3]").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("[1] + [2] + [3]").getAst();
 
-    CelAbstractSyntaxTree optimizedAst = runtimeEnv.celOptimizer.optimize(ast);
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
 
     assertThat(optimizedAst.getExpr().toString())
         .isEqualTo(
@@ -555,8 +540,8 @@ public class ConstantFoldingOptimizerTest {
       sb.append(" + ").append(i);
     } // 0 + 1 + 2 + 3 + ... 200
     Cel cel =
-        runtimeEnv
-            .newCelBuilder()
+        runtimeFlavor
+            .builder()
             .setOptions(
                 CelOptions.current()
                     .enableHeterogeneousNumericComparisons(true)

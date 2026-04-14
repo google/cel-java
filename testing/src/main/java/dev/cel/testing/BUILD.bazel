@@ -105,3 +105,12 @@ java_library(
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
+
+java_library(
+    name = "cel_runtime_flavor",
+    srcs = ["CelRuntimeFlavor.java"],
+    deps = [
+        "//bundle:cel",
+        "//bundle:cel_experimental_factory",
+    ],
+)

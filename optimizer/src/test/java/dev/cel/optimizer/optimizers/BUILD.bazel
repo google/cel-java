@@ -11,7 +11,6 @@ java_library(
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
-        "//bundle:cel_experimental_factory",
         "//common:cel_ast",
         "//common:cel_source",
         "//common:compiler_common",
@@ -37,6 +36,7 @@ java_library(
         "//runtime:program",
         "//runtime:unknown_attributes",
         "//testing:baseline_test_case",
+        "//testing:cel_runtime_flavor",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "//:java_truth",

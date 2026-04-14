@@ -26,7 +26,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
-import dev.cel.bundle.CelExperimentalFactory;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
@@ -61,87 +60,80 @@ import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.PartialVars;
 import dev.cel.runtime.Program;
+import dev.cel.testing.CelRuntimeFlavor;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class SubexpressionOptimizerTest {
 
-  private enum RuntimeEnv {
-    LEGACY(
-        setupCelEnv(CelFactory.standardCelBuilder()),
-        setupCelForEvaluatingBlock(CelFactory.standardCelBuilder())),
-    PLANNER(
-        setupCelEnv(CelExperimentalFactory.plannerCelBuilder()),
-        setupCelForEvaluatingBlock(CelExperimentalFactory.plannerCelBuilder()));
-
-    private final Cel cel;
-    private final Cel celForEvaluatingBlock;
-
-    private static Cel setupCelEnv(CelBuilder celBuilder) {
-      return celBuilder
-          .addMessageTypes(TestAllTypes.getDescriptor())
-          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .setOptions(
-              CelOptions.current()
-                  .populateMacroCalls(true)
-                  .enableHeterogeneousNumericComparisons(true)
-                  .build())
-          .addCompilerLibraries(CelExtensions.bindings(), CelExtensions.strings())
-          .addRuntimeLibraries(CelExtensions.strings())
-          .addFunctionDeclarations(
-              CelFunctionDecl.newFunctionDeclaration(
-                  "non_pure_custom_func",
-                  newGlobalOverload(
-                      "non_pure_custom_func_overload", SimpleType.INT, SimpleType.INT)))
-          .addVar("x", SimpleType.DYN)
-          .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
-          .build();
-    }
-
-    private static Cel setupCelForEvaluatingBlock(CelBuilder celBuilder) {
-      return celBuilder
-          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .addFunctionDeclarations(
-              // These are test only declarations, as the actual function is made internal using @
-              // symbol.
-              // If the main function declaration needs updating, be sure to update the test
-              // declaration as well.
-              CelFunctionDecl.newFunctionDeclaration(
-                  "cel.block",
-                  CelOverloadDecl.newGlobalOverload(
-                      "block_test_only_overload",
-                      SimpleType.DYN,
-                      ListType.create(SimpleType.DYN),
-                      SimpleType.DYN)),
-              SubexpressionOptimizer.newCelBlockFunctionDecl(SimpleType.DYN),
-              CelFunctionDecl.newFunctionDeclaration(
-                  "get_true",
-                  CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
-          // Similarly, this is a test only decl (index0 -> @index0)
-          .addVarDeclarations(
-              CelVarDecl.newVarDeclaration("c0", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("c1", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("index0", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("index1", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("index2", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("@index0", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("@index1", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("@index2", SimpleType.DYN))
-          .addMessageTypes(TestAllTypes.getDescriptor())
-          .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
-          .build();
-    }
-
-    RuntimeEnv(Cel cel, Cel celForEvaluatingBlock) {
-      this.cel = cel;
-      this.celForEvaluatingBlock = celForEvaluatingBlock;
-    }
+  private static Cel setupCelEnv(CelBuilder celBuilder) {
+    return celBuilder
+        .addMessageTypes(TestAllTypes.getDescriptor())
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .setOptions(
+            CelOptions.current()
+                .populateMacroCalls(true)
+                .enableHeterogeneousNumericComparisons(true)
+                .build())
+        .addCompilerLibraries(CelExtensions.bindings(), CelExtensions.strings())
+        .addRuntimeLibraries(CelExtensions.strings())
+        .addFunctionDeclarations(
+            CelFunctionDecl.newFunctionDeclaration(
+                "non_pure_custom_func",
+                newGlobalOverload("non_pure_custom_func_overload", SimpleType.INT, SimpleType.INT)))
+        .addVar("x", SimpleType.DYN)
+        .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
+        .build();
   }
 
-  @TestParameter RuntimeEnv runtimeEnv;
+  private static Cel setupCelForEvaluatingBlock(CelBuilder celBuilder) {
+    return celBuilder
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addFunctionDeclarations(
+            // These are test only declarations, as the actual function is made internal using @
+            // symbol.
+            // If the main function declaration needs updating, be sure to update the test
+            // declaration as well.
+            CelFunctionDecl.newFunctionDeclaration(
+                "cel.block",
+                CelOverloadDecl.newGlobalOverload(
+                    "block_test_only_overload",
+                    SimpleType.DYN,
+                    ListType.create(SimpleType.DYN),
+                    SimpleType.DYN)),
+            SubexpressionOptimizer.newCelBlockFunctionDecl(SimpleType.DYN),
+            CelFunctionDecl.newFunctionDeclaration(
+                "get_true",
+                CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
+        // Similarly, this is a test only decl (index0 -> @index0)
+        .addVarDeclarations(
+            CelVarDecl.newVarDeclaration("c0", SimpleType.DYN),
+            CelVarDecl.newVarDeclaration("c1", SimpleType.DYN),
+            CelVarDecl.newVarDeclaration("index0", SimpleType.DYN),
+            CelVarDecl.newVarDeclaration("index1", SimpleType.DYN),
+            CelVarDecl.newVarDeclaration("index2", SimpleType.DYN),
+            CelVarDecl.newVarDeclaration("@index0", SimpleType.DYN),
+            CelVarDecl.newVarDeclaration("@index1", SimpleType.DYN),
+            CelVarDecl.newVarDeclaration("@index2", SimpleType.DYN))
+        .addMessageTypes(TestAllTypes.getDescriptor())
+        .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
+        .build();
+  }
+
+  @TestParameter CelRuntimeFlavor runtimeFlavor;
+
+  private Cel cel;
+  private Cel celForEvaluatingBlock;
+
+  @Before
+  public void setUp() {
+    this.cel = setupCelEnv(runtimeFlavor.builder());
+    this.celForEvaluatingBlock = setupCelForEvaluatingBlock(runtimeFlavor.builder());
+  }
 
   private static final CelUnparser CEL_UNPARSER = CelUnparserFactory.newUnparser();
 
@@ -160,7 +152,7 @@ public class SubexpressionOptimizerTest {
   }
 
   private CelOptimizer newCseOptimizer(SubexpressionOptimizerOptions options) {
-    return CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+    return CelOptimizerFactory.standardCelOptimizerBuilder(cel)
         .addAstOptimizers(SubexpressionOptimizer.newInstance(options))
         .build();
   }
@@ -174,21 +166,20 @@ public class SubexpressionOptimizerTest {
                 SubexpressionOptimizer.newInstance(
                     SubexpressionOptimizerOptions.newBuilder().build()))
             .build();
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile("size('a') + size('a') == 2").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("size('a') + size('a') == 2").getAst();
 
     CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
 
-    assertThat(runtimeEnv.cel.createProgram(optimizedAst).eval()).isEqualTo(true);
+    assertThat(cel.createProgram(optimizedAst).eval()).isEqualTo(true);
     assertThat(CEL_UNPARSER.unparse(optimizedAst))
         .isEqualTo("cel.@block([size(\"a\")], @index0 + @index0 == 2)");
   }
 
   @Test
   public void cse_indexEvaluationErrors_throws() throws Exception {
-    CelAbstractSyntaxTree ast =
-        runtimeEnv.cel.compile("\"abc\".charAt(10) + \"abc\".charAt(10)").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("\"abc\".charAt(10) + \"abc\".charAt(10)").getAst();
     CelOptimizer optimizedOptimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(SubexpressionOptimizer.getInstance())
             .build();
 
@@ -197,7 +188,7 @@ public class SubexpressionOptimizerTest {
     String unparsed = CEL_UNPARSER.unparse(optimizedAst);
     assertThat(unparsed).isEqualTo("cel.@block([\"abc\".charAt(10)], @index0 + @index0)");
 
-    Program program = runtimeEnv.cel.createProgram(optimizedAst);
+    Program program = cel.createProgram(optimizedAst);
     CelEvaluationException e =
         assertThrows(CelEvaluationException.class, () -> program.eval(ImmutableMap.of()));
     assertThat(e).hasMessageThat().contains("charAt failure: Index out of range: 10");
@@ -205,9 +196,9 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void cse_withUnknownAttributes() throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile("size(\"a\") == 1 ? x.y : x.y").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("size(\"a\") == 1 ? x.y : x.y").getAst();
     CelOptimizer optimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(SubexpressionOptimizer.getInstance())
             .build();
 
@@ -217,9 +208,7 @@ public class SubexpressionOptimizerTest {
         .isEqualTo("cel.@block([x.y], (size(\"a\") == 1) ? @index0 : @index0)");
 
     Object result =
-        runtimeEnv
-            .cel
-            .createProgram(optimizedAst)
+        cel.createProgram(optimizedAst)
             .eval(PartialVars.of(CelAttributePattern.fromQualifiedIdentifier("x")));
     assertThat(result).isInstanceOf(CelUnknownSet.class);
   }
@@ -254,7 +243,7 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void cse_withCelBind_noop(@TestParameter CseNoOpTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile(testCase.source).getAst();
+    CelAbstractSyntaxTree ast = cel.compile(testCase.source).getAst();
 
     CelAbstractSyntaxTree optimizedAst =
         newCseOptimizer(SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build())
@@ -266,7 +255,7 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void cse_withCelBlock_noop(@TestParameter CseNoOpTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile(testCase.source).getAst();
+    CelAbstractSyntaxTree ast = cel.compile(testCase.source).getAst();
 
     CelAbstractSyntaxTree optimizedAst =
         newCseOptimizer(SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build())
@@ -279,7 +268,7 @@ public class SubexpressionOptimizerTest {
   @Test
   public void cse_withComprehensionStructureRetained() throws Exception {
     CelAbstractSyntaxTree ast =
-        runtimeEnv.cel.compile("['foo'].map(x, [x+x]) + ['foo'].map(x, [x+x, x+x])").getAst();
+        cel.compile("['foo'].map(x, [x+x]) + ['foo'].map(x, [x+x, x+x])").getAst();
     CelOptimizer celOptimizer =
         newCseOptimizer(
             SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build());
@@ -295,12 +284,10 @@ public class SubexpressionOptimizerTest {
   @Test
   public void cse_applyConstFoldingBefore() throws Exception {
     CelAbstractSyntaxTree ast =
-        runtimeEnv
-            .cel
-            .compile("size([1+1+1]) + size([1+1+1]) + size([1,1+1+1]) + size([1,1+1+1]) + x")
+        cel.compile("size([1+1+1]) + size([1+1+1]) + size([1,1+1+1]) + size([1,1+1+1]) + x")
             .getAst();
     CelOptimizer optimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 ConstantFoldingOptimizer.getInstance(),
                 SubexpressionOptimizer.newInstance(
@@ -315,12 +302,10 @@ public class SubexpressionOptimizerTest {
   @Test
   public void cse_applyConstFoldingAfter() throws Exception {
     CelAbstractSyntaxTree ast =
-        runtimeEnv
-            .cel
-            .compile("size([1+1+1]) + size([1+1+1]) + size([1,1+1+1]) + size([1,1+1+1]) + x")
+        cel.compile("size([1+1+1]) + size([1+1+1]) + size([1,1+1+1]) + size([1,1+1+1]) + x")
             .getAst();
     CelOptimizer optimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 SubexpressionOptimizer.newInstance(
                     SubexpressionOptimizerOptions.newBuilder().build()),
@@ -335,9 +320,9 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void cse_applyConstFoldingAfter_nothingToFold() throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile("size(x) + size(x)").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("size(x) + size(x)").getAst();
     CelOptimizer optimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 SubexpressionOptimizer.newInstance(
                     SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build()),
@@ -360,7 +345,7 @@ public class SubexpressionOptimizerTest {
         largeExprBuilder.append("+");
       }
     }
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile(largeExprBuilder.toString()).getAst();
+    CelAbstractSyntaxTree ast = cel.compile(largeExprBuilder.toString()).getAst();
 
     CelOptimizationException e =
         assertThrows(
@@ -376,9 +361,9 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void celBlock_astExtensionTagged() throws Exception {
-    CelAbstractSyntaxTree ast = runtimeEnv.cel.compile("size(x) + size(x)").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("size(x) + size(x)").getAst();
     CelOptimizer optimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(runtimeEnv.cel)
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 SubexpressionOptimizer.newInstance(
                     SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build()),
@@ -411,20 +396,20 @@ public class SubexpressionOptimizerTest {
   public void block_success(@TestParameter BlockTestCase testCase) throws Exception {
     CelAbstractSyntaxTree ast = compileUsingInternalFunctions(testCase.source);
 
-    Object evaluatedResult = runtimeEnv.celForEvaluatingBlock.createProgram(ast).eval();
+    Object evaluatedResult = celForEvaluatingBlock.createProgram(ast).eval();
 
     assertThat(evaluatedResult).isNotNull();
   }
 
   @Test
   public void block_success_parsedOnly(@TestParameter BlockTestCase testCase) throws Exception {
-    if (runtimeEnv == RuntimeEnv.LEGACY) {
+    if (runtimeFlavor.equals(CelRuntimeFlavor.LEGACY)) {
       return;
     }
     CelAbstractSyntaxTree ast =
         compileUsingInternalFunctions(testCase.source, /* parsedOnly= */ true);
 
-    Object evaluatedResult = runtimeEnv.celForEvaluatingBlock.createProgram(ast).eval();
+    Object evaluatedResult = celForEvaluatingBlock.createProgram(ast).eval();
 
     assertThat(evaluatedResult).isNotNull();
   }
@@ -686,7 +671,7 @@ public class SubexpressionOptimizerTest {
     CelAbstractSyntaxTree ast = compileUsingInternalFunctions("cel.block([index1,index0],index0)");
 
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> runtimeEnv.cel.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
     assertThat(e).hasMessageThat().contains("Cycle detected: @index0");
   }
 
@@ -697,7 +682,7 @@ public class SubexpressionOptimizerTest {
             "cel.block([1/0 > 0], (index0 && false) || (index0 && true))");
 
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> runtimeEnv.cel.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
 
     assertThat(e).hasMessageThat().contains("/ by zero");
     assertThat(e).hasMessageThat().doesNotContain("Cycle detected");
@@ -709,8 +694,7 @@ public class SubexpressionOptimizerTest {
    */
   private CelAbstractSyntaxTree compileUsingInternalFunctions(String expression, boolean parsedOnly)
       throws CelValidationException {
-    CelAbstractSyntaxTree astToModify =
-        runtimeEnv.celForEvaluatingBlock.compile(expression).getAst();
+    CelAbstractSyntaxTree astToModify = celForEvaluatingBlock.compile(expression).getAst();
     CelMutableAst mutableAst = CelMutableAst.fromCelAst(astToModify);
     CelNavigableMutableAst.fromAst(mutableAst)
         .getRoot()
@@ -735,7 +719,7 @@ public class SubexpressionOptimizerTest {
     if (parsedOnly) {
       return mutableAst.toParsedAst();
     }
-    return runtimeEnv.celForEvaluatingBlock.check(mutableAst.toParsedAst()).getAst();
+    return celForEvaluatingBlock.check(mutableAst.toParsedAst()).getAst();
   }
 
   private CelAbstractSyntaxTree compileUsingInternalFunctions(String expression)

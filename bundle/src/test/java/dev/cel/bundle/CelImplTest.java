@@ -114,6 +114,7 @@ import dev.cel.runtime.CelRuntimeLegacyImpl;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
+import dev.cel.testing.CelRuntimeFlavor;
 import dev.cel.testing.testdata.SingleFile;
 import dev.cel.testing.testdata.SingleFileExtensionsProto;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
@@ -2144,8 +2145,9 @@ public final class CelImplTest {
   }
 
   @Test
-  public void eval_withJsonFieldName(@TestParameter RuntimeEnv runtimeEnv) throws Exception {
-    Cel cel = runtimeEnv.cel;
+  public void eval_withJsonFieldName(@TestParameter CelRuntimeFlavor runtimeFlavor)
+      throws Exception {
+    Cel cel = setupEnv(runtimeFlavor.builder());
     CelAbstractSyntaxTree ast =
         cel.compile(
                 "file.int32_snake_case_json_name == 1 && "
@@ -2176,8 +2178,9 @@ public final class CelImplTest {
   }
 
   @Test
-  public void eval_withJsonFieldName_fieldsFallBack(@TestParameter RuntimeEnv runtimeEnv) throws Exception {
-    Cel cel = runtimeEnv.cel;
+  public void eval_withJsonFieldName_fieldsFallBack(@TestParameter CelRuntimeFlavor runtimeFlavor)
+      throws Exception {
+    Cel cel = setupEnv(runtimeFlavor.builder());
     CelAbstractSyntaxTree ast =
         cel.compile(
                 "dyn(file).int32_snake_case_json_name == 1 && "
@@ -2206,8 +2209,9 @@ public final class CelImplTest {
   }
 
   @Test
-  public void eval_withJsonFieldName_extensionFields(@TestParameter RuntimeEnv runtimeEnv) throws Exception {
-    Cel cel = runtimeEnv.cel;
+  public void eval_withJsonFieldName_extensionFields(@TestParameter CelRuntimeFlavor runtimeFlavor)
+      throws Exception {
+    Cel cel = setupEnv(runtimeFlavor.builder());
     CelAbstractSyntaxTree ast =
         cel.compile(
                 "proto.getExt(file, dev.cel.testing.testdata.int64CamelCaseJsonName) == 5 &&"
@@ -2317,33 +2321,21 @@ public final class CelImplTest {
     };
   }
 
-  private enum RuntimeEnv {
-    LEGACY(setupEnv(CelFactory.standardCelBuilder())),
-    PLANNER(setupEnv(CelExperimentalFactory.plannerCelBuilder()))
-    ;
-
-    private final Cel cel;
-
-    private static Cel setupEnv(CelBuilder celBuilder) {
-      ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
-      SingleFileExtensionsProto.registerAllExtensions(extensionRegistry);
-      return celBuilder
-          .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
-          .addMessageTypes(SingleFile.getDescriptor())
-          .addFileTypes(SingleFileExtensionsProto.getDescriptor())
-          .addCompilerLibraries(CelExtensions.protos())
-          .setExtensionRegistry(extensionRegistry)
-          .setOptions(
-              CelOptions.current()
-                  .enableJsonFieldNames(true)
-                  .enableHeterogeneousNumericComparisons(true)
-                  .enableQuotedIdentifierSyntax(true)
-                  .build())
-          .build();
-    }
-
-    RuntimeEnv(Cel cel) {
-      this.cel = cel;
-    }
+  private static Cel setupEnv(CelBuilder celBuilder) {
+    ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
+    SingleFileExtensionsProto.registerAllExtensions(extensionRegistry);
+    return celBuilder
+        .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+        .addMessageTypes(SingleFile.getDescriptor())
+        .addFileTypes(SingleFileExtensionsProto.getDescriptor())
+        .addCompilerLibraries(CelExtensions.protos())
+        .setExtensionRegistry(extensionRegistry)
+        .setOptions(
+            CelOptions.current()
+                .enableJsonFieldNames(true)
+                .enableHeterogeneousNumericComparisons(true)
+                .enableQuotedIdentifierSyntax(true)
+                .build())
+        .build();
   }
 }
