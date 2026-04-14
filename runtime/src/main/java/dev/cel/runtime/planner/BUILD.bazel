@@ -364,6 +364,7 @@ java_library(
     deps = [
         ":activation_wrapper",
         ":planned_interpretable",
+        "//common/exceptions:runtime_exception",
         "//runtime:accumulated_unknowns",
         "//runtime:concatenated_list_view",
         "//runtime:evaluation_exception",

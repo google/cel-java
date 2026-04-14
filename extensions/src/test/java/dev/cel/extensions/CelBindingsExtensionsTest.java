@@ -22,40 +22,51 @@ import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.exceptions.CelDivideByZeroException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
-import dev.cel.compiler.CelCompiler;
-import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
+import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.testing.CelRuntimeFlavor;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class CelBindingsExtensionsTest {
 
-  private static final CelCompiler COMPILER =
-      CelCompilerFactory.standardCelCompilerBuilder()
-          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
-          .build();
+  @TestParameter public CelRuntimeFlavor runtimeFlavor;
+  @TestParameter public boolean isParseOnly;
 
-  private static final CelRuntime RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
-          .addLibraries(CelOptionalLibrary.INSTANCE)
-          .build();
+  private Cel cel;
+
+  @Before
+  public void setUp() {
+    // Legacy runtime does not support parsed-only evaluation mode.
+    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
+    cel =
+        runtimeFlavor
+            .builder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
+            .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+            .build();
+  }
 
   @Test
   public void library() {
@@ -93,9 +104,7 @@ public final class CelBindingsExtensionsTest {
 
   @Test
   public void binding_success(@TestParameter BindingTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(testCase.source).getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-    boolean evaluatedResult = (boolean) program.eval();
+    boolean evaluatedResult = (boolean) eval(testCase.source);
 
     assertThat(evaluatedResult).isTrue();
   }
@@ -103,9 +112,11 @@ public final class CelBindingsExtensionsTest {
   @Test
   @TestParameters("{expr: 'false.bind(false, false, false)'}")
   public void binding_nonCelNamespace_success(String expr) throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
-            .addLibraries(CelExtensions.bindings())
+    Cel customCel =
+        runtimeFlavor
+            .builder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
+            .addCompilerLibraries(CelExtensions.bindings())
             .addFunctionDeclarations(
                 CelFunctionDecl.newFunctionDeclaration(
                     "bind",
@@ -116,18 +127,16 @@ public final class CelBindingsExtensionsTest {
                         SimpleType.BOOL,
                         SimpleType.BOOL,
                         SimpleType.BOOL)))
-            .build();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "bool_bind_bool_bool_bool",
-                    Arrays.asList(Boolean.class, Boolean.class, Boolean.class, Boolean.class),
-                    (args) -> true))
+                CelFunctionBinding.fromOverloads(
+                    "bind",
+                    CelFunctionBinding.from(
+                        "bool_bind_bool_bool_bool",
+                        Arrays.asList(Boolean.class, Boolean.class, Boolean.class, Boolean.class),
+                        (args) -> true)))
             .build();
 
-    CelAbstractSyntaxTree ast = celCompiler.compile(expr).getAst();
-    boolean result = (boolean) celRuntime.createProgram(ast).eval();
+    boolean result = (boolean) eval(customCel, expr);
     assertThat(result).isTrue();
   }
 
@@ -135,7 +144,7 @@ public final class CelBindingsExtensionsTest {
   @TestParameters("{expr: 'cel.bind(bad.name, true, bad.name)'}")
   public void binding_throwsCompilationException(String expr) throws Exception {
     CelValidationException e =
-        assertThrows(CelValidationException.class, () -> COMPILER.compile(expr).getAst());
+        assertThrows(CelValidationException.class, () -> cel.compile(expr).getAst());
 
     assertThat(e).hasMessageThat().contains("cel.bind() variable name must be a simple identifier");
   }
@@ -143,70 +152,76 @@ public final class CelBindingsExtensionsTest {
   @Test
   @SuppressWarnings("Immutable") // Test only
   public void lazyBinding_bindingVarNeverReferenced() throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
+
+    AtomicInteger invocation = new AtomicInteger();
+    Cel customCel =
+        runtimeFlavor
+            .builder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .setStandardMacros(CelStandardMacro.HAS)
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
-            .addLibraries(CelExtensions.bindings())
+            .addCompilerLibraries(CelExtensions.bindings())
             .addFunctionDeclarations(
                 CelFunctionDecl.newFunctionDeclaration(
                     "get_true",
                     CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
-            .build();
-    AtomicInteger invocation = new AtomicInteger();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
-            .addMessageTypes(TestAllTypes.getDescriptor())
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "get_true_overload",
-                    ImmutableList.of(),
-                    arg -> {
-                      invocation.getAndIncrement();
-                      return true;
-                    }))
+                CelFunctionBinding.fromOverloads(
+                    "get_true",
+                    CelFunctionBinding.from(
+                        "get_true_overload",
+                        ImmutableList.of(),
+                        arg -> {
+                          invocation.getAndIncrement();
+                          return true;
+                        })))
             .build();
-    CelAbstractSyntaxTree ast =
-        celCompiler.compile("cel.bind(t, get_true(), has(msg.single_int64) ? t : false)").getAst();
-
     boolean result =
         (boolean)
-            celRuntime
-                .createProgram(ast)
-                .eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
+            eval(
+                customCel,
+                "cel.bind(t, get_true(), has(msg.single_int64) ? t : false)",
+                ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
 
     assertThat(result).isFalse();
     assertThat(invocation.get()).isEqualTo(0);
   }
 
   @Test
+  public void lazyBinding_throwsEvaluationException() throws Exception {
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> eval(cel, "cel.bind(t, 1 / 0, t)"));
+
+    assertThat(e).hasMessageThat().contains("/ by zero");
+    assertThat(e).hasCauseThat().isInstanceOf(CelDivideByZeroException.class);
+  }
+
+  @Test
   @SuppressWarnings("Immutable") // Test only
   public void lazyBinding_accuInitEvaluatedOnce() throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
-            .addLibraries(CelExtensions.bindings())
+    AtomicInteger invocation = new AtomicInteger();
+    Cel customCel =
+        runtimeFlavor
+            .builder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
+            .addCompilerLibraries(CelExtensions.bindings())
             .addFunctionDeclarations(
                 CelFunctionDecl.newFunctionDeclaration(
                     "get_true",
                     CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
-            .build();
-    AtomicInteger invocation = new AtomicInteger();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "get_true_overload",
-                    ImmutableList.of(),
-                    arg -> {
-                      invocation.getAndIncrement();
-                      return true;
-                    }))
+                CelFunctionBinding.fromOverloads(
+                    "get_true",
+                    CelFunctionBinding.from(
+                        "get_true_overload",
+                        ImmutableList.of(),
+                        arg -> {
+                          invocation.getAndIncrement();
+                          return true;
+                        })))
             .build();
-    CelAbstractSyntaxTree ast =
-        celCompiler.compile("cel.bind(t, get_true(), t && t && t && t)").getAst();
-
-    boolean result = (boolean) celRuntime.createProgram(ast).eval();
+    boolean result = (boolean) eval(customCel, "cel.bind(t, get_true(), t && t && t && t)");
 
     assertThat(result).isTrue();
     assertThat(invocation.get()).isEqualTo(1);
@@ -215,32 +230,32 @@ public final class CelBindingsExtensionsTest {
   @Test
   @SuppressWarnings("Immutable") // Test only
   public void lazyBinding_withNestedBinds() throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
-            .addLibraries(CelExtensions.bindings())
+    AtomicInteger invocation = new AtomicInteger();
+    Cel customCel =
+        runtimeFlavor
+            .builder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
+            .addCompilerLibraries(CelExtensions.bindings())
             .addFunctionDeclarations(
                 CelFunctionDecl.newFunctionDeclaration(
                     "get_true",
                     CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
-            .build();
-    AtomicInteger invocation = new AtomicInteger();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "get_true_overload",
-                    ImmutableList.of(),
-                    arg -> {
-                      invocation.getAndIncrement();
-                      return true;
-                    }))
+                CelFunctionBinding.fromOverloads(
+                    "get_true",
+                    CelFunctionBinding.from(
+                        "get_true_overload",
+                        ImmutableList.of(),
+                        arg -> {
+                          invocation.getAndIncrement();
+                          return true;
+                        })))
             .build();
-    CelAbstractSyntaxTree ast =
-        celCompiler
-            .compile("cel.bind(t1, get_true(), cel.bind(t2, get_true(), t1 && t2 && t1 && t2))")
-            .getAst();
-
-    boolean result = (boolean) celRuntime.createProgram(ast).eval();
+    boolean result =
+        (boolean)
+            eval(
+                customCel,
+                "cel.bind(t1, get_true(), cel.bind(t2, get_true(), t1 && t2 && t1 && t2))");
 
     assertThat(result).isTrue();
     assertThat(invocation.get()).isEqualTo(2);
@@ -249,32 +264,31 @@ public final class CelBindingsExtensionsTest {
   @Test
   @SuppressWarnings({"Immutable", "unchecked"}) // Test only
   public void lazyBinding_boundAttributeInComprehension() throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
+    AtomicInteger invocation = new AtomicInteger();
+    Cel customCel =
+        runtimeFlavor
+            .builder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .setStandardMacros(CelStandardMacro.MAP)
-            .addLibraries(CelExtensions.bindings())
+            .addCompilerLibraries(CelExtensions.bindings())
             .addFunctionDeclarations(
                 CelFunctionDecl.newFunctionDeclaration(
                     "get_true",
                     CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
-            .build();
-    AtomicInteger invocation = new AtomicInteger();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "get_true_overload",
-                    ImmutableList.of(),
-                    arg -> {
-                      invocation.getAndIncrement();
-                      return true;
-                    }))
+                CelFunctionBinding.fromOverloads(
+                    "get_true",
+                    CelFunctionBinding.from(
+                        "get_true_overload",
+                        ImmutableList.of(),
+                        arg -> {
+                          invocation.getAndIncrement();
+                          return true;
+                        })))
             .build();
 
-    CelAbstractSyntaxTree ast =
-        celCompiler.compile("cel.bind(x, get_true(), [1,2,3].map(y, y < 0 || x))").getAst();
-
-    List<Boolean> result = (List<Boolean>) celRuntime.createProgram(ast).eval();
+    List<Boolean> result =
+        (List<Boolean>) eval(customCel, "cel.bind(x, get_true(), [1,2,3].map(y, y < 0 || x))");
 
     assertThat(result).containsExactly(true, true, true);
     assertThat(invocation.get()).isEqualTo(1);
@@ -283,38 +297,55 @@ public final class CelBindingsExtensionsTest {
   @Test
   @SuppressWarnings({"Immutable"}) // Test only
   public void lazyBinding_boundAttributeInNestedComprehension() throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
+    AtomicInteger invocation = new AtomicInteger();
+    Cel customCel =
+        runtimeFlavor
+            .builder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .setStandardMacros(CelStandardMacro.EXISTS)
-            .addLibraries(CelExtensions.bindings())
+            .addCompilerLibraries(CelExtensions.bindings())
             .addFunctionDeclarations(
                 CelFunctionDecl.newFunctionDeclaration(
                     "get_true",
                     CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
-            .build();
-    AtomicInteger invocation = new AtomicInteger();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "get_true_overload",
-                    ImmutableList.of(),
-                    arg -> {
-                      invocation.getAndIncrement();
-                      return true;
-                    }))
+                CelFunctionBinding.fromOverloads(
+                    "get_true",
+                    CelFunctionBinding.from(
+                        "get_true_overload",
+                        ImmutableList.of(),
+                        arg -> {
+                          invocation.getAndIncrement();
+                          return true;
+                        })))
             .build();
 
-    CelAbstractSyntaxTree ast =
-        celCompiler
-            .compile(
+    boolean result =
+        (boolean)
+            eval(
+                customCel,
                 "cel.bind(x, get_true(), [1,2,3].exists(unused, x && "
-                    + "['a','b','c'].exists(unused_2, x)))")
-            .getAst();
-
-    boolean result = (boolean) celRuntime.createProgram(ast).eval();
+                    + "['a','b','c'].exists(unused_2, x)))");
 
     assertThat(result).isTrue();
     assertThat(invocation.get()).isEqualTo(1);
+  }
+
+  private Object eval(Cel cel, String expression) throws Exception {
+    return eval(cel, expression, ImmutableMap.of());
+  }
+
+  private Object eval(Cel cel, String expression, Map<String, ?> variables) throws Exception {
+    CelAbstractSyntaxTree ast;
+    if (isParseOnly) {
+      ast = cel.parse(expression).getAst();
+    } else {
+      ast = cel.compile(expression).getAst();
+    }
+    return cel.createProgram(ast).eval(variables);
+  }
+
+  private Object eval(String expression) throws Exception {
+    return eval(this.cel, expression, ImmutableMap.of());
   }
 }
