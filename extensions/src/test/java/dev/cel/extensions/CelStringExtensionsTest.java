@@ -18,43 +18,47 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.extensions.CelStringExtensions.Function;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeFactory;
 import java.util.List;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class CelStringExtensionsTest {
+public final class CelStringExtensionsTest extends CelExtensionTestBase {
 
-  private static final CelCompiler COMPILER =
-      CelCompilerFactory.standardCelCompilerBuilder()
-          .addLibraries(CelExtensions.strings())
-          .addVar("s", SimpleType.STRING)
-          .addVar("separator", SimpleType.STRING)
-          .addVar("index", SimpleType.INT)
-          .addVar("offset", SimpleType.INT)
-          .addVar("indexOfParam", SimpleType.STRING)
-          .addVar("beginIndex", SimpleType.INT)
-          .addVar("endIndex", SimpleType.INT)
-          .addVar("limit", SimpleType.INT)
-          .build();
 
-  private static final CelRuntime RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(CelExtensions.strings()).build();
+
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .addCompilerLibraries(CelExtensions.strings())
+        .addRuntimeLibraries(CelExtensions.strings())
+        .addVar("s", SimpleType.STRING)
+        .addVar("separator", SimpleType.STRING)
+        .addVar("index", SimpleType.INT)
+        .addVar("offset", SimpleType.INT)
+        .addVar("indexOfParam", SimpleType.STRING)
+        .addVar("beginIndex", SimpleType.INT)
+        .addVar("endIndex", SimpleType.INT)
+        .addVar("limit", SimpleType.INT)
+        .build();
+  }
 
   @Test
   public void library() {
@@ -92,10 +96,8 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁😑😦', beginIndex: 3, expectedResult: ''}")
   public void substring_beginIndex_success(String string, int beginIndex, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.substring(beginIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string, "beginIndex", beginIndex));
+    Object evaluatedResult =
+        eval("s.substring(beginIndex)", ImmutableMap.of("s", string, "beginIndex", beginIndex));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -108,10 +110,7 @@ public final class CelStringExtensionsTest {
   @TestParameters(
       "{string: 'A!@#$%^&*()-_+=?/<>.,;:''\"\\', expectedResult: 'a!@#$%^&*()-_+=?/<>.,;:''\"\\'}")
   public void lowerAscii_success(String string, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.lowerAscii()").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+    Object evaluatedResult = eval("s.lowerAscii()", ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -127,10 +126,7 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'A😁B 😑C가😦D', expectedResult: 'a😁b 😑c가😦d'}")
   public void lowerAscii_outsideAscii_success(String string, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.lowerAscii()").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+    Object evaluatedResult = eval("s.lowerAscii()", ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -161,10 +157,8 @@ public final class CelStringExtensionsTest {
           + " ['The quick brown ', ' jumps over the lazy dog']}")
   public void split_ascii_success(String string, String separator, List<String> expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.split(separator)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string, "separator", separator));
+    Object evaluatedResult =
+        eval("s.split(separator)", ImmutableMap.of("s", string, "separator", separator));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -182,34 +176,30 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁a😦나😑 😦', separator: '😁a😦나😑 😦', expectedResult: ['','']}")
   public void split_unicode_success(String string, String separator, List<String> expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.split(separator)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string, "separator", separator));
+    Object evaluatedResult =
+        eval("s.split(separator)", ImmutableMap.of("s", string, "separator", separator));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
 
   @Test
   @SuppressWarnings("unchecked") // Test only, need List<String> cast to test mutability
-  public void split_collectionIsMutable() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'test'.split('')").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
+  public void split_collectionIsImmutable() throws Exception {
+    CelAbstractSyntaxTree ast = cel.compile("'test'.split('')").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
 
     List<String> evaluatedResult = (List<String>) program.eval();
-    evaluatedResult.add("a");
-    evaluatedResult.add("b");
-    evaluatedResult.add("c");
-    evaluatedResult.remove("c");
 
-    assertThat(evaluatedResult).containsExactly("t", "e", "s", "t", "a", "b").inOrder();
+    assertThrows(UnsupportedOperationException.class, () -> evaluatedResult.add("a"));
   }
 
   @Test
   public void split_separatorIsNonString_throwsException() {
+    // This is a type-check failure.
+    Assume.assumeFalse(isParseOnly);
+    CelValidationResult result = cel.compile("'12'.split(2)");
     CelValidationException exception =
-        assertThrows(
-            CelValidationException.class, () -> COMPILER.compile("'12'.split(2)").getAst());
+        assertThrows(CelValidationException.class, () -> result.getAst());
 
     assertThat(exception).hasMessageThat().contains("found no matching overload for 'split'");
   }
@@ -295,11 +285,10 @@ public final class CelStringExtensionsTest {
           + " expectedResult: ['The quick brown ', ' jumps over the lazy dog']}")
   public void split_asciiWithLimit_success(
       String string, String separator, int limit, List<String> expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.split(separator, limit)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "separator", separator, "limit", limit));
+        eval(
+            "s.split(separator, limit)",
+            ImmutableMap.of("s", string, "separator", separator, "limit", limit));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -351,11 +340,10 @@ public final class CelStringExtensionsTest {
       "{string: '😁a😦나😑 😦', separator: '😁a😦나😑 😦', limit: -1, expectedResult: ['','']}")
   public void split_unicodeWithLimit_success(
       String string, String separator, int limit, List<String> expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.split(separator, limit)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "separator", separator, "limit", limit));
+        eval(
+            "s.split(separator, limit)",
+            ImmutableMap.of("s", string, "separator", separator, "limit", limit));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -368,35 +356,35 @@ public final class CelStringExtensionsTest {
   @TestParameters("{separator: 'te', limit: 1}")
   @TestParameters("{separator: 'te', limit: 2}")
   @SuppressWarnings("unchecked") // Test only, need List<String> cast to test mutability
-  public void split_withLimit_collectionIsMutable(String separator, int limit) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'test'.split(separator, limit)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
+  public void split_withLimit_collectionIsImmutable(String separator, int limit) throws Exception {
     List<String> evaluatedResult =
-        (List<String>) program.eval(ImmutableMap.of("separator", separator, "limit", limit));
-    evaluatedResult.add("a");
+        (List<String>)
+            eval(
+                "'test'.split(separator, limit)",
+                ImmutableMap.of("separator", separator, "limit", limit));
 
-    assertThat(Iterables.getLast(evaluatedResult)).isEqualTo("a");
+    assertThrows(UnsupportedOperationException.class, () -> evaluatedResult.add("a"));
   }
 
   @Test
   public void split_withLimit_separatorIsNonString_throwsException() {
+    // This is a type-check failure.
+    Assume.assumeFalse(isParseOnly);
+    CelValidationResult result = cel.compile("'12'.split(2, 3)");
     CelValidationException exception =
-        assertThrows(
-            CelValidationException.class, () -> COMPILER.compile("'12'.split(2, 3)").getAst());
+        assertThrows(CelValidationException.class, () -> result.getAst());
 
     assertThat(exception).hasMessageThat().contains("found no matching overload for 'split'");
   }
 
   @Test
   public void split_withLimitOverflow_throwsException() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'test'.split('', limit)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
+    ImmutableMap<String, Object> variables =
+        ImmutableMap.of("limit", 2147483648L); // INT_MAX + 1
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("limit", 2147483648L))); // INT_MAX + 1
+            () -> eval("'test'.split('', limit)", variables));
 
     assertThat(exception)
         .hasMessageThat()
@@ -416,11 +404,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '', beginIndex: 0, endIndex: 0, expectedResult: ''}")
   public void substring_beginAndEndIndex_ascii_success(
       String string, int beginIndex, int endIndex, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.substring(beginIndex, endIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex));
+        eval(
+            "s.substring(beginIndex, endIndex)",
+            ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -444,11 +431,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'a😁나', beginIndex: 3, endIndex: 3, expectedResult: ''}")
   public void substring_beginAndEndIndex_unicode_success(
       String string, int beginIndex, int endIndex, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.substring(beginIndex, endIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex));
+        eval(
+            "s.substring(beginIndex, endIndex)",
+            ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -458,13 +444,12 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '', beginIndex: 2}")
   public void substring_beginIndexOutOfRange_ascii_throwsException(String string, int beginIndex)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.substring(beginIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
+    ImmutableMap<String, Object> variables =
+        ImmutableMap.of("s", string, "beginIndex", beginIndex);
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("s", string, "beginIndex", beginIndex)));
+            () -> eval("s.substring(beginIndex)", variables));
 
     String exceptionMessage =
         String.format(
@@ -482,13 +467,12 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁가나', beginIndex: 4, uniqueCharCount: 3}")
   public void substring_beginIndexOutOfRange_unicode_throwsException(
       String string, int beginIndex, int uniqueCharCount) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.substring(beginIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
+    ImmutableMap<String, Object> variables =
+        ImmutableMap.of("s", string, "beginIndex", beginIndex);
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("s", string, "beginIndex", beginIndex)));
+            () -> eval("s.substring(beginIndex)", variables));
 
     String exceptionMessage =
         String.format(
@@ -505,15 +489,12 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁😑😦', beginIndex: 2, endIndex: 1}")
   public void substring_beginAndEndIndexOutOfRange_throwsException(
       String string, int beginIndex, int endIndex) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.substring(beginIndex, endIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
+    ImmutableMap<String, Object> variables =
+        ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex);
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () ->
-                program.eval(
-                    ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex)));
+            () -> eval("s.substring(beginIndex, endIndex)", variables));
 
     String exceptionMessage =
         String.format("substring failure: Range [%d, %d) out of bounds", beginIndex, endIndex);
@@ -522,13 +503,12 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void substring_beginIndexOverflow_throwsException() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'abcd'.substring(beginIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
+    ImmutableMap<String, Object> variables =
+        ImmutableMap.of("beginIndex", 2147483648L); // INT_MAX + 1
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("beginIndex", 2147483648L))); // INT_MAX + 1
+            () -> eval("'abcd'.substring(beginIndex)", variables));
 
     assertThat(exception)
         .hasMessageThat()
@@ -540,13 +520,13 @@ public final class CelStringExtensionsTest {
   @TestParameters("{beginIndex: 2147483648, endIndex: 2147483648}")
   public void substring_beginOrEndIndexOverflow_throwsException(long beginIndex, long endIndex)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'abcd'.substring(beginIndex, endIndex)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("beginIndex", beginIndex, "endIndex", endIndex)));
+            () ->
+                eval(
+                    "'abcd'.substring(beginIndex, endIndex)",
+                    ImmutableMap.of("beginIndex", beginIndex, "endIndex", endIndex)));
 
     assertThat(exception)
         .hasMessageThat()
@@ -563,10 +543,7 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'world', index: 5, expectedResult: ''}")
   public void charAt_ascii_success(String string, long index, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.charAt(index)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string, "index", index));
+    Object evaluatedResult = eval("s.charAt(index)", ImmutableMap.of("s", string, "index", index));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -588,10 +565,7 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'a😁나', index: 3, expectedResult: ''}")
   public void charAt_unicode_success(String string, long index, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.charAt(index)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string, "index", index));
+    Object evaluatedResult = eval("s.charAt(index)", ImmutableMap.of("s", string, "index", index));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -602,26 +576,21 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁😑😦', index: -1}")
   @TestParameters("{string: '😁😑😦', index: 4}")
   public void charAt_outOfBounds_throwsException(String string, long index) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.charAt(index)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("s", string, "index", index)));
+            () -> eval("s.charAt(index)", ImmutableMap.of("s", string, "index", index)));
 
     assertThat(exception).hasMessageThat().contains("charAt failure: Index out of range");
   }
 
   @Test
   public void charAt_indexOverflow_throwsException() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'test'.charAt(index)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("index", 2147483648L))); // INT_MAX + 1
+            () ->
+                eval("'test'.charAt(index)", ImmutableMap.of("index", 2147483648L))); // INT_MAX + 1
 
     assertThat(exception)
         .hasMessageThat()
@@ -650,10 +619,8 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'hello mellow', indexOf: '  ', expectedResult: -1}")
   public void indexOf_ascii_success(String string, String indexOf, int expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.indexOf(indexOfParam)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string, "indexOfParam", indexOf));
+    Object evaluatedResult =
+        eval("s.indexOf(indexOfParam)", ImmutableMap.of("s", string, "indexOfParam", indexOf));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -682,10 +649,8 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'a😁😑 나😦😁😑다', indexOf: 'a😁😑 나😦😁😑다😁', expectedResult: -1}")
   public void indexOf_unicode_success(String string, String indexOf, int expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.indexOf(indexOfParam)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string, "indexOfParam", indexOf));
+    Object evaluatedResult =
+        eval("s.indexOf(indexOfParam)", ImmutableMap.of("s", string, "indexOfParam", indexOf));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -697,13 +662,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{indexOf: '나'}")
   @TestParameters("{indexOf: '😁'}")
   public void indexOf_onEmptyString_throwsException(String indexOf) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("''.indexOf(indexOfParam)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("indexOfParam", indexOf)));
+            () -> eval("''.indexOf(indexOfParam)", ImmutableMap.of("indexOfParam", indexOf)));
 
     assertThat(exception).hasMessageThat().contains("indexOf failure: Offset out of range");
   }
@@ -728,11 +690,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'hello mellow', indexOf: 'l', offset: 10, expectedResult: -1}")
   public void indexOf_asciiWithOffset_success(
       String string, String indexOf, int offset, int expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.indexOf(indexOfParam, offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "indexOfParam", indexOf, "offset", offset));
+        eval(
+            "s.indexOf(indexOfParam, offset)",
+            ImmutableMap.of("s", string, "indexOfParam", indexOf, "offset", offset));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -779,11 +740,10 @@ public final class CelStringExtensionsTest {
       "{string: 'a😁😑 나😦😁😑다', indexOf: 'a😁😑 나😦😁😑다😁', offset: 0, expectedResult: -1}")
   public void indexOf_unicodeWithOffset_success(
       String string, String indexOf, int offset, int expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.indexOf(indexOfParam, offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "indexOfParam", indexOf, "offset", offset));
+        eval(
+            "s.indexOf(indexOfParam, offset)",
+            ImmutableMap.of("s", string, "indexOfParam", indexOf, "offset", offset));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -797,14 +757,12 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁😑 😦', indexOf: '😦', offset: 4}")
   public void indexOf_withOffsetOutOfBounds_throwsException(
       String string, String indexOf, int offset) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.indexOf(indexOfParam, offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
             () ->
-                program.eval(
+                eval(
+                    "s.indexOf(indexOfParam, offset)",
                     ImmutableMap.of("s", string, "indexOfParam", indexOf, "offset", offset)));
 
     assertThat(exception).hasMessageThat().contains("indexOf failure: Offset out of range");
@@ -812,13 +770,13 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void indexOf_offsetOverflow_throwsException() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'test'.indexOf('t', offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("offset", 2147483648L))); // INT_MAX + 1
+            () ->
+                eval(
+                    "'test'.indexOf('t', offset)",
+                    ImmutableMap.of("offset", 2147483648L))); // INT_MAX + 1
 
     assertThat(exception)
         .hasMessageThat()
@@ -835,10 +793,7 @@ public final class CelStringExtensionsTest {
   @TestParameters("{list: '[''x'', '' '', '' y '', ''z '']', expectedResult: 'x  y z '}")
   @TestParameters("{list: '[''hello '', ''world'']', expectedResult: 'hello world'}")
   public void join_ascii_success(String list, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(String.format("%s.join()", list)).getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    String result = (String) program.eval();
+    String result = (String) eval(String.format("%s.join()", list));
 
     assertThat(result).isEqualTo(expectedResult);
   }
@@ -847,10 +802,7 @@ public final class CelStringExtensionsTest {
   @TestParameters("{list: '[''가'', ''😁'']', expectedResult: '가😁'}")
   @TestParameters("{list: '[''😁😦😑 😦'', ''나'']', expectedResult: '😁😦😑 😦나'}")
   public void join_unicode_success(String list, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(String.format("%s.join()", list)).getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    String result = (String) program.eval();
+    String result = (String) eval(String.format("%s.join()", list));
 
     assertThat(result).isEqualTo(expectedResult);
   }
@@ -874,11 +826,7 @@ public final class CelStringExtensionsTest {
       "{list: '[''hello '', ''world'']', separator: '/', expectedResult: 'hello /world'}")
   public void join_asciiWithSeparator_success(String list, String separator, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast =
-        COMPILER.compile(String.format("%s.join('%s')", list, separator)).getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    String result = (String) program.eval();
+    String result = (String) eval(String.format("%s.join('%s')", list, separator));
 
     assertThat(result).isEqualTo(expectedResult);
   }
@@ -893,20 +841,17 @@ public final class CelStringExtensionsTest {
           + " -😑-나'}")
   public void join_unicodeWithSeparator_success(
       String list, String separator, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast =
-        COMPILER.compile(String.format("%s.join('%s')", list, separator)).getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    String result = (String) program.eval();
+    String result = (String) eval(String.format("%s.join('%s')", list, separator));
 
     assertThat(result).isEqualTo(expectedResult);
   }
 
   @Test
   public void join_separatorIsNonString_throwsException() {
+    // This is a type-check failure.
+    Assume.assumeFalse(isParseOnly);
     CelValidationException exception =
-        assertThrows(
-            CelValidationException.class, () -> COMPILER.compile("['x','y'].join(2)").getAst());
+        assertThrows(CelValidationException.class, () -> cel.compile("['x','y'].join(2)").getAst());
 
     assertThat(exception).hasMessageThat().contains("found no matching overload for 'join'");
   }
@@ -935,11 +880,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'hello mellow', lastIndexOf: '  ', expectedResult: -1}")
   public void lastIndexOf_ascii_success(String string, String lastIndexOf, int expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.lastIndexOf(indexOfParam)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "indexOfParam", lastIndexOf));
+        eval(
+            "s.lastIndexOf(indexOfParam)",
+            ImmutableMap.of("s", string, "indexOfParam", lastIndexOf));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -969,11 +913,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'a😁😑 나😦😁😑다', lastIndexOf: 'a😁😑 나😦😁😑다😁', expectedResult: -1}")
   public void lastIndexOf_unicode_success(String string, String lastIndexOf, int expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.lastIndexOf(indexOfParam)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "indexOfParam", lastIndexOf));
+        eval(
+            "s.lastIndexOf(indexOfParam)",
+            ImmutableMap.of("s", string, "indexOfParam", lastIndexOf));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -987,10 +930,8 @@ public final class CelStringExtensionsTest {
   @TestParameters("{lastIndexOf: '😁'}")
   public void lastIndexOf_strLengthLessThanSubstrLength_returnsMinusOne(String lastIndexOf)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("''.lastIndexOf(indexOfParam)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", "", "indexOfParam", lastIndexOf));
+    Object evaluatedResult =
+        eval("''.lastIndexOf(indexOfParam)", ImmutableMap.of("s", "", "indexOfParam", lastIndexOf));
 
     assertThat(evaluatedResult).isEqualTo(-1);
   }
@@ -1022,11 +963,10 @@ public final class CelStringExtensionsTest {
       "{string: 'hello mellow', lastIndexOf: 'hello mellowwww ', offset: 11, expectedResult: -1}")
   public void lastIndexOf_asciiWithOffset_success(
       String string, String lastIndexOf, int offset, int expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.lastIndexOf(indexOfParam, offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "indexOfParam", lastIndexOf, "offset", offset));
+        eval(
+            "s.lastIndexOf(indexOfParam, offset)",
+            ImmutableMap.of("s", string, "indexOfParam", lastIndexOf, "offset", offset));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1097,11 +1037,10 @@ public final class CelStringExtensionsTest {
       "{string: 'a😁😑 나😦😁😑다', lastIndexOf: 'a😁😑 나😦😁😑다😁', offset: 8, expectedResult: -1}")
   public void lastIndexOf_unicodeWithOffset_success(
       String string, String lastIndexOf, int offset, int expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.lastIndexOf(indexOfParam, offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(ImmutableMap.of("s", string, "indexOfParam", lastIndexOf, "offset", offset));
+        eval(
+            "s.lastIndexOf(indexOfParam, offset)",
+            ImmutableMap.of("s", string, "indexOfParam", lastIndexOf, "offset", offset));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1115,14 +1054,12 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁😑 😦', lastIndexOf: '😦', offset: 4}")
   public void lastIndexOf_withOffsetOutOfBounds_throwsException(
       String string, String lastIndexOf, int offset) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.lastIndexOf(indexOfParam, offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
             () ->
-                program.eval(
+                eval(
+                    "s.lastIndexOf(indexOfParam, offset)",
                     ImmutableMap.of("s", string, "indexOfParam", lastIndexOf, "offset", offset)));
 
     assertThat(exception).hasMessageThat().contains("lastIndexOf failure: Offset out of range");
@@ -1130,13 +1067,13 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void lastIndexOf_offsetOverflow_throwsException() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'test'.lastIndexOf('t', offset)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("offset", 2147483648L))); // INT_MAX + 1
+            () ->
+                eval(
+                    "'test'.lastIndexOf('t', offset)",
+                    ImmutableMap.of("offset", 2147483648L))); // INT_MAX + 1
 
     assertThat(exception)
         .hasMessageThat()
@@ -1163,13 +1100,8 @@ public final class CelStringExtensionsTest {
   public void replace_ascii_success(
       String string, String searchString, String replacement, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast =
-        COMPILER
-            .compile(String.format("'%s'.replace('%s', '%s')", string, searchString, replacement))
-            .getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval();
+    Object evaluatedResult =
+        eval(String.format("'%s'.replace('%s', '%s')", string, searchString, replacement));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1188,13 +1120,8 @@ public final class CelStringExtensionsTest {
   public void replace_unicode_success(
       String string, String searchString, String replacement, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast =
-        COMPILER
-            .compile(String.format("'%s'.replace('%s', '%s')", string, searchString, replacement))
-            .getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval();
+    Object evaluatedResult =
+        eval(String.format("'%s'.replace('%s', '%s')", string, searchString, replacement));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1273,15 +1200,10 @@ public final class CelStringExtensionsTest {
   public void replace_ascii_withLimit_success(
       String string, String searchString, String replacement, int limit, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast =
-        COMPILER
-            .compile(
-                String.format(
-                    "'%s'.replace('%s', '%s', %d)", string, searchString, replacement, limit))
-            .getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval();
+    Object evaluatedResult =
+        eval(
+            String.format(
+                "'%s'.replace('%s', '%s', %d)", string, searchString, replacement, limit));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1334,28 +1256,23 @@ public final class CelStringExtensionsTest {
   public void replace_unicode_withLimit_success(
       String string, String searchString, String replacement, int limit, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast =
-        COMPILER
-            .compile(
-                String.format(
-                    "'%s'.replace('%s', '%s', %d)", string, searchString, replacement, limit))
-            .getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval();
+    Object evaluatedResult =
+        eval(
+            String.format(
+                "'%s'.replace('%s', '%s', %d)", string, searchString, replacement, limit));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
 
   @Test
   public void replace_limitOverflow_throwsException() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("'test'.replace('','',index)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("index", 2147483648L))); // INT_MAX + 1
+            () ->
+                eval(
+                    "'test'.replace('','',index)",
+                    ImmutableMap.of("index", 2147483648L))); // INT_MAX + 1
 
     assertThat(exception)
         .hasMessageThat()
@@ -1406,10 +1323,7 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void trim_success(@TestParameter TrimTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.trim()").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", testCase.text));
+    Object evaluatedResult = eval("s.trim()", ImmutableMap.of("s", testCase.text));
 
     assertThat(evaluatedResult).isEqualTo(testCase.expectedResult);
   }
@@ -1422,10 +1336,7 @@ public final class CelStringExtensionsTest {
   @TestParameters(
       "{string: 'a!@#$%^&*()-_+=?/<>.,;:''\"\\', expectedResult: 'A!@#$%^&*()-_+=?/<>.,;:''\"\\'}")
   public void upperAscii_success(String string, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.upperAscii()").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+    Object evaluatedResult = eval("s.upperAscii()", ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1441,30 +1352,24 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'a😁b 😑c가😦d', expectedResult: 'A😁B 😑C가😦D'}")
   public void upperAscii_outsideAscii_success(String string, String expectedResult)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.upperAscii()").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+    Object evaluatedResult = eval("s.upperAscii()", ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
 
   @Test
   public void stringExtension_functionSubset_success() throws Exception {
-    CelStringExtensions stringExtensions =
-        CelExtensions.strings(Function.CHAR_AT, Function.SUBSTRING);
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder().addLibraries(stringExtensions).build();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(stringExtensions).build();
+    Cel customCel =
+        runtimeFlavor
+            .builder()
+            .addCompilerLibraries(CelExtensions.strings(Function.CHAR_AT, Function.SUBSTRING))
+            .addRuntimeLibraries(CelExtensions.strings(Function.CHAR_AT, Function.SUBSTRING))
+            .build();
 
     Object evaluatedResult =
-        celRuntime
-            .createProgram(
-                celCompiler
-                    .compile("'test'.substring(2) == 'st' && 'hello'.charAt(1) == 'e'")
-                    .getAst())
-            .eval();
+        eval(
+            customCel,
+            "'test'.substring(2) == 'st' && 'hello'.charAt(1) == 'e'");
 
     assertThat(evaluatedResult).isEqualTo(true);
   }
@@ -1476,10 +1381,7 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'hello world', expectedResult: 'dlrow olleh'}")
   @TestParameters("{string: 'ab가cd', expectedResult: 'dc가ba'}")
   public void reverse_success(String string, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.reverse()").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+    Object evaluatedResult = eval("s.reverse()", ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1490,10 +1392,7 @@ public final class CelStringExtensionsTest {
       "{string: '\u180e\u200b\u200c\u200d\u2060\ufeff', expectedResult:"
           + " '\ufeff\u2060\u200d\u200c\u200b\u180e'}")
   public void reverse_unicode(String string, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("s.reverse()").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+    Object evaluatedResult = eval("s.reverse()", ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1502,14 +1401,14 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: 'hello', expectedResult: '\"hello\"'}")
   @TestParameters("{string: '', expectedResult: '\"\"'}")
   @TestParameters(
-      "{string: 'contains \\\"quotes\\\"', expectedResult: '\"contains \\\\\\\"quotes\\\\\\\"\"'}")
-  @TestParameters("{string: 'ends with \\\\', expectedResult: '\"ends with \\\\\\\\\"'}")
-  @TestParameters("{string: '\\\\ starts with', expectedResult: '\"\\\\\\\\ starts with\"'}")
+      "{string: 'contains \\\\\\\"quotes\\\\\\\"', expectedResult: '\"contains"
+          + " \\\\\\\\\\\\\\\"quotes\\\\\\\\\\\\\\\"\"'}")
+  @TestParameters(
+      "{string: 'ends with \\\\\\\\', expectedResult: '\"ends with \\\\\\\\\\\\\\\\\"'}")
+  @TestParameters(
+      "{string: '\\\\\\\\ starts with', expectedResult: '\"\\\\\\\\\\\\\\\\ starts with\"'}")
   public void quote_success(String string, String expectedResult) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval(ImmutableMap.of("s", string));
+    Object evaluatedResult = eval("strings.quote(s)", ImmutableMap.of("s", string));
 
     assertThat(evaluatedResult).isEqualTo(expectedResult);
   }
@@ -1518,21 +1417,16 @@ public final class CelStringExtensionsTest {
   public void quote_singleWithDoubleQuotes() throws Exception {
     String expr = "strings.quote('single-quote with \"double quote\"')";
     String expected = "\"\\\"single-quote with \\\\\\\"double quote\\\\\\\"\\\"\"";
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr + " == " + expected).getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
-    Object evaluatedResult = program.eval();
+    Object evaluatedResult = eval(expr + " == " + expected);
 
     assertThat(evaluatedResult).isEqualTo(true);
   }
 
   @Test
   public void quote_escapesSpecialCharacters() throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile("strings.quote(s)").getAst();
-    CelRuntime.Program program = RUNTIME.createProgram(ast);
-
     Object evaluatedResult =
-        program.eval(
+        eval(
+            "strings.quote(s)",
             ImmutableMap.of("s", "\u0007bell\u000Bvtab\bback\ffeed\rret\nline\ttab\\slash 가 😁"));
 
     assertThat(evaluatedResult)
@@ -1541,25 +1435,19 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void quote_escapesMalformed_endWithHighSurrogate() throws Exception {
-    CelRuntime.Program program =
-        RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
-    assertThat(program.eval(ImmutableMap.of("s", "end with high surrogate \uD83D")))
+    assertThat(eval("strings.quote(s)", ImmutableMap.of("s", "end with high surrogate \uD83D")))
         .isEqualTo("\"end with high surrogate \uFFFD\"");
   }
 
   @Test
   public void quote_escapesMalformed_unpairedHighSurrogate() throws Exception {
-    CelRuntime.Program program =
-        RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
-    assertThat(program.eval(ImmutableMap.of("s", "bad pair \uD83DA")))
+    assertThat(eval("strings.quote(s)", ImmutableMap.of("s", "bad pair \uD83DA")))
         .isEqualTo("\"bad pair \uFFFDA\"");
   }
 
   @Test
   public void quote_escapesMalformed_unpairedLowSurrogate() throws Exception {
-    CelRuntime.Program program =
-        RUNTIME.createProgram(COMPILER.compile("strings.quote(s)").getAst());
-    assertThat(program.eval(ImmutableMap.of("s", "bad pair \uDC00A")))
+    assertThat(eval("strings.quote(s)", ImmutableMap.of("s", "bad pair \uDC00A")))
         .isEqualTo("\"bad pair \uFFFDA\"");
   }
 
@@ -1570,23 +1458,33 @@ public final class CelStringExtensionsTest {
             .addLibraries(CelExtensions.strings(Function.REPLACE))
             .build();
 
+    // This is a type-check failure.
+    Assume.assumeFalse(isParseOnly);
+    CelValidationResult result = celCompiler.compile("'test'.substring(2) == 'st'");
     assertThrows(
         CelValidationException.class,
-        () -> celCompiler.compile("'test'.substring(2) == 'st'").getAst());
+        () -> result.getAst());
   }
 
   @Test
   public void stringExtension_evaluateUnallowedFunction_throws() throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
-            .addLibraries(CelExtensions.strings(Function.SUBSTRING))
+    Cel customCompilerCel =
+        runtimeFlavor
+            .builder()
+            .addCompilerLibraries(CelExtensions.strings(Function.SUBSTRING))
             .build();
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
-            .addLibraries(CelExtensions.strings(Function.REPLACE))
+    Cel customRuntimeCel =
+        runtimeFlavor
+            .builder()
+            .addRuntimeLibraries(CelExtensions.strings(Function.REPLACE))
             .build();
-    CelAbstractSyntaxTree ast = celCompiler.compile("'test'.substring(2) == 'st'").getAst();
+    CelAbstractSyntaxTree ast =
+        isParseOnly
+            ? customCompilerCel.parse("'test'.substring(2) == 'st'").getAst()
+            : customCompilerCel.compile("'test'.substring(2) == 'st'").getAst();
 
-    assertThrows(CelEvaluationException.class, () -> celRuntime.createProgram(ast).eval());
+    assertThrows(CelEvaluationException.class, () -> customRuntimeCel.createProgram(ast).eval());
   }
+
+
 }

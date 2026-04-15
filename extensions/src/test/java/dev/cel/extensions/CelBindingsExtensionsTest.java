@@ -23,7 +23,6 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
-import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -36,36 +35,26 @@ import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.testing.CelRuntimeFlavor;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class CelBindingsExtensionsTest {
+public final class CelBindingsExtensionsTest extends CelExtensionTestBase {
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
 
-  private Cel cel;
 
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    cel =
-        runtimeFlavor
-            .builder()
-            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
-            .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
-            .build();
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
+        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+        .build();
   }
 
   @Test
@@ -331,21 +320,5 @@ public final class CelBindingsExtensionsTest {
     assertThat(invocation.get()).isEqualTo(1);
   }
 
-  private Object eval(Cel cel, String expression) throws Exception {
-    return eval(cel, expression, ImmutableMap.of());
-  }
 
-  private Object eval(Cel cel, String expression, Map<String, ?> variables) throws Exception {
-    CelAbstractSyntaxTree ast;
-    if (isParseOnly) {
-      ast = cel.parse(expression).getAst();
-    } else {
-      ast = cel.compile(expression).getAst();
-    }
-    return cel.createProgram(ast).eval(variables);
-  }
-
-  private Object eval(String expression) throws Exception {
-    return eval(this.cel, expression, ImmutableMap.of());
-  }
 }

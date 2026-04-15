@@ -19,37 +19,34 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMultiset;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
-import dev.cel.bundle.CelBuilder;
-import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.test.SimpleTest;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.testing.CelRuntimeFlavor;
-import java.util.Map;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class CelListsExtensionsTest {
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
+public class CelListsExtensionsTest extends CelExtensionTestBase {
 
-  private Cel cel;
 
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    this.cel = setupEnv(runtimeFlavor.builder());
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor.builder()
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addCompilerLibraries(CelExtensions.lists())
+        .addRuntimeLibraries(CelExtensions.lists())
+        .setContainer(CelContainer.ofName("cel.expr.conformance.test"))
+        .addMessageTypes(SimpleTest.getDescriptor())
+        .addVar("non_list", SimpleType.DYN)
+        .build();
   }
 
   @Test
@@ -300,10 +297,11 @@ public class CelListsExtensionsTest {
           + "expectedError: 'variable name must be a simple identifier'}")
   public void sortBy_throws_validationException(String expression, String expectedError)
       throws Exception {
+    CelValidationResult result = cel.compile(expression);
     assertThat(
             assertThrows(
                 CelValidationException.class,
-                () -> cel.createProgram(cel.compile(expression).getAst()).eval()))
+                () -> result.getAst()))
         .hasMessageThat()
         .contains(expectedError);
   }
@@ -323,23 +321,5 @@ public class CelListsExtensionsTest {
         .contains(expectedError);
   }
 
-  private static Cel setupEnv(CelBuilder celBuilder) {
-    return celBuilder
-        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-        .addCompilerLibraries(CelExtensions.lists())
-        .addRuntimeLibraries(CelExtensions.lists())
-        .setContainer(CelContainer.ofName("cel.expr.conformance.test"))
-        .addMessageTypes(SimpleTest.getDescriptor())
-        .addVar("non_list", SimpleType.DYN)
-        .build();
-  }
 
-  private Object eval(Cel cel, String expr) throws Exception {
-    return eval(cel, expr, ImmutableMap.of());
-  }
-
-  private Object eval(Cel cel, String expr, Map<String, ?> vars) throws Exception {
-    CelAbstractSyntaxTree ast = isParseOnly ? cel.parse(expr).getAst() : cel.compile(expr).getAst();
-    return cel.createProgram(ast).eval(vars);
-  }
 }

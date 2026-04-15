@@ -20,35 +20,34 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.bundle.Cel;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelByteString;
-import dev.cel.compiler.CelCompiler;
-import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeFactory;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class CelEncoderExtensionsTest {
+public class CelEncoderExtensionsTest extends CelExtensionTestBase {
   private static final CelOptions CEL_OPTIONS =
-      CelOptions.current().build();
+      CelOptions.current().enableHeterogeneousNumericComparisons(true).build();
 
-  private static final CelCompiler CEL_COMPILER =
-      CelCompilerFactory.standardCelCompilerBuilder()
-          .addVar("stringVar", SimpleType.STRING)
-          .addLibraries(CelExtensions.encoders(CEL_OPTIONS))
-          .build();
-  private static final CelRuntime CEL_RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
-          .setOptions(CEL_OPTIONS)
-          .addLibraries(CelExtensions.encoders(CEL_OPTIONS))
-          .build();
+
+
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .setOptions(CEL_OPTIONS)
+        .addCompilerLibraries(CelExtensions.encoders(CEL_OPTIONS))
+        .addRuntimeLibraries(CelExtensions.encoders(CEL_OPTIONS))
+        .addVar("stringVar", SimpleType.STRING)
+        .build();
+  }
 
   @Test
   public void library() {
@@ -63,22 +62,14 @@ public class CelEncoderExtensionsTest {
 
   @Test
   public void encode_success() throws Exception {
-    String encodedBytes =
-        (String)
-            CEL_RUNTIME
-                .createProgram(CEL_COMPILER.compile("base64.encode(b'hello')").getAst())
-                .eval();
+    String encodedBytes = (String) eval("base64.encode(b'hello')");
 
     assertThat(encodedBytes).isEqualTo("aGVsbG8=");
   }
 
   @Test
   public void decode_success() throws Exception {
-    CelByteString decodedBytes =
-        (CelByteString)
-            CEL_RUNTIME
-                .createProgram(CEL_COMPILER.compile("base64.decode('aGVsbG8=')").getAst())
-                .eval();
+    CelByteString decodedBytes = (CelByteString) eval("base64.decode('aGVsbG8=')");
 
     assertThat(decodedBytes.size()).isEqualTo(5);
     assertThat(new String(decodedBytes.toByteArray(), ISO_8859_1)).isEqualTo("hello");
@@ -86,12 +77,7 @@ public class CelEncoderExtensionsTest {
 
   @Test
   public void decode_withoutPadding_success() throws Exception {
-    CelByteString decodedBytes =
-        (CelByteString)
-            CEL_RUNTIME
-                // RFC2045 6.8, padding can be ignored.
-                .createProgram(CEL_COMPILER.compile("base64.decode('aGVsbG8')").getAst())
-                .eval();
+    CelByteString decodedBytes = (CelByteString) eval("base64.decode('aGVsbG8')");
 
     assertThat(decodedBytes.size()).isEqualTo(5);
     assertThat(new String(decodedBytes.toByteArray(), ISO_8859_1)).isEqualTo("hello");
@@ -99,50 +85,42 @@ public class CelEncoderExtensionsTest {
 
   @Test
   public void roundTrip_success() throws Exception {
-    String encodedString =
-        (String)
-            CEL_RUNTIME
-                .createProgram(CEL_COMPILER.compile("base64.encode(b'Hello World!')").getAst())
-                .eval();
+    String encodedString = (String) eval("base64.encode(b'Hello World!')");
     CelByteString decodedBytes =
         (CelByteString)
-            CEL_RUNTIME
-                .createProgram(CEL_COMPILER.compile("base64.decode(stringVar)").getAst())
-                .eval(ImmutableMap.of("stringVar", encodedString));
+            eval("base64.decode(stringVar)", ImmutableMap.of("stringVar", encodedString));
 
     assertThat(new String(decodedBytes.toByteArray(), ISO_8859_1)).isEqualTo("Hello World!");
   }
 
   @Test
   public void encode_invalidParam_throwsCompilationException() {
+    Assume.assumeFalse(isParseOnly);
     CelValidationException e =
         assertThrows(
-            CelValidationException.class,
-            () -> CEL_COMPILER.compile("base64.encode('hello')").getAst());
+            CelValidationException.class, () -> cel.compile("base64.encode('hello')").getAst());
 
     assertThat(e).hasMessageThat().contains("found no matching overload for 'base64.encode'");
   }
 
   @Test
   public void decode_invalidParam_throwsCompilationException() {
+    Assume.assumeFalse(isParseOnly);
     CelValidationException e =
         assertThrows(
-            CelValidationException.class,
-            () -> CEL_COMPILER.compile("base64.decode(b'aGVsbG8=')").getAst());
+            CelValidationException.class, () -> cel.compile("base64.decode(b'aGVsbG8=')").getAst());
 
     assertThat(e).hasMessageThat().contains("found no matching overload for 'base64.decode'");
   }
 
   @Test
   public void decode_malformedBase64Char_throwsEvaluationException() throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("base64.decode('z!')").getAst();
-
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> eval("base64.decode('z!')"));
 
-    assertThat(e)
-        .hasMessageThat()
-        .contains("Function 'base64_decode_string' failed with arg(s) 'z!'");
+    assertThat(e).hasMessageThat().contains("failed with arg(s) 'z!'");
     assertThat(e).hasCauseThat().hasMessageThat().contains("Illegal base64 character");
   }
+
+
 }

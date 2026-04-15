@@ -15,8 +15,10 @@
 package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.exceptions.CelRuntimeException;
+import dev.cel.common.values.MutableMapValue;
 import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.ConcatenatedListView;
@@ -131,7 +133,7 @@ final class EvalFold extends PlannedInterpretable {
       boolean cond = (boolean) condition.eval(folder, frame);
       if (!cond) {
         folder.computeResult = true;
-        return result.eval(folder, frame);
+        return maybeUnwrapAccumulator(result.eval(folder, frame));
       }
 
       folder.accuVal = loopStep.eval(folder, frame);
@@ -139,14 +141,16 @@ final class EvalFold extends PlannedInterpretable {
       index++;
     }
     folder.computeResult = true;
-    return result.eval(folder, frame);
+    return maybeUnwrapAccumulator(result.eval(folder, frame));
   }
 
   private static Object maybeWrapAccumulator(Object val) {
     if (val instanceof Collection) {
       return new ConcatenatedListView<>((Collection<?>) val);
     }
-    // TODO: Introduce mutable map support (for comp v2)
+    if (val instanceof Map) {
+      return MutableMapValue.create((Map<?, ?>) val);
+    }
     return val;
   }
 
@@ -154,8 +158,9 @@ final class EvalFold extends PlannedInterpretable {
     if (val instanceof ConcatenatedListView) {
       return ImmutableList.copyOf((ConcatenatedListView<?>) val);
     }
-
-    // TODO: Introduce mutable map support (for comp v2)
+    if (val instanceof MutableMapValue) {
+      return ImmutableMap.copyOf((MutableMapValue) val);
+    }
     return val;
   }
 

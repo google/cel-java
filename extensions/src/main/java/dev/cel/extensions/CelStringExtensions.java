@@ -23,7 +23,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
@@ -37,7 +36,6 @@ import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -475,7 +473,7 @@ public final class CelStringExtensions
     sb.append('"');
     for (int i = 0; i < s.length(); ) {
       int codePoint = s.codePointAt(i);
-      if (isMalformedUtf16(s, i, codePoint)) {
+      if (isMalformedUtf16(s, i)) {
         sb.append('\uFFFD');
         i++;
         continue;
@@ -518,7 +516,7 @@ public final class CelStringExtensions
     return sb.toString();
   }
 
-  private static boolean isMalformedUtf16(String s, int index, int codePoint) {
+  private static boolean isMalformedUtf16(String s, int index) {
     char currentChar = s.charAt(index);
     if (Character.isLowSurrogate(currentChar)) {
       return true;
@@ -587,14 +585,14 @@ public final class CelStringExtensions
     return new StringBuilder(s).reverse().toString();
   }
 
-  private static List<String> split(String str, String separator) {
+  private static ImmutableList<String> split(String str, String separator) {
     return split(str, separator, Integer.MAX_VALUE);
   }
 
   /**
    * @param args Object array with indices of: [0: string], [1: separator], [2: limit]
    */
-  private static List<String> split(Object[] args) throws CelEvaluationException {
+  private static ImmutableList<String> split(Object[] args) throws CelEvaluationException {
     long limitInLong = (Long) args[2];
     int limit;
     try {
@@ -609,16 +607,14 @@ public final class CelStringExtensions
     return split((String) args[0], (String) args[1], limit);
   }
 
-  /** Returns a **mutable** list of strings split on the separator */
-  private static List<String> split(String str, String separator, int limit) {
+  /** Returns an immutable list of strings split on the separator */
+  private static ImmutableList<String> split(String str, String separator, int limit) {
     if (limit == 0) {
-      return new ArrayList<>();
+      return ImmutableList.of();
     }
 
     if (limit == 1) {
-      List<String> singleElementList = new ArrayList<>();
-      singleElementList.add(str);
-      return singleElementList;
+      return ImmutableList.of(str);
     }
 
     if (limit < 0) {
@@ -630,7 +626,7 @@ public final class CelStringExtensions
     }
 
     Iterable<String> splitString = Splitter.on(separator).limit(limit).split(str);
-    return Lists.newArrayList(splitString);
+    return ImmutableList.copyOf(splitString);
   }
 
   /**
@@ -643,8 +639,8 @@ public final class CelStringExtensions
    * <p>This exists because neither the built-in String.split nor Guava's splitter is able to deal
    * with separating single printable characters.
    */
-  private static List<String> explode(String str, int limit) {
-    List<String> exploded = new ArrayList<>();
+  private static ImmutableList<String> explode(String str, int limit) {
+    ImmutableList.Builder<String> exploded = ImmutableList.builder();
     CelCodePointArray codePointArray = CelCodePointArray.fromString(str);
     if (limit > 0) {
       limit -= 1;
@@ -656,7 +652,7 @@ public final class CelStringExtensions
     if (codePointArray.length() > limit) {
       exploded.add(codePointArray.slice(limit, codePointArray.length()).toString());
     }
-    return exploded;
+    return exploded.build();
   }
 
   private static Object substring(String s, long i) throws CelEvaluationException {

@@ -48,6 +48,18 @@ cel_android_library(
 )
 
 java_library(
+    name = "mutable_map_value",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/values:mutable_map_value"],
+)
+
+cel_android_library(
+    name = "mutable_map_value_android",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/values:mutable_map_value_android"],
+)
+
+java_library(
     name = "base_proto_cel_value_converter",
     exports = ["//common/src/main/java/dev/cel/common/values:base_proto_cel_value_converter"],
 )
