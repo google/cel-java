@@ -149,9 +149,10 @@ public class CelLiteRuntimeAndroidTest {
     assertThat(newRuntimeBuilder.standardFunctionBuilder.build())
         .containsExactly(intFunction, equalsOperator)
         .inOrder();
-    assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(2);
+    assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(3);
     assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("string_isEmpty");
     assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("list_sets_intersects_list");
+    assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("sets.intersects");
   }
 
   @Test

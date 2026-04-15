@@ -27,7 +27,6 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
-import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -136,7 +135,8 @@ public final class CelMathExtensions
     return builder.buildOrThrow();
   }
 
-  enum Function {
+  /** Enumeration of functions for Math extension. */
+  public enum Function {
     MAX(
         CelFunctionDecl.newFunctionDeclaration(
             MATH_MAX_FUNCTION,
@@ -206,51 +206,21 @@ public final class CelMathExtensions
                 MATH_MAX_OVERLOAD_DOC,
                 SimpleType.DYN,
                 ListType.create(SimpleType.DYN))),
-        ImmutableSet.of(
-            CelFunctionBinding.from("math_@max_double", Double.class, x -> x),
-            CelFunctionBinding.from("math_@max_int", Long.class, x -> x),
-            CelFunctionBinding.from(
-                "math_@max_double_double", Double.class, Double.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_int_int", Long.class, Long.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_int_double", Long.class, Double.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_double_int", Double.class, Long.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from("math_@max_list_dyn", List.class, CelMathExtensions::maxList)),
-        ImmutableSet.of(
-            CelFunctionBinding.from("math_@max_uint", Long.class, x -> x),
-            CelFunctionBinding.from(
-                "math_@max_uint_uint", Long.class, Long.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_double_uint", Double.class, Long.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_uint_int", Long.class, Long.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_uint_double", Long.class, Double.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_int_uint", Long.class, Long.class, CelMathExtensions::maxPair)),
-        ImmutableSet.of(
-            CelFunctionBinding.from("math_@max_uint", UnsignedLong.class, x -> x),
-            CelFunctionBinding.from(
-                "math_@max_uint_uint",
-                UnsignedLong.class,
-                UnsignedLong.class,
-                CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_double_uint",
-                Double.class,
-                UnsignedLong.class,
-                CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_uint_int", UnsignedLong.class, Long.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_uint_double",
-                UnsignedLong.class,
-                Double.class,
-                CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::maxPair))),
+        ImmutableSet.<CelFunctionBinding>builder()
+            .add(CelFunctionBinding.from("math_@max_double", Double.class, x -> x))
+            .add(CelFunctionBinding.from("math_@max_int", Long.class, x -> x))
+            .add(CelFunctionBinding.from("math_@max_double_double", Double.class, Double.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_int_int", Long.class, Long.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_int_double", Long.class, Double.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_double_int", Double.class, Long.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_list_dyn", List.class, CelMathExtensions::maxList))
+            .add(CelFunctionBinding.from("math_@max_uint", UnsignedLong.class, x -> x))
+            .add(CelFunctionBinding.from("math_@max_uint_uint", UnsignedLong.class, UnsignedLong.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_double_uint", Double.class, UnsignedLong.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_uint_int", UnsignedLong.class, Long.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_uint_double", UnsignedLong.class, Double.class, CelMathExtensions::maxPair))
+            .add(CelFunctionBinding.from("math_@max_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::maxPair))
+            .build()),
     MIN(
         CelFunctionDecl.newFunctionDeclaration(
             MATH_MIN_FUNCTION,
@@ -320,51 +290,21 @@ public final class CelMathExtensions
                 MATH_MIN_OVERLOAD_DOC,
                 SimpleType.DYN,
                 ListType.create(SimpleType.DYN))),
-        ImmutableSet.of(
-            CelFunctionBinding.from("math_@min_double", Double.class, x -> x),
-            CelFunctionBinding.from("math_@min_int", Long.class, x -> x),
-            CelFunctionBinding.from(
-                "math_@min_double_double", Double.class, Double.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_int_int", Long.class, Long.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_int_double", Long.class, Double.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_double_int", Double.class, Long.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from("math_@min_list_dyn", List.class, CelMathExtensions::minList)),
-        ImmutableSet.of(
-            CelFunctionBinding.from("math_@min_uint", Long.class, x -> x),
-            CelFunctionBinding.from(
-                "math_@min_uint_uint", Long.class, Long.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_double_uint", Double.class, Long.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_uint_int", Long.class, Long.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_uint_double", Long.class, Double.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_int_uint", Long.class, Long.class, CelMathExtensions::minPair)),
-        ImmutableSet.of(
-            CelFunctionBinding.from("math_@min_uint", UnsignedLong.class, x -> x),
-            CelFunctionBinding.from(
-                "math_@min_uint_uint",
-                UnsignedLong.class,
-                UnsignedLong.class,
-                CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_double_uint",
-                Double.class,
-                UnsignedLong.class,
-                CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_uint_int", UnsignedLong.class, Long.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_uint_double",
-                UnsignedLong.class,
-                Double.class,
-                CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::minPair))),
+        ImmutableSet.<CelFunctionBinding>builder()
+            .add(CelFunctionBinding.from("math_@min_double", Double.class, x -> x))
+            .add(CelFunctionBinding.from("math_@min_int", Long.class, x -> x))
+            .add(CelFunctionBinding.from("math_@min_double_double", Double.class, Double.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_int_int", Long.class, Long.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_int_double", Long.class, Double.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_double_int", Double.class, Long.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_list_dyn", List.class, CelMathExtensions::minList))
+            .add(CelFunctionBinding.from("math_@min_uint", UnsignedLong.class, x -> x))
+            .add(CelFunctionBinding.from("math_@min_uint_uint", UnsignedLong.class, UnsignedLong.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_double_uint", Double.class, UnsignedLong.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_uint_int", UnsignedLong.class, Long.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_uint_double", UnsignedLong.class, Double.class, CelMathExtensions::minPair))
+            .add(CelFunctionBinding.from("math_@min_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::minPair))
+            .build()),
     CEIL(
         CelFunctionDecl.newFunctionDeclaration(
             MATH_CEIL_FUNCTION,
@@ -646,36 +586,14 @@ public final class CelMathExtensions
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
-    private final ImmutableSet<CelFunctionBinding> functionBindingsULongSigned;
-    private final ImmutableSet<CelFunctionBinding> functionBindingsULongUnsigned;
 
     String getFunction() {
       return functionDecl.name();
     }
 
     Function(CelFunctionDecl functionDecl, ImmutableSet<CelFunctionBinding> bindings) {
-      this(functionDecl, bindings, ImmutableSet.of(), ImmutableSet.of());
-    }
-
-    Function(
-        CelFunctionDecl functionDecl,
-        ImmutableSet<CelFunctionBinding> functionBindings,
-        ImmutableSet<CelFunctionBinding> functionBindingsULongSigned,
-        ImmutableSet<CelFunctionBinding> functionBindingsULongUnsigned) {
       this.functionDecl = functionDecl;
-      this.functionBindings =
-          functionBindings.isEmpty()
-              ? ImmutableSet.of()
-              : CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindings);
-      this.functionBindingsULongSigned =
-          functionBindingsULongSigned.isEmpty()
-              ? ImmutableSet.of()
-              : CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindingsULongSigned);
-      this.functionBindingsULongUnsigned =
-          functionBindingsULongUnsigned.isEmpty()
-              ? ImmutableSet.of()
-              : CelFunctionBinding.fromOverloads(
-                  functionDecl.name(), functionBindingsULongUnsigned);
+      this.functionBindings = bindings;
     }
   }
 
@@ -684,10 +602,8 @@ public final class CelMathExtensions
     private final CelMathExtensions version1;
     private final CelMathExtensions version2;
 
-    Library(boolean enableUnsignedLongs) {
-      version0 =
-          new CelMathExtensions(
-              0, ImmutableSet.of(Function.MIN, Function.MAX), enableUnsignedLongs);
+    Library() {
+      version0 = new CelMathExtensions(0, ImmutableSet.of(Function.MIN, Function.MAX));
 
       version1 =
           new CelMathExtensions(
@@ -710,8 +626,7 @@ public final class CelMathExtensions
                       Function.BITNOT,
                       Function.BITSHIFTLEFT,
                       Function.BITSHIFTRIGHT)
-                  .build(),
-              enableUnsignedLongs);
+                  .build());
 
       version2 =
           new CelMathExtensions(
@@ -719,8 +634,7 @@ public final class CelMathExtensions
               ImmutableSet.<Function>builder()
                   .addAll(version1.functions)
                   .add(Function.SQRT)
-                  .build(),
-              enableUnsignedLongs);
+                  .build());
     }
 
     @Override
@@ -734,25 +648,20 @@ public final class CelMathExtensions
     }
   }
 
-  private static final Library LIBRARY_UNSIGNED_LONGS_ENABLED = new Library(true);
-  private static final Library LIBRARY_UNSIGNED_LONGS_DISABLED = new Library(false);
+  private static final Library LIBRARY = new Library();
 
-  static CelExtensionLibrary<CelMathExtensions> library(CelOptions celOptions) {
-    return celOptions.enableUnsignedLongs()
-        ? LIBRARY_UNSIGNED_LONGS_ENABLED
-        : LIBRARY_UNSIGNED_LONGS_DISABLED;
+  static CelExtensionLibrary<CelMathExtensions> library() {
+    return LIBRARY;
   }
 
-  private final boolean enableUnsignedLongs;
   private final ImmutableSet<Function> functions;
   private final int version;
 
-  CelMathExtensions(CelOptions celOptions, Set<Function> functions) {
-    this(-1, functions, celOptions.enableUnsignedLongs());
+  CelMathExtensions(Set<Function> functions) {
+    this(-1, functions);
   }
 
-  private CelMathExtensions(int version, Set<Function> functions, boolean enableUnsignedLongs) {
-    this.enableUnsignedLongs = enableUnsignedLongs;
+  private CelMathExtensions(int version, Set<Function> functions) {
     this.version = version;
     this.functions = ImmutableSet.copyOf(functions);
   }
@@ -788,11 +697,11 @@ public final class CelMathExtensions
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
     functions.forEach(
         function -> {
-          runtimeBuilder.addFunctionBindings(function.functionBindings);
-          runtimeBuilder.addFunctionBindings(
-              enableUnsignedLongs
-                  ? function.functionBindingsULongUnsigned
-                  : function.functionBindingsULongSigned);
+          ImmutableSet<CelFunctionBinding> combined = function.functionBindings;
+          if (!combined.isEmpty()) {
+            runtimeBuilder.addFunctionBindings(
+                CelFunctionBinding.fromOverloads(function.functionDecl.name(), combined));
+          }
         });
   }
 

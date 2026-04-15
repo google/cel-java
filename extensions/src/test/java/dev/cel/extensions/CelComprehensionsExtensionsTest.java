@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -28,6 +27,8 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelValidationResult;
+import dev.cel.common.exceptions.CelAttributeNotFoundException;
 import dev.cel.common.exceptions.CelDivideByZeroException;
 import dev.cel.common.exceptions.CelIndexOutOfBoundsException;
 import dev.cel.common.types.SimpleType;
@@ -38,15 +39,13 @@ import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.testing.CelRuntimeFlavor;
-import java.util.Map;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /** Test for {@link CelExtensions#comprehensions()} */
 @RunWith(TestParameterInjector.class)
-public class CelComprehensionsExtensionsTest {
+public class CelComprehensionsExtensionsTest extends CelExtensionTestBase {
 
   private static final CelOptions CEL_OPTIONS =
       CelOptions.current()
@@ -55,29 +54,23 @@ public class CelComprehensionsExtensionsTest {
           .populateMacroCalls(true)
           .build();
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
 
-  private Cel cel;
 
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    this.cel =
-        runtimeFlavor
-            .builder()
-            .setOptions(CEL_OPTIONS)
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .addCompilerLibraries(CelExtensions.comprehensions())
-            .addCompilerLibraries(CelExtensions.lists())
-            .addCompilerLibraries(CelExtensions.strings())
-            .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
-            .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
-            .addRuntimeLibraries(CelExtensions.lists())
-            .addRuntimeLibraries(CelExtensions.strings())
-            .addRuntimeLibraries(CelExtensions.comprehensions())
-            .build();
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .setOptions(CEL_OPTIONS)
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addCompilerLibraries(CelExtensions.comprehensions())
+        .addCompilerLibraries(CelExtensions.lists())
+        .addCompilerLibraries(CelExtensions.strings())
+        .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
+        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+        .addRuntimeLibraries(CelExtensions.lists())
+        .addRuntimeLibraries(CelExtensions.strings())
+        .addRuntimeLibraries(CelExtensions.comprehensions())
+        .build();
   }
 
   private static final CelUnparser UNPARSER = CelUnparserFactory.newUnparser();
@@ -222,6 +215,7 @@ public class CelComprehensionsExtensionsTest {
                 + " 'key2': 'value2'}",
             // map.transformMapEntry()
             "{'hello': 'world', 'greetings': 'tacocat'}.transformMapEntry(k, v, {}) == {}",
+            "{'a': 1, 'b': 2}.transformMapEntry(k, v, {k: v}) == {'a': 1, 'b': 2}",
             "{'a': 1, 'b': 2}.transformMapEntry(k, v, {k + '_new': v * 2}) == {'a_new': 2,"
                 + " 'b_new': 4}",
             "{'a': 1, 'b': 2, 'c': 3}.transformMapEntry(k, v, v % 2 == 1, {k: v * 10}) == {'a': 10,"
@@ -310,8 +304,9 @@ public class CelComprehensionsExtensionsTest {
           + " err: 'no matching overload'}")
   public void twoVarComprehension_compilerErrors(String expr, String err) throws Exception {
     Assume.assumeFalse(isParseOnly);
+    CelValidationResult result = cel.compile(expr);
     CelValidationException e =
-        assertThrows(CelValidationException.class, () -> cel.compile(expr).getAst());
+        assertThrows(CelValidationException.class, () -> result.getAst());
 
     assertThat(e).hasMessageThat().contains(err);
   }
@@ -364,17 +359,14 @@ public class CelComprehensionsExtensionsTest {
     assertThat(e).hasCauseThat().hasMessageThat().contains("Index out of bounds: 1");
   }
 
-  private Object eval(String expression) throws Exception {
-    return eval(this.cel, expression, ImmutableMap.of());
+  @Test
+  public void mutableMapValue_select_missingKeyException() throws Exception {
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class, () -> eval("cel.bind(my_map, {'a': 1}, my_map.b)"));
+    assertThat(e).hasCauseThat().isInstanceOf(CelAttributeNotFoundException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().contains("key 'b' is not present in map.");
   }
 
-  private Object eval(Cel cel, String expression, Map<String, ?> variables) throws Exception {
-    CelAbstractSyntaxTree ast;
-    if (isParseOnly) {
-      ast = cel.parse(expression).getAst();
-    } else {
-      ast = cel.compile(expression).getAst();
-    }
-    return cel.createProgram(ast).eval(variables);
-  }
+
 }

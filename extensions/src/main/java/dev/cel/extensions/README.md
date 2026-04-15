@@ -522,7 +522,7 @@ Examples:
 
 ### Split
 
-Returns a mutable list of strings split from the input by the given separator. The
+Returns a list of strings split from the input by the given separator. The
 function accepts an optional argument specifying a limit on the number of
 substrings produced by the split.
 

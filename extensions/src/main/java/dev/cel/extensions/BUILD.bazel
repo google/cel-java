@@ -42,6 +42,7 @@ java_library(
         ":strings",
         "//common:options",
         "//extensions:extension_library",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -307,6 +308,7 @@ java_library(
         "//common:options",
         "//common/ast",
         "//common/types",
+        "//common/values:mutable_map_value",
         "//compiler:compiler_builder",
         "//extensions:extension_library",
         "//parser:macro",

@@ -26,7 +26,6 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
-import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
@@ -41,34 +40,25 @@ import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.testing.CelRuntimeFlavor;
-import java.util.Map;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class CelProtoExtensionsTest {
+public final class CelProtoExtensionsTest extends CelExtensionTestBase {
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
 
-  private Cel cel;
 
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    this.cel =
-        runtimeFlavor
-            .builder()
-            .addCompilerLibraries(CelExtensions.protos())
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .addFileTypes(TestAllTypesExtensions.getDescriptor())
-            .addVar("msg", StructTypeReference.create("cel.expr.conformance.proto2.TestAllTypes"))
-            .setContainer(CelContainer.ofName("cel.expr.conformance.proto2"))
-            .build();
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .addCompilerLibraries(CelExtensions.protos())
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addFileTypes(TestAllTypesExtensions.getDescriptor())
+        .addVar("msg", StructTypeReference.create("cel.expr.conformance.proto2.TestAllTypes"))
+        .setContainer(CelContainer.ofName("cel.expr.conformance.proto2"))
+        .build();
   }
 
   private static final TestAllTypes PACKAGE_SCOPED_EXT_MSG =
@@ -342,13 +332,5 @@ public final class CelProtoExtensionsTest {
     assertThat(e).hasMessageThat().isEqualTo(testcase.error);
   }
 
-  private Object eval(String expression, Map<String, ?> variables) throws Exception {
-    return eval(this.cel, expression, variables);
-  }
 
-  private Object eval(Cel cel, String expression, Map<String, ?> variables) throws Exception {
-    CelAbstractSyntaxTree ast =
-        this.isParseOnly ? cel.parse(expression).getAst() : cel.compile(expression).getAst();
-    return cel.createProgram(ast).eval(variables);
-  }
 }

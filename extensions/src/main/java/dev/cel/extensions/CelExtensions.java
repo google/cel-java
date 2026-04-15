@@ -19,7 +19,9 @@ import static java.util.Arrays.stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
+import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.CelOptions;
+import dev.cel.extensions.CelMathExtensions.Function;
 import java.util.Set;
 
 /**
@@ -121,12 +123,9 @@ public final class CelExtensions {
    * <p>This will include all functions denoted in {@link CelMathExtensions.Function}, including any
    * future additions. To expose only a subset of these, use {@link #math(CelOptions,
    * CelMathExtensions.Function...)} or {@link #math(CelOptions,int)} instead.
-   *
-   * @param celOptions CelOptions to configure CelMathExtension with. This should be the same
-   *     options object used to configure the compilation/runtime environments.
    */
-  public static CelMathExtensions math(CelOptions celOptions) {
-    return CelMathExtensions.library(celOptions).latest();
+  public static CelMathExtensions math() {
+    return CelMathExtensions.library().latest();
   }
 
   /**
@@ -134,8 +133,8 @@ public final class CelExtensions {
    *
    * <p>Refer to README.md for functions available in each version.
    */
-  public static CelMathExtensions math(CelOptions celOptions, int version) {
-    return CelMathExtensions.library(celOptions).version(version);
+  public static CelMathExtensions math(int version) {
+    return CelMathExtensions.library().version(version);
   }
 
   /**
@@ -150,13 +149,9 @@ public final class CelExtensions {
    * collision.
    *
    * <p>This will include only the specific functions denoted by {@link CelMathExtensions.Function}.
-   *
-   * @param celOptions CelOptions to configure CelMathExtension with. This should be the same
-   *     options object used to configure the compilation/runtime environments.
    */
-  public static CelMathExtensions math(
-      CelOptions celOptions, CelMathExtensions.Function... functions) {
-    return math(celOptions, ImmutableSet.copyOf(functions));
+  public static CelMathExtensions math(CelMathExtensions.Function... functions) {
+    return math(ImmutableSet.copyOf(functions));
   }
 
   /**
@@ -171,13 +166,47 @@ public final class CelExtensions {
    * collision.
    *
    * <p>This will include only the specific functions denoted by {@link CelMathExtensions.Function}.
-   *
-   * @param celOptions CelOptions to configure CelMathExtension with. This should be the same
-   *     options object used to configure the compilation/runtime environments.
    */
+  public static CelMathExtensions math(Set<CelMathExtensions.Function> functions) {
+    return new CelMathExtensions(functions);
+  }
+
+  /**
+   * @deprecated Use {@link #math()} instead.
+   */
+  @Deprecated
+  @InlineMe(replacement = "CelExtensions.math()", imports = "dev.cel.extensions.CelExtensions")
+  public static CelMathExtensions math(CelOptions unused) {
+    return math();
+  }
+
+  /**
+   * @deprecated Use {@link #math(int)} instead.
+   */
+  @Deprecated
+  @InlineMe(
+      replacement = "CelExtensions.math(version)",
+      imports = "dev.cel.extensions.CelExtensions")
+  public static CelMathExtensions math(CelOptions unused, int version) {
+    return math(version);
+  }
+
+  /**
+   * @deprecated Use {@link #math(Function...)} instead.
+   */
+  @Deprecated
+  public static CelMathExtensions math(CelOptions unused, CelMathExtensions.Function... functions) {
+    return math(ImmutableSet.copyOf(functions));
+  }
+
+  /**
+   * @deprecated Use {@link #math(Set)} instead.
+   */
+  @Deprecated
+  @InlineMe(replacement = "CelExtensions.math(functions)", imports = "dev.cel.extensions.CelExtensions")
   public static CelMathExtensions math(
-      CelOptions celOptions, Set<CelMathExtensions.Function> functions) {
-    return new CelMathExtensions(celOptions, functions);
+      CelOptions unused, Set<CelMathExtensions.Function> functions) {
+    return math(functions);
   }
 
   /**
@@ -354,7 +383,7 @@ public final class CelExtensions {
       case "lists":
         return CelListsExtensions.library();
       case "math":
-        return CelMathExtensions.library(options);
+        return CelMathExtensions.library();
       case "optional":
         return CelOptionalLibrary.library();
       case "protos":

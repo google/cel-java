@@ -135,9 +135,13 @@ public class CelEncoderExtensions
     functions.forEach(
         function -> {
           if (celOptions.evaluateCanonicalTypesToNativeValues()) {
-            runtimeBuilder.addFunctionBindings(function.nativeBytesFunctionBinding);
+            runtimeBuilder.addFunctionBindings(
+                CelFunctionBinding.fromOverloads(
+                    function.getFunction(), function.nativeBytesFunctionBinding));
           } else {
-            runtimeBuilder.addFunctionBindings(function.protoBytesFunctionBinding);
+            runtimeBuilder.addFunctionBindings(
+                CelFunctionBinding.fromOverloads(
+                    function.getFunction(), function.protoBytesFunctionBinding));
           }
         });
   }
