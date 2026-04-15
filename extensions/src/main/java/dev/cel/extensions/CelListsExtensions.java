@@ -128,7 +128,8 @@ public final class CelListsExtensions
                 "list_sort",
                 "Sorts a list with comparable elements.",
                 ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T"))))),
+                ListType.create(TypeParamType.create("T")))),
+        CelFunctionBinding.from("list_sort", Collection.class, CelListsExtensions::sort)),
     SORT_BY(
         CelFunctionDecl.newFunctionDeclaration(
             "lists.@sortByAssociatedKeys",
@@ -136,7 +137,11 @@ public final class CelListsExtensions
                 "list_sortByAssociatedKeys",
                 "Sorts a list by a key value. Used by the 'sortBy' macro",
                 ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T")))));
+                ListType.create(TypeParamType.create("T")))),
+        CelFunctionBinding.from(
+            "list_sortByAssociatedKeys",
+            Collection.class,
+            CelListsExtensions::sortByAssociatedKeys));
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -147,7 +152,10 @@ public final class CelListsExtensions
 
     Function(CelFunctionDecl functionDecl, CelFunctionBinding... functionBindings) {
       this.functionDecl = functionDecl;
-      this.functionBindings = ImmutableSet.copyOf(functionBindings);
+      this.functionBindings =
+          functionBindings.length > 0
+              ? CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindings)
+              : ImmutableSet.of();
     }
   }
 
@@ -240,32 +248,13 @@ public final class CelListsExtensions
   @Override
   public void setRuntimeOptions(
       CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality, CelOptions celOptions) {
-    for (Function function : functions) {
-      runtimeBuilder.addFunctionBindings(function.functionBindings);
-      for (CelOverloadDecl overload : function.functionDecl.overloads()) {
-        switch (overload.overloadId()) {
-          case "list_distinct":
-            runtimeBuilder.addFunctionBindings(
-                CelFunctionBinding.from(
-                    "list_distinct", Collection.class, (list) -> distinct(list, runtimeEquality)));
-            break;
-          case "list_sort":
-            runtimeBuilder.addFunctionBindings(
-                CelFunctionBinding.from(
-                    "list_sort", Collection.class, (list) -> sort(list, celOptions)));
-            break;
-          case "list_sortByAssociatedKeys":
-            runtimeBuilder.addFunctionBindings(
-                CelFunctionBinding.from(
-                    "list_sortByAssociatedKeys",
-                    Collection.class,
-                    (list) -> sortByAssociatedKeys(list, celOptions)));
-            break;
-          default:
-            // Nothing to add
-        }
-      }
-    }
+    functions.forEach(function -> runtimeBuilder.addFunctionBindings(function.functionBindings));
+
+    runtimeBuilder.addFunctionBindings(
+        CelFunctionBinding.fromOverloads(
+            "distinct",
+            CelFunctionBinding.from(
+                "list_distinct", Collection.class, (list) -> distinct(list, runtimeEquality))));
   }
 
   private static ImmutableList<Object> slice(Collection<Object> list, long from, long to) {
@@ -369,22 +358,18 @@ public final class CelListsExtensions
     }
   }
 
-  private static ImmutableList<Object> sort(Collection<Object> objects, CelOptions options) {
-    return ImmutableList.sortedCopyOf(
-        new CelObjectComparator(options.enableHeterogeneousNumericComparisons()), objects);
+  private static ImmutableList<Object> sort(Collection<Object> objects) {
+    return ImmutableList.sortedCopyOf(new CelObjectComparator(), objects);
   }
 
   private static class CelObjectComparator implements Comparator<Object> {
-    private final boolean enableHeterogeneousNumericComparisons;
 
-    CelObjectComparator(boolean enableHeterogeneousNumericComparisons) {
-      this.enableHeterogeneousNumericComparisons = enableHeterogeneousNumericComparisons;
-    }
+    CelObjectComparator() {}
 
     @SuppressWarnings({"unchecked"})
     @Override
     public int compare(Object o1, Object o2) {
-      if (o1 instanceof Number && o2 instanceof Number && enableHeterogeneousNumericComparisons) {
+      if (o1 instanceof Number && o2 instanceof Number) {
         return ComparisonFunctions.numericCompare((Number) o1, (Number) o2);
       }
 
@@ -444,12 +429,9 @@ public final class CelListsExtensions
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   private static ImmutableList<Object> sortByAssociatedKeys(
-      Collection<List<Object>> keyValuePairs, CelOptions options) {
+      Collection<List<Object>> keyValuePairs) {
     List<Object>[] array = keyValuePairs.toArray(new List[0]);
-    Arrays.sort(
-        array,
-        new CelObjectByKeyComparator(
-            new CelObjectComparator(options.enableHeterogeneousNumericComparisons())));
+    Arrays.sort(array, new CelObjectByKeyComparator(new CelObjectComparator()));
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(array.length);
     for (List<Object> pair : array) {
       builder.add(pair.get(1));
