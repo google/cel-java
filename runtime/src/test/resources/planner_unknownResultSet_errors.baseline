@@ -32,7 +32,7 @@ single_timestamp {
   seconds: 15
 }
 , unknown_attributes=[x.single_int32]}
-error:    evaluation error at test_location:89: Text 'another bad timestamp string' could not be parsed at index 0
+error:    evaluation error at test_location:31: Text 'bad timestamp string' could not be parsed at index 0
 error_code:    BAD_FORMAT
 
 Source: x.single_int32 == 1 || x.single_timestamp <= timestamp("bad timestamp string")
@@ -69,7 +69,7 @@ single_timestamp {
   seconds: 15
 }
 , unknown_attributes=[x.single_int32]}
-error:    evaluation error at test_location:89: Text 'another bad timestamp string' could not be parsed at index 0
+error:    evaluation error at test_location:31: Text 'bad timestamp string' could not be parsed at index 0
 error_code:    BAD_FORMAT
 
 Source: x

@@ -334,8 +334,6 @@ public class CelListsExtensionsTest {
         .build();
   }
 
-
-
   private Object eval(Cel cel, String expr) throws Exception {
     return eval(cel, expr, ImmutableMap.of());
   }

@@ -38,7 +38,10 @@ final class EvalOr extends PlannedInterpretable {
           return true;
         }
       } else if (argVal instanceof ErrorValue) {
-        errorValue = (ErrorValue) argVal;
+        // Preserve the first encountered error instead of overwriting it with subsequent errors.
+        if (errorValue == null) {
+          errorValue = (ErrorValue) argVal;
+        }
       } else if (argVal instanceof AccumulatedUnknowns) {
         unknowns = AccumulatedUnknowns.maybeMerge(unknowns, argVal);
       } else {
