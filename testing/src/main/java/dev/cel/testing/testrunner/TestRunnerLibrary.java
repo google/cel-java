@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
@@ -38,10 +39,10 @@ import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
-import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.policy.CelPolicy;
 import dev.cel.policy.CelPolicyCompilerFactory;
 import dev.cel.policy.CelPolicyParser;
@@ -52,12 +53,10 @@ import dev.cel.runtime.CelRuntime.Program;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase.Input.Binding;
 import dev.cel.testing.testrunner.ResultMatcher.ResultMatcherParams;
-import dev.cel.testing.utils.ProtoDescriptorUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
 import org.jspecify.annotations.Nullable;
@@ -201,16 +200,13 @@ public final class TestRunnerLibrary {
     //
     // Note: This needs to be added first because the config file may contain type information
     // regarding proto messages that need to be added to the cel object.
-    if (celTestContext.fileDescriptorSetPath().isPresent()) {
+    CelDescriptors descriptors = celTestContext.celDescriptors().orElse(null);
+    if (descriptors != null) {
       extendedCel =
           extendedCel
               .toCelBuilder()
-              .addMessageTypes(
-                  ProtoDescriptorUtils.getAllDescriptorsFromJvm(
-                          celTestContext.fileDescriptorSetPath().get())
-                      .messageTypeDescriptors())
-              .setExtensionRegistry(
-                  RegistryUtils.getExtensionRegistry(celTestContext.fileDescriptorSetPath().get()))
+              .addMessageTypes(descriptors.messageTypeDescriptors())
+              .setExtensionRegistry(RegistryUtils.getExtensionRegistry(descriptors))
               .build();
     }
 
@@ -369,22 +365,13 @@ public final class TestRunnerLibrary {
           "Proto descriptors are required for unpacking Any messages.");
     }
     Descriptor descriptor =
-        RegistryUtils.getTypeRegistry(celTestContext.fileDescriptorSetPath().get())
+        RegistryUtils.getTypeRegistry(celTestContext.celDescriptors().get())
             .getDescriptorForTypeUrl(any.getTypeUrl());
-    return getDefaultInstance(descriptor)
+    return DynamicMessage.getDefaultInstance(descriptor)
         .getParserForType()
         .parseFrom(
             any.getValue(),
-            RegistryUtils.getExtensionRegistry(celTestContext.fileDescriptorSetPath().get()));
-  }
-
-  private static Message getDefaultInstance(Descriptor descriptor) throws IOException {
-    return DefaultInstanceMessageFactory.getInstance()
-        .getPrototype(descriptor)
-        .orElseThrow(
-            () ->
-                new NoSuchElementException(
-                    "Could not find a default message for: " + descriptor.getFullName()));
+            RegistryUtils.getExtensionRegistry(celTestContext.celDescriptors().get()));
   }
 
   private static Message getEvaluatedContextExpr(

@@ -236,6 +236,8 @@ public final class TestExecutor {
           testResult.setStatus(JUnitXmlReporter.TestResult.FAILURE);
           testResult.setThrowable(result.getFailures().get(0).getException());
           testReporter.onTestFailure(testResult);
+          System.err.println("Test failed: " + testName);
+          result.getFailures().forEach(failure -> failure.getException().printStackTrace());
         }
       }
     }

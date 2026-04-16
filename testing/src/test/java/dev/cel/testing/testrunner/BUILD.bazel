@@ -51,6 +51,7 @@ java_library(
     name = "custom_variable_binding_user_test",
     srcs = ["CustomVariableBindingUserTest.java"],
     deps = [
+        "//bundle:cel",
         "//testing/testrunner:cel_test_context",
         "//testing/testrunner:cel_user_test_template",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
@@ -186,10 +187,6 @@ cel_java_test(
     name = "custom_variable_binding_test_runner_sample",
     cel_expr = "custom_variable_bindings/policy.yaml",
     config = "custom_variable_bindings/config.yaml",
-    proto_deps = [
-        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
-        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
-    ],
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":custom_variable_binding_user_test",
     test_suite = "custom_variable_bindings/tests.yaml",

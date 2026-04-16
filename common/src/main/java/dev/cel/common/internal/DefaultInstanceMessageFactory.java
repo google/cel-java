@@ -15,6 +15,7 @@
 package dev.cel.common.internal;
 
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.GeneratorNames;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
@@ -45,9 +46,7 @@ public final class DefaultInstanceMessageFactory {
   public Optional<Message> getPrototype(Descriptor descriptor) {
     MessageLite defaultInstance =
         DefaultInstanceMessageLiteFactory.getInstance()
-            .getPrototype(
-                descriptor.getFullName(),
-                ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor))
+            .getPrototype(descriptor.getFullName(), GeneratorNames.getBytecodeClassName(descriptor))
             .orElse(null);
     if (defaultInstance == null) {
       return Optional.empty();

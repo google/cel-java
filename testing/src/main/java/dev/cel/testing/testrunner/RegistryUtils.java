@@ -13,44 +13,33 @@
 // limitations under the License.
 package dev.cel.testing.testrunner;
 
-import static dev.cel.testing.utils.ProtoDescriptorUtils.getAllDescriptorsFromJvm;
+
 
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.TypeRegistry;
-import dev.cel.common.internal.DefaultInstanceMessageFactory;
-import java.io.IOException;
-import java.util.NoSuchElementException;
+import dev.cel.common.CelDescriptors;
 
 /** Utility class for creating registries from a file descriptor set. */
 public final class RegistryUtils {
 
   /** Returns the {@link TypeRegistry} for the given file descriptor set. */
-  public static TypeRegistry getTypeRegistry(String fileDescriptorSetPath) throws IOException {
-    return TypeRegistry.newBuilder()
-        .add(getAllDescriptorsFromJvm(fileDescriptorSetPath).messageTypeDescriptors())
-        .build();
+  public static TypeRegistry getTypeRegistry(CelDescriptors descriptors) {
+    return TypeRegistry.newBuilder().add(descriptors.messageTypeDescriptors()).build();
   }
 
   /** Returns the {@link ExtensionRegistry} for the given file descriptor set. */
-  public static ExtensionRegistry getExtensionRegistry(String fileDescriptorSetPath)
-      throws IOException {
+  public static ExtensionRegistry getExtensionRegistry(CelDescriptors descriptors) {
     ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
 
-    getAllDescriptorsFromJvm(fileDescriptorSetPath)
+    descriptors
         .extensionDescriptors()
         .forEach(
             (descriptorName, descriptor) -> {
               if (descriptor.getType().equals(FieldDescriptor.Type.MESSAGE)) {
-                Message output =
-                    DefaultInstanceMessageFactory.getInstance()
-                        .getPrototype(descriptor.getMessageType())
-                        .orElseThrow(
-                            () ->
-                                new NoSuchElementException(
-                                    "Could not find a default message for: "
-                                        + descriptor.getFullName()));
+                Message output = DynamicMessage.getDefaultInstance(descriptor.getMessageType());
                 extensionRegistry.add(descriptor, output);
               } else {
                 extensionRegistry.add(descriptor);
