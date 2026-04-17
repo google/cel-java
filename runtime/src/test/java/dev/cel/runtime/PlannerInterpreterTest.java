@@ -82,13 +82,14 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
 
   @Override
   public void optional_errors() {
-    if (isParseOnly) {
-      // Parsed-only evaluation contains function name in the
-      // error message instead of the function overload.
-      skipBaselineVerification();
-    } else {
-      super.optional_errors();
-    }
+    // Exercised in planner_optional_errors instead
+    skipBaselineVerification();
+  }
+
+  @Test
+  public void planner_optional_errors() {
+    source = "optional.unwrap([dyn(1)])";
+    runTest(ImmutableMap.of());
   }
 
   @Override

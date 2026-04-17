@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 
@@ -28,19 +29,19 @@ final class EvalBlock extends PlannedInterpretable {
   private final PlannedInterpretable resultExpr;
 
   static EvalBlock create(
-      long exprId, PlannedInterpretable[] slotExprs, PlannedInterpretable resultExpr) {
-    return new EvalBlock(exprId, slotExprs, resultExpr);
+      CelExpr expr, PlannedInterpretable[] slotExprs, PlannedInterpretable resultExpr) {
+    return new EvalBlock(expr, slotExprs, resultExpr);
   }
 
   private EvalBlock(
-      long exprId, PlannedInterpretable[] slotExprs, PlannedInterpretable resultExpr) {
-    super(exprId);
+      CelExpr expr, PlannedInterpretable[] slotExprs, PlannedInterpretable resultExpr) {
+    super(expr);
     this.slotExprs = slotExprs;
     this.resultExpr = resultExpr;
   }
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     BlockMemoizer memoizer = BlockMemoizer.create(slotExprs, frame);
     frame.setBlockMemoizer(memoizer);
     return resultExpr.eval(resolver, frame);
@@ -50,17 +51,17 @@ final class EvalBlock extends PlannedInterpretable {
   static final class EvalBlockSlot extends PlannedInterpretable {
     private final int slotIndex;
 
-    static EvalBlockSlot create(long exprId, int slotIndex) {
-      return new EvalBlockSlot(exprId, slotIndex);
+    static EvalBlockSlot create(CelExpr expr, int slotIndex) {
+      return new EvalBlockSlot(expr, slotIndex);
     }
 
-    private EvalBlockSlot(long exprId, int slotIndex) {
-      super(exprId);
+    private EvalBlockSlot(CelExpr expr, int slotIndex) {
+      super(expr);
       this.slotIndex = slotIndex;
     }
 
     @Override
-    public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
+    Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
       return frame.getBlockMemoizer().resolveSlot(slotIndex, resolver);
     }
   }

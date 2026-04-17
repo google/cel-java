@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.exceptions.CelDuplicateKeyException;
 import dev.cel.common.exceptions.CelInvalidArgumentException;
 import dev.cel.runtime.AccumulatedUnknowns;
@@ -43,7 +44,7 @@ final class EvalCreateMap extends PlannedInterpretable {
   private final boolean[] isOptional;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableMap.Builder<Object, Object> builder =
         ImmutableMap.builderWithExpectedSize(keys.length);
     HashSet<Object> keysSeen = Sets.newHashSetWithExpectedSize(keys.length);
@@ -62,7 +63,7 @@ final class EvalCreateMap extends PlannedInterpretable {
             || key instanceof Boolean)) {
           throw new LocalizedEvaluationException(
               new CelInvalidArgumentException("Unsupported key type: " + key),
-              keyInterpretable.exprId());
+              keyInterpretable.expr().id());
         }
 
         boolean isDuplicate = !keysSeen.add(key);
@@ -80,7 +81,7 @@ final class EvalCreateMap extends PlannedInterpretable {
 
         if (isDuplicate) {
           throw new LocalizedEvaluationException(
-              CelDuplicateKeyException.of(key), keyInterpretable.exprId());
+              CelDuplicateKeyException.of(key), keyInterpretable.expr().id());
         }
       }
 
@@ -119,19 +120,19 @@ final class EvalCreateMap extends PlannedInterpretable {
   }
 
   static EvalCreateMap create(
-      long exprId,
+      CelExpr expr,
       PlannedInterpretable[] keys,
       PlannedInterpretable[] values,
       boolean[] isOptional) {
-    return new EvalCreateMap(exprId, keys, values, isOptional);
+    return new EvalCreateMap(expr, keys, values, isOptional);
   }
 
   private EvalCreateMap(
-      long exprId,
+      CelExpr expr,
       PlannedInterpretable[] keys,
       PlannedInterpretable[] values,
       boolean[] isOptional) {
-    super(exprId);
+    super(expr);
     Preconditions.checkArgument(keys.length == values.length);
     Preconditions.checkArgument(keys.length == isOptional.length);
     this.keys = keys;

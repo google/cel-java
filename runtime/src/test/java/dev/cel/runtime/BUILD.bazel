@@ -2,6 +2,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 load("//:cel_android_rules.bzl", "cel_android_local_test")
 load("//:testing.bzl", "junit4_test_suites")
 
+# Invalidate cache after file removal
 package(
     default_applicable_licenses = ["//:license"],
     default_testonly = True,
@@ -74,6 +75,7 @@ java_library(
         "//runtime:late_function_binding",
         "//runtime:lite_runtime",
         "//runtime:lite_runtime_factory",
+        "//runtime:partial_vars",
         "//runtime:proto_message_activation_factory",
         "//runtime:proto_message_runtime_equality",
         "//runtime:proto_message_runtime_helpers",
@@ -88,6 +90,7 @@ java_library(
         "//runtime/standard:not_strictly_false",
         "//runtime/standard:standard_overload",
         "//runtime/standard:subtract",
+        "//testing:cel_runtime_flavor",
         "//testing/protos:message_with_enum_cel_java_proto",
         "//testing/protos:message_with_enum_java_proto",
         "//testing/protos:multi_file_cel_java_proto",

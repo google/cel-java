@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,24 @@
 
 package dev.cel.runtime.planner;
 
-import com.google.common.base.Preconditions;
+import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
+
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 
-final class EvalConditional extends PlannedInterpretable {
+/**
+ * Implementation of conditional operator (ternary) with exhaustive evaluation
+ * (non-short-circuiting).
+ *
+ * <p>It evaluates all three arguments (condition, truthy, and falsy branches) but returns the
+ * result based on the condition, maintaining semantic consistency with short-circuiting evaluation.
+ */
+@Immutable
+final class EvalExhaustiveConditional extends PlannedInterpretable {
 
   @SuppressWarnings("Immutable")
   private final PlannedInterpretable[] args;
@@ -30,30 +41,33 @@ final class EvalConditional extends PlannedInterpretable {
     PlannedInterpretable condition = args[0];
     PlannedInterpretable truthy = args[1];
     PlannedInterpretable falsy = args[2];
+
     Object condResult = condition.eval(resolver, frame);
+    Object truthyVal = evalNonstrictly(truthy, resolver, frame);
+    Object falsyVal = evalNonstrictly(falsy, resolver, frame);
+
     if (condResult instanceof AccumulatedUnknowns) {
       return condResult;
     }
+
     if (!(condResult instanceof Boolean)) {
       throw new IllegalArgumentException(
           String.format("Expected boolean value, found :%s", condResult));
     }
 
-    // TODO: Handle exhaustive eval
-    if ((boolean) condResult) {
-      return truthy.eval(resolver, frame);
+    Object result = (boolean) condResult ? truthyVal : falsyVal;
+    if (result instanceof ErrorValue) {
+      return result;
     }
-
-    return falsy.eval(resolver, frame);
+    return result;
   }
 
-  static EvalConditional create(CelExpr expr, PlannedInterpretable[] args) {
-    return new EvalConditional(expr, args);
+  static EvalExhaustiveConditional create(CelExpr expr, PlannedInterpretable[] args) {
+    return new EvalExhaustiveConditional(expr, args);
   }
 
-  private EvalConditional(CelExpr expr, PlannedInterpretable[] args) {
+  private EvalExhaustiveConditional(CelExpr expr, PlannedInterpretable[] args) {
     super(expr);
-    Preconditions.checkArgument(args.length == 3);
     this.args = args;
   }
 }

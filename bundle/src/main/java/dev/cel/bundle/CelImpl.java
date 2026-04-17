@@ -282,6 +282,18 @@ final class CelImpl implements Cel, EnvVisitable {
     }
 
     @Override
+    public CelBuilder addLateBoundFunctions(String... lateBoundFunctionNames) {
+      runtimeBuilder.addLateBoundFunctions(lateBoundFunctionNames);
+      return this;
+    }
+
+    @Override
+    public CelBuilder addLateBoundFunctions(Iterable<String> lateBoundFunctionNames) {
+      runtimeBuilder.addLateBoundFunctions(lateBoundFunctionNames);
+      return this;
+    }
+
+    @Override
     public CelBuilder setResultType(CelType resultType) {
       checkNotNull(resultType);
       return setProtoResultType(CelProtoTypes.celTypeToType(resultType));

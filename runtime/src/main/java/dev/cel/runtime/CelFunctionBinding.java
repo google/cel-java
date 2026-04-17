@@ -100,6 +100,7 @@ public interface CelFunctionBinding {
         overloadId, ImmutableList.copyOf(argTypes), impl, /* isStrict= */ true);
   }
 
+
   /** See {@link #fromOverloads(String, Collection)}. */
   static ImmutableSet<CelFunctionBinding> fromOverloads(
       String functionName, CelFunctionBinding... overloadBindings) {

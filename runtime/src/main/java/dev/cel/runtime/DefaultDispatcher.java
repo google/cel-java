@@ -134,6 +134,8 @@ public final class DefaultDispatcher implements CelFunctionResolver {
     @AutoValue
     @Immutable
     abstract static class OverloadEntry {
+      abstract String functionName();
+
       abstract ImmutableList<Class<?>> argTypes();
 
       abstract boolean isStrict();
@@ -141,8 +143,12 @@ public final class DefaultDispatcher implements CelFunctionResolver {
       abstract CelFunctionOverload overload();
 
       private static OverloadEntry of(
-          ImmutableList<Class<?>> argTypes, boolean isStrict, CelFunctionOverload overload) {
-        return new AutoValue_DefaultDispatcher_Builder_OverloadEntry(argTypes, isStrict, overload);
+          String functionName,
+          ImmutableList<Class<?>> argTypes,
+          boolean isStrict,
+          CelFunctionOverload overload) {
+        return new AutoValue_DefaultDispatcher_Builder_OverloadEntry(
+            functionName, argTypes, isStrict, overload);
       }
     }
 
@@ -150,16 +156,19 @@ public final class DefaultDispatcher implements CelFunctionResolver {
 
     @CanIgnoreReturnValue
     public Builder addOverload(
+        String functionName,
         String overloadId,
         ImmutableList<Class<?>> argTypes,
         boolean isStrict,
         CelFunctionOverload overload) {
+      checkNotNull(functionName);
+      checkArgument(!functionName.isEmpty(), "Function name cannot be empty.");
       checkNotNull(overloadId);
       checkArgument(!overloadId.isEmpty(), "Overload ID cannot be empty.");
       checkNotNull(argTypes);
       checkNotNull(overload);
 
-      OverloadEntry newEntry = OverloadEntry.of(argTypes, isStrict, overload);
+      OverloadEntry newEntry = OverloadEntry.of(functionName, argTypes, isStrict, overload);
 
       overloads.merge(
           overloadId,
@@ -188,7 +197,7 @@ public final class DefaultDispatcher implements CelFunctionResolver {
         boolean isStrict =
             mergedOverload.getOverloadBindings().stream().allMatch(CelFunctionBinding::isStrict);
 
-        return OverloadEntry.of(incoming.argTypes(), isStrict, mergedOverload);
+        return OverloadEntry.of(overloadId, incoming.argTypes(), isStrict, mergedOverload);
       }
 
       throw new IllegalArgumentException("Duplicate overload ID binding: " + overloadId);
@@ -204,7 +213,11 @@ public final class DefaultDispatcher implements CelFunctionResolver {
         resolvedOverloads.put(
             overloadId,
             CelResolvedOverload.of(
-                overloadId, overloadImpl, overloadEntry.isStrict(), overloadEntry.argTypes()));
+                overloadEntry.functionName(),
+                overloadId,
+                overloadImpl,
+                overloadEntry.isStrict(),
+                overloadEntry.argTypes()));
       }
 
       return new DefaultDispatcher(resolvedOverloads.buildOrThrow());

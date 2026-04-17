@@ -34,7 +34,7 @@ final class EvalHelpers {
       // Example: foo [1] && strict_err [2] -> ID 2 is propagated.
       return ErrorValue.create(e.exprId(), e);
     } catch (Exception e) {
-      return ErrorValue.create(interpretable.exprId(), e);
+      return ErrorValue.create(interpretable.expr().id(), e);
     }
   }
 
@@ -47,16 +47,19 @@ final class EvalHelpers {
       throw e;
     } catch (CelRuntimeException e) {
       // Wrap with current interpretable's location
-      throw new LocalizedEvaluationException(e, interpretable.exprId());
+      throw new LocalizedEvaluationException(e, interpretable.expr().id());
     } catch (Exception e) {
       // Wrap generic exceptions with location
       throw new LocalizedEvaluationException(
-          e, CelErrorCode.INTERNAL_ERROR, interpretable.exprId());
+          e, CelErrorCode.INTERNAL_ERROR, interpretable.expr().id());
     }
   }
 
   static Object dispatch(
-      CelResolvedOverload overload, CelValueConverter valueConverter, Object[] args)
+      String functionName,
+      CelResolvedOverload overload,
+      CelValueConverter valueConverter,
+      Object[] args)
       throws CelEvaluationException {
     try {
       Object result = overload.invoke(args);
@@ -66,7 +69,11 @@ final class EvalHelpers {
     }
   }
 
-  static Object dispatch(CelResolvedOverload overload, CelValueConverter valueConverter, Object arg)
+  static Object dispatch(
+      String functionName,
+      CelResolvedOverload overload,
+      CelValueConverter valueConverter,
+      Object arg)
       throws CelEvaluationException {
     try {
       Object result = overload.invoke(arg);
@@ -77,7 +84,11 @@ final class EvalHelpers {
   }
 
   static Object dispatch(
-      CelResolvedOverload overload, CelValueConverter valueConverter, Object arg1, Object arg2)
+      String functionName,
+      CelResolvedOverload overload,
+      CelValueConverter valueConverter,
+      Object arg1,
+      Object arg2)
       throws CelEvaluationException {
     try {
       Object result = overload.invoke(arg1, arg2);
@@ -97,7 +108,7 @@ final class EvalHelpers {
     return new IllegalArgumentException(
         String.format(
             "Function '%s' failed with arg(s) '%s'",
-            overload.getOverloadId(), Joiner.on(", ").join(args)),
+            overload.getFunctionName(), Joiner.on(", ").join(args)),
         e);
   }
 

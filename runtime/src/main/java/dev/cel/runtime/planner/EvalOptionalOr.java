@@ -16,6 +16,7 @@ package dev.cel.runtime.planner;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.GlobalResolver;
@@ -27,7 +28,7 @@ final class EvalOptionalOr extends PlannedInterpretable {
   private final PlannedInterpretable rhs;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
     Object lhsValue = EvalHelpers.evalStrictly(lhs, resolver, frame);
 
     if (lhsValue instanceof AccumulatedUnknowns) {
@@ -46,12 +47,12 @@ final class EvalOptionalOr extends PlannedInterpretable {
     return EvalHelpers.evalStrictly(rhs, resolver, frame);
   }
 
-  static EvalOptionalOr create(long exprId, PlannedInterpretable lhs, PlannedInterpretable rhs) {
-    return new EvalOptionalOr(exprId, lhs, rhs);
+  static EvalOptionalOr create(CelExpr expr, PlannedInterpretable lhs, PlannedInterpretable rhs) {
+    return new EvalOptionalOr(expr, lhs, rhs);
   }
 
-  private EvalOptionalOr(long exprId, PlannedInterpretable lhs, PlannedInterpretable rhs) {
-    super(exprId);
+  private EvalOptionalOr(CelExpr expr, PlannedInterpretable lhs, PlannedInterpretable rhs) {
+    super(expr);
     this.lhs = Preconditions.checkNotNull(lhs);
     this.rhs = Preconditions.checkNotNull(rhs);
   }

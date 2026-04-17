@@ -26,8 +26,8 @@ public final class CelRuntimeFactory {
    * evaluation are enabled by default.
    */
   public static CelRuntimeBuilder standardCelRuntimeBuilder() {
-    return CelRuntimeLegacyImpl.newBuilder()
-        .setOptions(CelOptions.current().build())
+    return CelRuntimeImpl.newBuilder()
+        .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
         // CEL-Internal-2
         .setStandardEnvironmentEnabled(true);
   }

@@ -9,3 +9,9 @@ java_library(
     name = "program_planner",
     exports = ["//runtime/src/main/java/dev/cel/runtime/planner:program_planner"],
 )
+
+java_library(
+    name = "planned_program",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime/planner:planned_program"],
+)

@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
 import com.google.common.collect.ImmutableList;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.AccumulatedUnknowns;
@@ -35,7 +36,7 @@ final class EvalLateBoundCall extends PlannedInterpretable {
   private final CelValueConverter celValueConverter;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object[] argVals = new Object[args.length];
     AccumulatedUnknowns unknowns = null;
     for (int i = 0; i < args.length; i++) {
@@ -55,25 +56,25 @@ final class EvalLateBoundCall extends PlannedInterpretable {
             .findOverload(functionName, overloadIds, argVals)
             .orElseThrow(() -> new CelOverloadNotFoundException(functionName, overloadIds));
 
-    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVals);
+    return EvalHelpers.dispatch(functionName, resolvedOverload, celValueConverter, argVals);
   }
 
   static EvalLateBoundCall create(
-      long exprId,
+      CelExpr expr,
       String functionName,
       ImmutableList<String> overloadIds,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
-    return new EvalLateBoundCall(exprId, functionName, overloadIds, args, celValueConverter);
+    return new EvalLateBoundCall(expr, functionName, overloadIds, args, celValueConverter);
   }
 
   private EvalLateBoundCall(
-      long exprId,
+      CelExpr expr,
       String functionName,
       ImmutableList<String> overloadIds,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
-    super(exprId);
+    super(expr);
     this.functionName = functionName;
     this.overloadIds = overloadIds;
     this.args = args;

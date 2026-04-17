@@ -91,6 +91,14 @@ public interface CelRuntime {
         throws CelEvaluationException;
 
     /**
+     * Trace evaluates a compiled program using {@code partialVars} as the source of input variables
+     * and unknown attribute patterns. The listener is invoked as evaluation progresses through the
+     * AST.
+     */
+    Object trace(PartialVars partialVars, CelEvaluationListener listener)
+        throws CelEvaluationException;
+
+    /**
      * Advance evaluation based on the current unknown context.
      *
      * <p>This represents one round of incremental evaluation and may return a final result or a

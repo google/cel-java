@@ -42,6 +42,7 @@ java_library(
         ":strings",
         "//common:options",
         "//extensions:extension_library",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -121,7 +122,6 @@ java_library(
         ":extension_library",
         "//checker:checker_builder",
         "//common:compiler_common",
-        "//common:options",
         "//common/ast",
         "//common/exceptions:numeric_overflow",
         "//common/internal:comparison_functions",

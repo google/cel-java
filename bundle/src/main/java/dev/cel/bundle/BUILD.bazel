@@ -54,6 +54,7 @@ java_library(
         "//compiler:compiler_builder",
         "//parser",
         "//runtime",
+        "//runtime:runtime_planner_impl",
     ],
 )
 

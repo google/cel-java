@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.v1alpha1.CheckedExpr;
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
@@ -35,7 +36,10 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoV1Alpha1AbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelConstant;
@@ -51,6 +55,7 @@ import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
+import dev.cel.testing.CelRuntimeFlavor;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,6 +65,8 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class CelRuntimeTest {
+
+  @TestParameter private CelRuntimeFlavor runtimeFlavor;
 
   @Test
   public void evaluate_anyPackedEqualityUsingProtoDifferencer_success() throws Exception {
@@ -100,8 +107,8 @@ public class CelRuntimeTest {
   public void evaluate_v1alpha1CheckedExpr() throws Exception {
     // Note: v1alpha1 proto support exists only to help migrate existing consumers.
     // New users of CEL should use the canonical protos instead (I.E: dev.cel.expr)
-    com.google.api.expr.v1alpha1.CheckedExpr checkedExpr =
-        com.google.api.expr.v1alpha1.CheckedExpr.newBuilder()
+    CheckedExpr checkedExpr =
+        CheckedExpr.newBuilder()
             .setExpr(
                 Expr.newBuilder()
                     .setId(1)
@@ -273,7 +280,8 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("a", SimpleType.INT)
             .addVar("b", SimpleType.INT)
             .addVar("c", SimpleType.INT)
@@ -297,7 +305,7 @@ public class CelRuntimeTest {
           assertThat(res).isEqualTo("hello world");
           assertThat(expr.constant().getKind()).isEqualTo(CelConstant.Kind.STRING_VALUE);
         };
-    Cel cel = CelFactory.standardCelBuilder().build();
+    Cel cel = runtimeFlavor.builder().build();
     CelAbstractSyntaxTree ast = cel.compile("'hello world'").getAst();
 
     String result = (String) cel.createProgram(ast).trace(listener);
@@ -312,7 +320,7 @@ public class CelRuntimeTest {
           assertThat(res).isEqualTo("test");
           assertThat(expr.ident().name()).isEqualTo("a");
         };
-    Cel cel = CelFactory.standardCelBuilder().addVar("a", SimpleType.STRING).build();
+    Cel cel = runtimeFlavor.builder().addVar("a", SimpleType.STRING).build();
     CelAbstractSyntaxTree ast = cel.compile("a").getAst();
 
     String result = (String) cel.createProgram(ast).trace(ImmutableMap.of("a", "test"), listener);
@@ -330,7 +338,8 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addMessageTypes(TestAllTypes.getDescriptor())
             .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
@@ -350,7 +359,8 @@ public class CelRuntimeTest {
               .isEqualTo("cel.expr.conformance.proto3.TestAllTypes");
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addMessageTypes(TestAllTypes.getDescriptor())
             .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
@@ -371,7 +381,7 @@ public class CelRuntimeTest {
             assertThat(expr.list().elements()).hasSize(3);
           }
         };
-    Cel cel = CelFactory.standardCelBuilder().build();
+    Cel cel = runtimeFlavor.builder().build();
     CelAbstractSyntaxTree ast = cel.compile("[1, 2, 3]").getAst();
 
     List<Long> result = (List<Long>) cel.createProgram(ast).trace(listener);
@@ -389,7 +399,7 @@ public class CelRuntimeTest {
             assertThat(expr.map().entries()).hasSize(1);
           }
         };
-    Cel cel = CelFactory.standardCelBuilder().build();
+    Cel cel = runtimeFlavor.builder().build();
     CelAbstractSyntaxTree ast = cel.compile("{1: 'a'}").getAst();
 
     Map<Long, String> result = (Map<Long, String>) cel.createProgram(ast).trace(listener);
@@ -405,8 +415,7 @@ public class CelRuntimeTest {
             assertThat(expr.comprehension().iterVar()).isEqualTo("i");
           }
         };
-    Cel cel =
-        CelFactory.standardCelBuilder().setStandardMacros(CelStandardMacro.STANDARD_MACROS).build();
+    Cel cel = runtimeFlavor.builder().setStandardMacros(CelStandardMacro.STANDARD_MACROS).build();
     CelAbstractSyntaxTree ast = cel.compile("[true].exists(i, i)").getAst();
 
     boolean result = (boolean) cel.createProgram(ast).trace(listener);
@@ -422,7 +431,8 @@ public class CelRuntimeTest {
           assertThat(expr.ident().name()).isEqualTo("single_int64");
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addVar("single_int64", SimpleType.INT)
             .build();
@@ -444,7 +454,8 @@ public class CelRuntimeTest {
           assertThat(expr.ident().name()).isEqualTo("variable");
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addVar("variable", SimpleType.STRING)
             .build();
@@ -470,12 +481,22 @@ public class CelRuntimeTest {
           }
         };
     Cel celWithShortCircuit =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableShortCircuiting(true).build())
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(true)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
 
@@ -509,13 +530,19 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.BOOL)
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    boolean result = (boolean) cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(result).isFalse();
     assertThat(branchResults.build()).containsExactly(false, false, "x");
@@ -536,13 +563,19 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.BOOL)
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    Object unknownResult = cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    Object unknownResult = cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(true, true, unknownResult);
@@ -561,12 +594,22 @@ public class CelRuntimeTest {
           }
         };
     Cel celWithShortCircuit =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableShortCircuiting(true).build())
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(true)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
 
@@ -596,13 +639,19 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.BOOL)
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    Object unknownResult = cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    Object unknownResult = cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(false, false, unknownResult);
@@ -627,13 +676,19 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.BOOL)
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    boolean result = (boolean) cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(result).isTrue();
     assertThat(branchResults.build()).containsExactly(true, true, "x");
@@ -649,8 +704,13 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile("true ? false : true").getAst();
 
@@ -674,13 +734,19 @@ public class CelRuntimeTest {
           }
         };
     Cel cel =
-        CelFactory.standardCelBuilder()
+        runtimeFlavor
+            .builder()
             .addVar("x", SimpleType.BOOL)
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    Object unknownResult = cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    Object unknownResult = cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(false, unknownResult, true);
@@ -705,12 +771,22 @@ public class CelRuntimeTest {
           }
         };
     Cel celWithShortCircuit =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableShortCircuiting(true).build())
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(true)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
 
@@ -726,17 +802,161 @@ public class CelRuntimeTest {
   }
 
   @Test
+  public void trace_shortCircuitingDisabled_ternaryWithSelectedError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("true ? (1 / 0) : 2").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasMessageThat().contains("evaluation error at <input>:10: / by zero");
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_ternaryWithCustomError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_func",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_func_overload",
+                        SimpleType.BOOL,
+                        ImmutableList.of())))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "error_func_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("custom error");
+                    }))
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("true ? error_func() : false").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasCauseThat().hasMessageThat().contains("custom error");
+  }
+
+  @Test
   public void standardEnvironmentDisabledForRuntime_throws() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder().setStandardEnvironmentEnabled(true).build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder().setStandardEnvironmentEnabled(false).build();
     CelAbstractSyntaxTree ast = celCompiler.compile("size('hello')").getAst();
+    CelRuntime.Program program = celRuntime.createProgram(ast);
 
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> celRuntime.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> program.eval());
     assertThat(e)
         .hasMessageThat()
         .contains("No matching overload for function 'size'. Overload candidates: size_string");
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalAndPrefersFirstError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_1",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_1_overload",
+                        SimpleType.BOOL,
+                        ImmutableList.of())),
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_2",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_2_overload",
+                        SimpleType.BOOL,
+                        ImmutableList.of())))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "error_1_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 1");
+                    }),
+                CelFunctionBinding.from(
+                    "error_2_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 2");
+                    }))
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("error_1() && error_2()").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasCauseThat().hasMessageThat().contains("error 1");
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalOrPrefersFirstError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_1",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_1_overload",
+                        SimpleType.BOOL,
+                        ImmutableList.of())),
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_2",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_2_overload",
+                        SimpleType.BOOL,
+                        ImmutableList.of())))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "error_1_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 1");
+                    }),
+                CelFunctionBinding.from(
+                    "error_2_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 2");
+                    }))
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("error_1() || error_2()").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasCauseThat().hasMessageThat().contains("error 1");
   }
 }
