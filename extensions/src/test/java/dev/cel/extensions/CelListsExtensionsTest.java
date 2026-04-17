@@ -27,6 +27,7 @@ import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.test.SimpleTest;
 import dev.cel.parser.CelStandardMacro;
@@ -300,10 +301,8 @@ public class CelListsExtensionsTest {
           + "expectedError: 'variable name must be a simple identifier'}")
   public void sortBy_throws_validationException(String expression, String expectedError)
       throws Exception {
-    assertThat(
-            assertThrows(
-                CelValidationException.class,
-                () -> cel.createProgram(cel.compile(expression).getAst()).eval()))
+    CelValidationResult result = cel.compile(expression);
+    assertThat(assertThrows(CelValidationException.class, () -> result.getAst()))
         .hasMessageThat()
         .contains(expectedError);
   }

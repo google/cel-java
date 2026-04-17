@@ -28,6 +28,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelValidationResult;
 import dev.cel.common.exceptions.CelAttributeNotFoundException;
 import dev.cel.common.exceptions.CelDivideByZeroException;
 import dev.cel.common.exceptions.CelIndexOutOfBoundsException;
@@ -312,8 +313,8 @@ public class CelComprehensionsExtensionsTest {
           + " err: 'no matching overload'}")
   public void twoVarComprehension_compilerErrors(String expr, String err) throws Exception {
     Assume.assumeFalse(isParseOnly);
-    CelValidationException e =
-        assertThrows(CelValidationException.class, () -> cel.compile(expr).getAst());
+    CelValidationResult result = cel.compile(expr);
+    CelValidationException e = assertThrows(CelValidationException.class, () -> result.getAst());
 
     assertThat(e).hasMessageThat().contains(err);
   }
