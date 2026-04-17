@@ -24,11 +24,12 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.TypeRegistry;
-import dev.cel.common.internal.DefaultInstanceMessageFactory;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
@@ -44,7 +45,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /** Utility class for ExprValue and Value type conversions during test execution. */
@@ -53,29 +53,23 @@ public final class ExprValueUtils {
 
   private ExprValueUtils() {}
 
-
   /**
    * Converts a {@link Value} to a Java native object using the given file descriptor set to parse
    * `Any` messages.
    *
    * @param value The {@link Value} to convert.
-   * @param fileDescriptorSetPath The path to the file descriptor set.
    * @return The converted Java object.
    * @throws IOException If there's an error during conversion.
    */
-  public static Object fromValue(Value value, String fileDescriptorSetPath) throws IOException {
-    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptorSetPath);
-    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptorSetPath);
+  public static Object fromValue(Value value, CelDescriptors descriptors) throws IOException {
+    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry(descriptors);
+    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry(descriptors);
     return fromValue(value, typeRegistry, extensionRegistry);
   }
 
-  /**
-   * Converts a {@link Value} to a Java native object.
-   *
-   * @param value The {@link Value} to convert.
-   * @return The converted Java object.
-   * @throws IOException If there's an error during conversion.
-   */
+  public static Object fromValue(Value value, String fileDescriptorSetPath) throws IOException {
+    return fromValue(value, ProtoDescriptorUtils.getDescriptorsFromFile(fileDescriptorSetPath));
+  }
 
   /**
    * Converts a {@link Value} to a Java native object using custom registries.
@@ -97,7 +91,7 @@ public final class ExprValueUtils {
             "Unknown type, descriptor was not found in registry: "
                 + value.getObjectValue().getTypeUrl());
       }
-      Message prototype = getDefaultInstance(descriptor);
+      Message prototype = DynamicMessage.getDefaultInstance(descriptor);
       return prototype
           .getParserForType()
           .parseFrom(value.getObjectValue().getValue(), extensionRegistry);
@@ -197,7 +191,8 @@ public final class ExprValueUtils {
     if (object instanceof dev.cel.expr.Value) {
       object =
           Value.parseFrom(
-              ((dev.cel.expr.Value) object).toByteArray(), ExtensionRegistry.getEmptyRegistry());
+              ((dev.cel.expr.Value) object).toByteArray(),
+              ExtensionRegistry.getEmptyRegistry());
     }
     if (object instanceof Value) {
       return (Value) object;
@@ -302,16 +297,4 @@ public final class ExprValueUtils {
     throw new IllegalArgumentException(
         String.format("Unexpected result type: %s", object.getClass()));
   }
-
-  private static Message getDefaultInstance(Descriptor descriptor) {
-    return DefaultInstanceMessageFactory.getInstance()
-        .getPrototype(descriptor)
-        .orElseThrow(
-            () ->
-                new NoSuchElementException(
-                    "Could not find a default message for: " + descriptor.getFullName()));
-  }
-
-
-
 }

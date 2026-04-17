@@ -23,8 +23,8 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.GeneratorNames;
 import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.protobuf.JavaFileGenerator.GeneratedClass;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
@@ -117,7 +117,7 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
   private ImmutableList<GeneratedClass> codegenCelLiteDescriptors(
       FileDescriptor targetFileDescriptor) throws Exception {
-    String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
+    String javaPackageName = GeneratorNames.getFileJavaPackage(targetFileDescriptor.toProto());
     String javaClassName;
 
     List<Descriptor> descriptors = targetFileDescriptor.getMessageTypes();

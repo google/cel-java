@@ -15,7 +15,8 @@
 package dev.cel.testing.testrunner;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Any;
+import com.google.protobuf.ExtensionRegistry;
+import dev.cel.bundle.CelFactory;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import org.junit.runner.RunWith;
@@ -29,15 +30,24 @@ import org.junit.runners.Parameterized;
 public class CustomVariableBindingUserTest extends CelUserTestTemplate {
 
   public CustomVariableBindingUserTest() {
-    super(
-        CelTestContext.newBuilder()
-            .setVariableBindings(
-                ImmutableMap.of(
-                    "spec",
-                    Any.pack(
-                        TestAllTypes.newBuilder()
-                            .setExtension(TestAllTypesExtensions.int32Ext, 1)
-                            .build())))
-            .build());
+    super(newTestContext());
+  }
+
+  private static CelTestContext newTestContext() {
+    ExtensionRegistry registry = ExtensionRegistry.newInstance();
+    registry.add(TestAllTypesExtensions.int32Ext);
+
+    return CelTestContext.newBuilder()
+        .setCel(
+            CelFactory.standardCelBuilder()
+                .addMessageTypes(TestAllTypes.getDescriptor())
+                .addFileTypes(TestAllTypesExtensions.getDescriptor())
+                .setExtensionRegistry(registry)
+                .build())
+        .setVariableBindings(
+            ImmutableMap.of(
+                "spec",
+                TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 1).build()))
+        .build();
   }
 }

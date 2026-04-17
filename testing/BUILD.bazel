@@ -45,3 +45,8 @@ java_library(
     name = "expr_value_utils",
     exports = ["//testing/src/main/java/dev/cel/testing/utils:expr_value_utils"],
 )
+
+java_library(
+    name = "proto_descriptor_utils",
+    exports = ["//testing/src/main/java/dev/cel/testing/utils:proto_descriptor_utils"],
+)
