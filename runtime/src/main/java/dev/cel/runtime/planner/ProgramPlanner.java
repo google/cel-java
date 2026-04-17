@@ -308,15 +308,21 @@ public final class ProgramPlanner {
 
     switch (argCount) {
       case 0:
-        return EvalZeroArity.create(expr.id(), resolvedOverload, celValueConverter);
+        return EvalZeroArity.create(expr.id(), functionName, resolvedOverload, celValueConverter);
       case 1:
-        return EvalUnary.create(expr.id(), resolvedOverload, evaluatedArgs[0], celValueConverter);
+        return EvalUnary.create(
+            expr.id(), functionName, resolvedOverload, evaluatedArgs[0], celValueConverter);
       case 2:
         return EvalBinary.create(
-            expr.id(), resolvedOverload, evaluatedArgs[0], evaluatedArgs[1], celValueConverter);
+            expr.id(),
+            functionName,
+            resolvedOverload,
+            evaluatedArgs[0],
+            evaluatedArgs[1],
+            celValueConverter);
       default:
         return EvalVarArgsCall.create(
-            expr.id(), resolvedOverload, evaluatedArgs, celValueConverter);
+            expr.id(), functionName, resolvedOverload, evaluatedArgs, celValueConverter);
     }
   }
 

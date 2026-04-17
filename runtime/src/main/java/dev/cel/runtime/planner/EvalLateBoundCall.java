@@ -55,7 +55,7 @@ final class EvalLateBoundCall extends PlannedInterpretable {
             .findOverload(functionName, overloadIds, argVals)
             .orElseThrow(() -> new CelOverloadNotFoundException(functionName, overloadIds));
 
-    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVals);
+    return EvalHelpers.dispatch(functionName, resolvedOverload, celValueConverter, argVals);
   }
 
   static EvalLateBoundCall create(

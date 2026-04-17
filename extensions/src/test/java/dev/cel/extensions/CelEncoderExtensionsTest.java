@@ -19,44 +19,32 @@ import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.Cel;
-import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.testing.CelRuntimeFlavor;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class CelEncoderExtensionsTest {
+public class CelEncoderExtensionsTest extends CelExtensionTestBase {
   private static final CelOptions CEL_OPTIONS =
       CelOptions.current().enableHeterogeneousNumericComparisons(true).build();
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
-
-  private Cel cel;
-
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    this.cel =
-        runtimeFlavor
-            .builder()
-            .setOptions(CEL_OPTIONS)
-            .addCompilerLibraries(CelExtensions.encoders(CEL_OPTIONS))
-            .addRuntimeLibraries(CelExtensions.encoders(CEL_OPTIONS))
-            .addVar("stringVar", SimpleType.STRING)
-            .build();
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .setOptions(CEL_OPTIONS)
+        .addCompilerLibraries(CelExtensions.encoders(CEL_OPTIONS))
+        .addRuntimeLibraries(CelExtensions.encoders(CEL_OPTIONS))
+        .addVar("stringVar", SimpleType.STRING)
+        .build();
   }
 
   @Test
@@ -132,12 +120,5 @@ public class CelEncoderExtensionsTest {
     assertThat(e).hasCauseThat().hasMessageThat().contains("Illegal base64 character");
   }
 
-  private Object eval(String expr) throws Exception {
-    return eval(expr, ImmutableMap.of());
-  }
 
-  private Object eval(String expr, ImmutableMap<String, Object> vars) throws Exception {
-    CelAbstractSyntaxTree ast = isParseOnly ? cel.parse(expr).getAst() : cel.compile(expr).getAst();
-    return cel.createProgram(ast).eval(vars);
-  }
 }

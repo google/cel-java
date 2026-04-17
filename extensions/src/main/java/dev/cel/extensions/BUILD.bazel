@@ -42,6 +42,7 @@ java_library(
         ":strings",
         "//common:options",
         "//extensions:extension_library",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )

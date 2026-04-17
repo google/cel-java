@@ -23,7 +23,9 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.exceptions.CelOverloadNotFoundException;
 
 @Immutable
-final class FunctionBindingImpl implements CelFunctionBinding {
+final class FunctionBindingImpl implements InternalCelFunctionBinding {
+
+  private final String functionName;
 
   private final String overloadId;
 
@@ -32,6 +34,11 @@ final class FunctionBindingImpl implements CelFunctionBinding {
   private final CelFunctionOverload definition;
 
   private final boolean isStrict;
+
+  @Override
+  public String getFunctionName() {
+    return functionName;
+  }
 
   @Override
   public String getOverloadId() {
@@ -54,20 +61,34 @@ final class FunctionBindingImpl implements CelFunctionBinding {
   }
 
   FunctionBindingImpl(
+      String functionName,
       String overloadId,
       ImmutableList<Class<?>> argTypes,
       CelFunctionOverload definition,
       boolean isStrict) {
+    this.functionName = functionName;
     this.overloadId = overloadId;
     this.argTypes = argTypes;
     this.definition = definition;
     this.isStrict = isStrict;
   }
 
+  FunctionBindingImpl(
+      String overloadId,
+      ImmutableList<Class<?>> argTypes,
+      CelFunctionOverload definition,
+      boolean isStrict) {
+    this(overloadId, overloadId, argTypes, definition, isStrict);
+  }
+
   static ImmutableSet<CelFunctionBinding> groupOverloadsToFunction(
       String functionName, ImmutableSet<CelFunctionBinding> overloadBindings) {
     ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
-    builder.addAll(overloadBindings);
+    for (CelFunctionBinding b : overloadBindings) {
+      builder.add(
+          new FunctionBindingImpl(
+              functionName, b.getOverloadId(), b.getArgTypes(), b.getDefinition(), b.isStrict()));
+    }
 
     // If there is already a binding with the same name as the function, we treat it as a
     // "Singleton" binding and do not create a dynamic dispatch wrapper for it.
@@ -81,10 +102,11 @@ final class FunctionBindingImpl implements CelFunctionBinding {
         builder.add(
             new FunctionBindingImpl(
                 functionName,
+                functionName,
                 singleBinding.getArgTypes(),
                 singleBinding.getDefinition(),
                 singleBinding.isStrict()));
-      } else {
+      } else if (overloadBindings.size() > 1) {
         builder.add(new DynamicDispatchBinding(functionName, overloadBindings));
       }
     }
@@ -93,13 +115,18 @@ final class FunctionBindingImpl implements CelFunctionBinding {
   }
 
   @Immutable
-  static final class DynamicDispatchBinding implements CelFunctionBinding {
+  static final class DynamicDispatchBinding implements InternalCelFunctionBinding {
 
     private final boolean isStrict;
     private final DynamicDispatchOverload dynamicDispatchOverload;
 
     @Override
     public String getOverloadId() {
+      return dynamicDispatchOverload.functionName;
+    }
+
+    @Override
+    public String getFunctionName() {
       return dynamicDispatchOverload.functionName;
     }
 

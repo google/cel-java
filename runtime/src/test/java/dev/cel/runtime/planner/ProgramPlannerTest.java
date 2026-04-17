@@ -75,6 +75,7 @@ import dev.cel.runtime.CelStandardFunctions.StandardFunction;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.DefaultDispatcher;
 import dev.cel.runtime.DescriptorTypeResolver;
+import dev.cel.runtime.InternalCelFunctionBinding;
 import dev.cel.runtime.PartialVars;
 import dev.cel.runtime.Program;
 import dev.cel.runtime.RuntimeEquality;
@@ -244,6 +245,7 @@ public final class ProgramPlannerTest {
     overloadBindings.forEach(
         overload ->
             builder.addOverload(
+                ((InternalCelFunctionBinding) overload).getFunctionName(),
                 overload.getOverloadId(),
                 overload.getArgTypes(),
                 overload.isStrict(),
@@ -494,15 +496,11 @@ public final class ProgramPlannerTest {
   public void plan_call_throws() throws Exception {
     CelAbstractSyntaxTree ast = compile("error()");
     Program program = PLANNER.plan(ast);
-    String expectedOverloadId = isParseOnly ? "error" : "error_overload";
 
     CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
     assertThat(e)
         .hasMessageThat()
-        .contains(
-            "evaluation error at <input>:5: Function '"
-                + expectedOverloadId
-                + "' failed with arg(s) ''");
+        .contains("evaluation error at <input>:5: Function 'error' failed with arg(s) ''");
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e.getCause()).hasMessageThat().contains("Intentional error");
   }
@@ -562,13 +560,11 @@ public final class ProgramPlannerTest {
   public void plan_call_noMatchingOverload_throws() throws Exception {
     CelAbstractSyntaxTree ast = compile("concat(b'abc', dyn_var)");
     Program program = PLANNER.plan(ast);
-    String errorMsg;
+    String errorMsg =
+        "No matching overload for function 'concat'. Overload candidates: concat_bytes_bytes";
     if (isParseOnly) {
-      errorMsg =
-          "No matching overload for function 'concat'. Overload candidates: concat_bytes_bytes,"
-              + " bytes_concat_bytes";
-    } else {
-      errorMsg = "No matching overload for function 'concat_bytes_bytes'";
+      // Parsed-only evaluation includes both overloads as candidates due to dynamic dispatch
+      errorMsg += ", bytes_concat_bytes";
     }
 
     CelEvaluationException e =

@@ -27,11 +27,13 @@ public final class CelResolvedOverloadTest {
 
   CelResolvedOverload getIncrementIntOverload() {
     return CelResolvedOverload.of(
-        "increment_int",
-        (args) -> {
-          Long arg = (Long) args[0];
-          return arg + 1;
-        },
+        /* functionName= */ "increment_int",
+        /* overloadId= */ "increment_int_overload",
+        (CelFunctionOverload)
+            (args) -> {
+              Long arg = (Long) args[0];
+              return arg + 1;
+            },
         /* isStrict= */ true,
         Long.class);
   }
@@ -45,14 +47,23 @@ public final class CelResolvedOverloadTest {
   public void canHandle_nullMessageType_returnsFalse() {
     CelResolvedOverload overload =
         CelResolvedOverload.of(
-            "identity", (args) -> args[0], /* isStrict= */ true, TestAllTypes.class);
+            /* functionName= */ "identity",
+            /* overloadId= */ "identity_overload",
+            (CelFunctionOverload) (args) -> args[0],
+            /* isStrict= */ true,
+            TestAllTypes.class);
     assertThat(overload.canHandle(new Object[] {null})).isFalse();
   }
 
   @Test
   public void canHandle_nullPrimitive_returnsFalse() {
     CelResolvedOverload overload =
-        CelResolvedOverload.of("identity", (args) -> args[0], /* isStrict= */ true, Long.class);
+        CelResolvedOverload.of(
+            /* functionName= */ "identity",
+            /* overloadId= */ "identity_overload",
+            (CelFunctionOverload) (args) -> args[0],
+            /* isStrict= */ true,
+            Long.class);
     assertThat(overload.canHandle(new Object[] {null})).isFalse();
   }
 
@@ -70,10 +81,12 @@ public final class CelResolvedOverloadTest {
   public void canHandle_nonStrictOverload_returnsTrue() {
     CelResolvedOverload nonStrictOverload =
         CelResolvedOverload.of(
-            "non_strict",
-            (args) -> {
-              return false;
-            },
+            /* functionName= */ "non_strict",
+            /* overloadId= */ "non_strict_overload",
+            (CelFunctionOverload)
+                (args) -> {
+                  return false;
+                },
             /* isStrict= */ false,
             Long.class,
             Long.class);
@@ -87,10 +100,12 @@ public final class CelResolvedOverloadTest {
   public void canHandle_nonStrictOverload_returnsFalse() {
     CelResolvedOverload nonStrictOverload =
         CelResolvedOverload.of(
-            "non_strict",
-            (args) -> {
-              return false;
-            },
+            /* functionName= */ "non_strict",
+            /* overloadId= */ "non_strict_overload",
+            (CelFunctionOverload)
+                (args) -> {
+                  return false;
+                },
             /* isStrict= */ false,
             Long.class,
             Long.class);

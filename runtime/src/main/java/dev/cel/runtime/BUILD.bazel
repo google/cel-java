@@ -53,6 +53,7 @@ LITE_PROGRAM_IMPL_SOURCES = [
 FUNCTION_BINDING_SOURCES = [
     "CelFunctionBinding.java",
     "FunctionBindingImpl.java",
+    "InternalCelFunctionBinding.java",
 ]
 
 # keep sorted
@@ -740,6 +741,7 @@ java_library(
     deps = [
         ":evaluation_exception",
         ":function_overload",
+        "//common/annotations",
         "//common/exceptions:overload_not_found",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -754,6 +756,7 @@ cel_android_library(
     deps = [
         ":evaluation_exception",
         ":function_overload_android",
+        "//common/annotations",
         "//common/exceptions:overload_not_found",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
@@ -890,7 +893,6 @@ java_library(
         "//common/types:type_providers",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value_provider",
-        "//runtime/standard:add",
         "//runtime/standard:int",
         "//runtime/standard:timestamp",
         "@maven//:com_google_code_findbugs_annotations",

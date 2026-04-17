@@ -56,7 +56,10 @@ final class EvalHelpers {
   }
 
   static Object dispatch(
-      CelResolvedOverload overload, CelValueConverter valueConverter, Object[] args)
+      String functionName,
+      CelResolvedOverload overload,
+      CelValueConverter valueConverter,
+      Object[] args)
       throws CelEvaluationException {
     try {
       Object result = overload.invoke(args);
@@ -66,7 +69,11 @@ final class EvalHelpers {
     }
   }
 
-  static Object dispatch(CelResolvedOverload overload, CelValueConverter valueConverter, Object arg)
+  static Object dispatch(
+      String functionName,
+      CelResolvedOverload overload,
+      CelValueConverter valueConverter,
+      Object arg)
       throws CelEvaluationException {
     try {
       Object result = overload.invoke(arg);
@@ -77,7 +84,11 @@ final class EvalHelpers {
   }
 
   static Object dispatch(
-      CelResolvedOverload overload, CelValueConverter valueConverter, Object arg1, Object arg2)
+      String functionName,
+      CelResolvedOverload overload,
+      CelValueConverter valueConverter,
+      Object arg1,
+      Object arg2)
       throws CelEvaluationException {
     try {
       Object result = overload.invoke(arg1, arg2);
@@ -97,7 +108,7 @@ final class EvalHelpers {
     return new IllegalArgumentException(
         String.format(
             "Function '%s' failed with arg(s) '%s'",
-            overload.getOverloadId(), Joiner.on(", ").join(args)),
+            overload.getFunctionName(), Joiner.on(", ").join(args)),
         e);
   }
 
