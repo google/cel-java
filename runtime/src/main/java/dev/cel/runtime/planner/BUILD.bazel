@@ -365,6 +365,7 @@ java_library(
         ":activation_wrapper",
         ":planned_interpretable",
         "//common/exceptions:runtime_exception",
+        "//common/values:mutable_map_value",
         "//runtime:accumulated_unknowns",
         "//runtime:concatenated_list_view",
         "//runtime:evaluation_exception",

@@ -118,6 +118,38 @@ java_library(
     ],
 )
 
+java_library(
+    name = "mutable_map_value",
+    srcs = ["MutableMapValue.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "//common/exceptions:attribute_not_found",
+        "//common/types",
+        "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "mutable_map_value_android",
+    srcs = ["MutableMapValue.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value_android",
+        "//common/annotations",
+        "//common/exceptions:attribute_not_found",
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "//common/values:values_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
 cel_android_library(
     name = "values_android",
     srcs = CEL_VALUES_SOURCES,

@@ -29,6 +29,7 @@ import dev.cel.common.Operator;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.TypeParamType;
+import dev.cel.common.values.MutableMapValue;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
@@ -171,38 +172,46 @@ public final class CelComprehensionsExtensions
     parserBuilder.addMacros(macros());
   }
 
-  // TODO: Implement a more efficient map insertion based on mutability once mutable
-  // maps are supported in Java stack.
-  private static ImmutableMap<Object, Object> mapInsertMap(
+  private static Map<Object, Object> mapInsertMap(
       Map<?, ?> targetMap, Map<?, ?> mapToMerge, RuntimeEquality equality) {
-    ImmutableMap.Builder<Object, Object> resultBuilder =
-        ImmutableMap.builderWithExpectedSize(targetMap.size() + mapToMerge.size());
-
-    for (Map.Entry<?, ?> entry : mapToMerge.entrySet()) {
-      if (equality.findInMap(targetMap, entry.getKey()).isPresent()) {
+    for (Object key : mapToMerge.keySet()) {
+      if (equality.findInMap(targetMap, key).isPresent()) {
         throw new IllegalArgumentException(
-            String.format("insert failed: key '%s' already exists", entry.getKey()));
-      } else {
-        resultBuilder.put(entry.getKey(), entry.getValue());
+            String.format("insert failed: key '%s' already exists", key));
       }
     }
-    return resultBuilder.putAll(targetMap).buildOrThrow();
+
+    if (targetMap instanceof MutableMapValue) {
+      MutableMapValue wrapper = (MutableMapValue) targetMap;
+      wrapper.putAll(mapToMerge);
+      return wrapper;
+    }
+
+    return ImmutableMap.builderWithExpectedSize(targetMap.size() + mapToMerge.size())
+        .putAll(targetMap)
+        .putAll(mapToMerge)
+        .buildOrThrow();
   }
 
-  private static ImmutableMap<Object, Object> mapInsertKeyValue(
-      Object[] args, RuntimeEquality equality) {
-    Map<?, ?> map = (Map<?, ?>) args[0];
+  private static Map<Object, Object> mapInsertKeyValue(Object[] args, RuntimeEquality equality) {
+    Map<?, ?> mapArg = (Map<?, ?>) args[0];
     Object key = args[1];
     Object value = args[2];
 
-    if (equality.findInMap(map, key).isPresent()) {
+    if (equality.findInMap(mapArg, key).isPresent()) {
       throw new IllegalArgumentException(
           String.format("insert failed: key '%s' already exists", key));
     }
 
+    if (mapArg instanceof MutableMapValue) {
+      MutableMapValue mutableMap = (MutableMapValue) mapArg;
+      mutableMap.put(key, value);
+      return mutableMap;
+    }
+
     ImmutableMap.Builder<Object, Object> builder =
-        ImmutableMap.builderWithExpectedSize(map.size() + 1);
-    return builder.put(key, value).putAll(map).buildOrThrow();
+        ImmutableMap.builderWithExpectedSize(mapArg.size() + 1);
+    return builder.put(key, value).putAll(mapArg).buildOrThrow();
   }
 
   private static Optional<CelExpr> expandAllMacro(

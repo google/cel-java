@@ -28,6 +28,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.exceptions.CelAttributeNotFoundException;
 import dev.cel.common.exceptions.CelDivideByZeroException;
 import dev.cel.common.exceptions.CelIndexOutOfBoundsException;
 import dev.cel.common.types.SimpleType;
@@ -222,6 +223,7 @@ public class CelComprehensionsExtensionsTest {
                 + " 'key2': 'value2'}",
             // map.transformMapEntry()
             "{'hello': 'world', 'greetings': 'tacocat'}.transformMapEntry(k, v, {}) == {}",
+            "{'a': 1, 'b': 2}.transformMapEntry(k, v, {k: v}) == {'a': 1, 'b': 2}",
             "{'a': 1, 'b': 2}.transformMapEntry(k, v, {k + '_new': v * 2}) == {'a_new': 2,"
                 + " 'b_new': 4}",
             "{'a': 1, 'b': 2, 'c': 3}.transformMapEntry(k, v, v % 2 == 1, {k: v * 10}) == {'a': 10,"
@@ -362,6 +364,15 @@ public class CelComprehensionsExtensionsTest {
         assertThrows(CelEvaluationException.class, () -> eval("[1, 2].exists(i, v, [0][v] > 0)"));
     assertThat(e).hasCauseThat().isInstanceOf(CelIndexOutOfBoundsException.class);
     assertThat(e).hasCauseThat().hasMessageThat().contains("Index out of bounds: 1");
+  }
+
+  @Test
+  public void mutableMapValue_select_missingKeyException() throws Exception {
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class, () -> eval("cel.bind(my_map, {'a': 1}, my_map.b)"));
+    assertThat(e).hasCauseThat().isInstanceOf(CelAttributeNotFoundException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().contains("key 'b' is not present in map.");
   }
 
   private Object eval(String expression) throws Exception {
