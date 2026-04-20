@@ -25,6 +25,7 @@ import com.google.protobuf.TypeRegistry;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
 import dev.cel.policy.CelPolicyParser;
 import dev.cel.runtime.CelLateFunctionBindings;
@@ -126,6 +127,20 @@ public abstract class CelTestContext {
   abstract ImmutableSet<FileDescriptor> fileTypes();
 
   @Memoized
+  public Optional<CelDescriptors> celDescriptors() {
+    if (fileDescriptorSetPath().isPresent()) {
+      try {
+        return Optional.of(
+            ProtoDescriptorUtils.getDescriptorsFromFile(fileDescriptorSetPath().get()));
+      } catch (IOException e) {
+        throw new IllegalStateException(
+            "Failed to load descriptors from path: " + fileDescriptorSetPath().get(), e);
+      }
+    }
+    return Optional.empty();
+  }
+
+  @Memoized
   public Optional<TypeRegistry> typeRegistry() {
     if (fileTypes().isEmpty() && !fileDescriptorSetPath().isPresent()) {
       return Optional.empty();
@@ -136,15 +151,8 @@ public abstract class CelTestContext {
           CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileTypes())
               .messageTypeDescriptors());
     }
-    if (fileDescriptorSetPath().isPresent()) {
-      try {
-        builder.add(
-            ProtoDescriptorUtils.getAllDescriptorsFromJvm(fileDescriptorSetPath().get())
-                .messageTypeDescriptors());
-      } catch (IOException e) {
-        throw new IllegalStateException(
-            "Failed to load descriptors from path: " + fileDescriptorSetPath().get(), e);
-      }
+    if (celDescriptors().isPresent()) {
+      builder.add(celDescriptors().get().messageTypeDescriptors());
     }
     return Optional.of(builder.build());
   }

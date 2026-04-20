@@ -15,19 +15,16 @@ java_library(
     tags = [
     ],
     deps = [
-        "//common:cel_descriptor_util",
         "//common:cel_descriptors",
-        "//common/internal:default_instance_message_factory",
         "//common/internal:proto_time_utils",
         "//common/types",
         "//common/types:type_providers",
         "//common/values",
         "//common/values:cel_byte_string",
         "//runtime:unknown_attributes",
+        "//testing:proto_descriptor_utils",
         "//testing/testrunner:registry_utils",
         "@cel_spec//proto/cel/expr:expr_java_proto",
-        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
-        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
@@ -41,7 +38,6 @@ java_library(
     ],
     deps = [
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:io_github_classgraph_classgraph",
     ],
 )
@@ -49,12 +45,9 @@ java_library(
 java_library(
     name = "proto_descriptor_utils",
     srcs = ["ProtoDescriptorUtils.java"],
-    tags = [
-    ],
     deps = [
         "//common:cel_descriptor_util",
         "//common:cel_descriptors",
-        "//testing/testrunner:class_loader_utils",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],

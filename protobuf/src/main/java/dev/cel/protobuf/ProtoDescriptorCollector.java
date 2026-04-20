@@ -22,7 +22,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import com.google.protobuf.Descriptors.FileDescriptor;
-import dev.cel.common.internal.ProtoJavaQualifiedNames;
+import com.google.protobuf.GeneratorNames;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
@@ -93,8 +93,7 @@ final class ProtoDescriptorCollector {
       // Maps are resolved as an actual Java map, and doesn't have a MessageLite.Builder associated.
       if (!messageDescriptor.getOptions().getMapEntry()) {
         String sanitizedJavaClassName =
-            ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(messageDescriptor)
-                .replace('$', '.');
+            GeneratorNames.getBytecodeClassName(messageDescriptor).replace('$', '.');
         descriptorCodegenBuilder.setJavaClassName(sanitizedJavaClassName);
       }
 

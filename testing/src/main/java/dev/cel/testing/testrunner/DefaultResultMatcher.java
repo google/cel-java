@@ -22,11 +22,13 @@ import dev.cel.expr.ExprValue;
 import dev.cel.expr.MapValue;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelDescriptors;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime.Program;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase.Output;
 import dev.cel.testing.testrunner.ResultMatcher.ResultMatcherParams;
 import dev.cel.testing.testrunner.ResultMatcher.ResultMatcherParams.ComputedOutput;
+import dev.cel.testing.utils.ProtoDescriptorUtils;
 import java.io.IOException;
 
 final class DefaultResultMatcher implements ResultMatcher {
@@ -40,6 +42,10 @@ final class DefaultResultMatcher implements ResultMatcher {
           throw new AssertionError(
               "Error: " + params.computedOutput().error().getMessage(),
               params.computedOutput().error());
+        }
+        if (params.computedOutput().kind().equals(ComputedOutput.Kind.UNKNOWN_SET)) {
+          throw new AssertionError(
+              "Expected value but got UnknownSet: " + params.computedOutput().unknownSet());
         }
         CelAbstractSyntaxTree exprAst = cel.compile(result.resultExpr()).getAst();
         Program exprProgram = cel.createProgram(exprAst);
@@ -58,6 +64,10 @@ final class DefaultResultMatcher implements ResultMatcher {
           throw new AssertionError(
               "Error: " + params.computedOutput().error().getMessage(),
               params.computedOutput().error());
+        }
+        if (params.computedOutput().kind().equals(ComputedOutput.Kind.UNKNOWN_SET)) {
+          throw new AssertionError(
+              "Expected value but got UnknownSet: " + params.computedOutput().unknownSet());
         }
         assertExprValue(
             params.computedOutput().exprValue(),
@@ -85,12 +95,14 @@ final class DefaultResultMatcher implements ResultMatcher {
       throws IOException {
     String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
     if (fileDescriptorSetPath != null) {
+      CelDescriptors descriptors =
+          ProtoDescriptorUtils.getDescriptorsFromFile(fileDescriptorSetPath);
       assertThat(exprValue)
           .ignoringRepeatedFieldOrderOfFieldDescriptors(
               MapValue.getDescriptor().findFieldByName("entries"))
           .unpackingAnyUsing(
-              RegistryUtils.getTypeRegistry(fileDescriptorSetPath),
-              RegistryUtils.getExtensionRegistry(fileDescriptorSetPath))
+              RegistryUtils.getTypeRegistry(descriptors),
+              RegistryUtils.getExtensionRegistry(descriptors))
           .isEqualTo(expectedExprValue);
     } else {
       assertThat(exprValue)

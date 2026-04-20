@@ -22,6 +22,7 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
 import com.google.protobuf.TypeRegistry;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.annotations.Internal;
 import dev.cel.expr.conformance.test.InputValue;
 import dev.cel.expr.conformance.test.TestCase;
@@ -30,6 +31,7 @@ import dev.cel.expr.conformance.test.TestSuite;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase.Input.Binding;
+import dev.cel.testing.utils.ProtoDescriptorUtils;
 import java.io.IOException;
 import java.util.Map;
 
@@ -71,8 +73,10 @@ public final class CelTestSuiteTextProtoParser {
     TypeRegistry typeRegistry = customTypeRegistry;
     ExtensionRegistry extensionRegistry = customExtensionRegistry;
     if (fileDescriptorSetPath != null) {
-      extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptorSetPath);
-      typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptorSetPath);
+      CelDescriptors descriptors =
+          ProtoDescriptorUtils.getDescriptorsFromFile(fileDescriptorSetPath);
+      extensionRegistry = RegistryUtils.getExtensionRegistry(descriptors);
+      typeRegistry = RegistryUtils.getTypeRegistry(descriptors);
     }
     TextFormat.Parser parser = TextFormat.Parser.newBuilder().setTypeRegistry(typeRegistry).build();
     TestSuite.Builder builder = TestSuite.newBuilder();
