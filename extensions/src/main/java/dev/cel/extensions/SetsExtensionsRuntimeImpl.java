@@ -45,28 +45,34 @@ final class SetsExtensionsRuntimeImpl implements CelLiteRuntimeLibrary {
     for (SetsFunction function : functions) {
       switch (function) {
         case CONTAINS:
-          bindingBuilder.add(
-              CelFunctionBinding.from(
-                  "list_sets_contains_list",
-                  Collection.class,
-                  Collection.class,
-                  this::containsAll));
+          bindingBuilder.addAll(
+              CelFunctionBinding.fromOverloads(
+                  function.getFunction(),
+                  CelFunctionBinding.from(
+                      "list_sets_contains_list",
+                      Collection.class,
+                      Collection.class,
+                      this::containsAll)));
           break;
         case EQUIVALENT:
-          bindingBuilder.add(
-              CelFunctionBinding.from(
-                  "list_sets_equivalent_list",
-                  Collection.class,
-                  Collection.class,
-                  (listA, listB) -> containsAll(listA, listB) && containsAll(listB, listA)));
+          bindingBuilder.addAll(
+              CelFunctionBinding.fromOverloads(
+                  function.getFunction(),
+                  CelFunctionBinding.from(
+                      "list_sets_equivalent_list",
+                      Collection.class,
+                      Collection.class,
+                      (listA, listB) -> containsAll(listA, listB) && containsAll(listB, listA))));
           break;
         case INTERSECTS:
-          bindingBuilder.add(
-              CelFunctionBinding.from(
-                  "list_sets_intersects_list",
-                  Collection.class,
-                  Collection.class,
-                  this::setIntersects));
+          bindingBuilder.addAll(
+              CelFunctionBinding.fromOverloads(
+                  function.getFunction(),
+                  CelFunctionBinding.from(
+                      "list_sets_intersects_list",
+                      Collection.class,
+                      Collection.class,
+                      this::setIntersects)));
           break;
       }
     }
