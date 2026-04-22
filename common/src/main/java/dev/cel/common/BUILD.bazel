@@ -95,6 +95,10 @@ java_library(
     # used_by_android
     tags = [
     ],
+    visibility = [
+        "//common:__pkg__",
+        "//java/com/google/ads/api/riskserver/server/sifo:__pkg__",
+    ],
     deps = [
         ":error_codes",
     ],
@@ -289,6 +293,10 @@ java_library(
     name = "cel_ast",
     srcs = ["CelAbstractSyntaxTree.java"],
     tags = [
+    ],
+    visibility = [
+        "//common:__pkg__",
+        "//java/com/google/ads/api/riskserver/server/sifo:__pkg__",
     ],
     deps = [
         ":cel_source",

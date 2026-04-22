@@ -28,6 +28,10 @@ java_library(
     srcs = COMPILER_SOURCES,
     tags = [
     ],
+    visibility = [
+        "//compiler:__pkg__",
+        "//java/com/google/ads/api/riskserver/server/sifo:__pkg__",
+    ],
     deps = [
         ":compiler_builder",
         "//checker",
@@ -58,6 +62,10 @@ java_library(
     name = "compiler_builder",
     srcs = COMPILER_BUILDER_SOURCES,
     tags = [
+    ],
+    visibility = [
+        "//compiler:__pkg__",
+        "//java/com/google/ads/api/riskserver/server/sifo:__pkg__",
     ],
     deps = [
         "//:auto_value",
