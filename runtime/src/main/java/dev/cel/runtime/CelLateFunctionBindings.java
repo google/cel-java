@@ -63,7 +63,12 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
   }
 
   private static CelResolvedOverload createResolvedOverload(CelFunctionBinding binding) {
+    String functionName = binding.getOverloadId();
+    if (binding instanceof InternalCelFunctionBinding) {
+      functionName = ((InternalCelFunctionBinding) binding).getFunctionName();
+    }
     return CelResolvedOverload.of(
+        functionName,
         binding.getOverloadId(),
         binding.getDefinition(),
         binding.isStrict(),

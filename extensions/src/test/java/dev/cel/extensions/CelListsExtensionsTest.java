@@ -29,6 +29,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.test.SimpleTest;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.testing.CelRuntimeFlavor;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -143,7 +144,7 @@ public class CelListsExtensionsTest extends CelExtensionTestBase {
     CelEvaluationException e =
         assertThrows(CelEvaluationException.class, () -> eval(cel, "[1,2,3,4].flatten(-1)"));
 
-    if (isParseOnly) {
+    if (runtimeFlavor.equals(CelRuntimeFlavor.PLANNER)) {
       assertThat(e)
           .hasMessageThat()
           .contains("evaluation error at <input>:17: Function 'flatten' failed");

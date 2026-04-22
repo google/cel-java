@@ -381,7 +381,12 @@ public abstract class CelRuntimeImpl implements CelRuntime {
       DefaultDispatcher.Builder builder = DefaultDispatcher.newBuilder();
       for (CelFunctionBinding binding :
           standardFunctions.newFunctionBindings(runtimeEquality, options)) {
+        String functionName = binding.getOverloadId();
+        if (binding instanceof InternalCelFunctionBinding) {
+          functionName = ((InternalCelFunctionBinding) binding).getFunctionName();
+        }
         builder.addOverload(
+            functionName,
             binding.getOverloadId(),
             binding.getArgTypes(),
             binding.isStrict(),
@@ -389,7 +394,12 @@ public abstract class CelRuntimeImpl implements CelRuntime {
       }
 
       for (CelFunctionBinding binding : customFunctionBindings) {
+        String functionName = binding.getOverloadId();
+        if (binding instanceof InternalCelFunctionBinding) {
+          functionName = ((InternalCelFunctionBinding) binding).getFunctionName();
+        }
         builder.addOverload(
+            functionName,
             binding.getOverloadId(),
             binding.getArgTypes(),
             binding.isStrict(),

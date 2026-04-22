@@ -25,6 +25,7 @@ import dev.cel.runtime.GlobalResolver;
 
 final class EvalVarArgsCall extends PlannedInterpretable {
 
+  private final String functionName;
   private final CelResolvedOverload resolvedOverload;
 
   @SuppressWarnings("Immutable")
@@ -50,23 +51,26 @@ final class EvalVarArgsCall extends PlannedInterpretable {
       return unknowns;
     }
 
-    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVals);
+    return EvalHelpers.dispatch(functionName, resolvedOverload, celValueConverter, argVals);
   }
 
   static EvalVarArgsCall create(
       long exprId,
+      String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
-    return new EvalVarArgsCall(exprId, resolvedOverload, args, celValueConverter);
+    return new EvalVarArgsCall(exprId, functionName, resolvedOverload, args, celValueConverter);
   }
 
   private EvalVarArgsCall(
       long exprId,
+      String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
     super(exprId);
+    this.functionName = functionName;
     this.resolvedOverload = resolvedOverload;
     this.args = args;
     this.celValueConverter = celValueConverter;

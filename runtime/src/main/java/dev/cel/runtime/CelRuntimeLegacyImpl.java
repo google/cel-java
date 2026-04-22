@@ -305,7 +305,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       DefaultDispatcher.Builder dispatcherBuilder = DefaultDispatcher.newBuilder();
       for (CelFunctionBinding standardFunctionBinding :
           newStandardFunctionBindings(runtimeEquality)) {
+        String functionName = standardFunctionBinding.getOverloadId();
+        if (standardFunctionBinding instanceof InternalCelFunctionBinding) {
+          functionName = ((InternalCelFunctionBinding) standardFunctionBinding).getFunctionName();
+        }
         dispatcherBuilder.addOverload(
+            functionName,
             standardFunctionBinding.getOverloadId(),
             standardFunctionBinding.getArgTypes(),
             standardFunctionBinding.isStrict(),
@@ -313,7 +318,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       }
 
       for (CelFunctionBinding customBinding : customFunctionBindings.values()) {
+        String functionName = customBinding.getOverloadId();
+        if (customBinding instanceof InternalCelFunctionBinding) {
+          functionName = ((InternalCelFunctionBinding) customBinding).getFunctionName();
+        }
         dispatcherBuilder.addOverload(
+            functionName,
             customBinding.getOverloadId(),
             customBinding.getArgTypes(),
             customBinding.isStrict(),

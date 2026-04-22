@@ -2,6 +2,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 load("//:cel_android_rules.bzl", "cel_android_local_test")
 load("//:testing.bzl", "junit4_test_suites")
 
+# Invalidate cache after file removal
 package(
     default_applicable_licenses = ["//:license"],
     default_testonly = True,

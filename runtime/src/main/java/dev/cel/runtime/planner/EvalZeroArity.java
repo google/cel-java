@@ -22,22 +22,30 @@ import dev.cel.runtime.GlobalResolver;
 final class EvalZeroArity extends PlannedInterpretable {
   private static final Object[] EMPTY_ARRAY = new Object[0];
 
+  private final String functionName;
   private final CelResolvedOverload resolvedOverload;
   private final CelValueConverter celValueConverter;
 
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
-    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, EMPTY_ARRAY);
+    return EvalHelpers.dispatch(functionName, resolvedOverload, celValueConverter, EMPTY_ARRAY);
   }
 
   static EvalZeroArity create(
-      long exprId, CelResolvedOverload resolvedOverload, CelValueConverter celValueConverter) {
-    return new EvalZeroArity(exprId, resolvedOverload, celValueConverter);
+      long exprId,
+      String functionName,
+      CelResolvedOverload resolvedOverload,
+      CelValueConverter celValueConverter) {
+    return new EvalZeroArity(exprId, functionName, resolvedOverload, celValueConverter);
   }
 
   private EvalZeroArity(
-      long exprId, CelResolvedOverload resolvedOverload, CelValueConverter celValueConverter) {
+      long exprId,
+      String functionName,
+      CelResolvedOverload resolvedOverload,
+      CelValueConverter celValueConverter) {
     super(exprId);
+    this.functionName = functionName;
     this.resolvedOverload = resolvedOverload;
     this.celValueConverter = celValueConverter;
   }
