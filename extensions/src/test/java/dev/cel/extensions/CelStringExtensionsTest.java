@@ -33,40 +33,29 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.extensions.CelStringExtensions.Function;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.testing.CelRuntimeFlavor;
 import java.util.List;
-import java.util.Map;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class CelStringExtensionsTest {
+public final class CelStringExtensionsTest extends CelExtensionTestBase {
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
-
-  private Cel cel;
-
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    this.cel =
-        runtimeFlavor
-            .builder()
-            .addCompilerLibraries(CelExtensions.strings())
-            .addRuntimeLibraries(CelExtensions.strings())
-            .addVar("s", SimpleType.STRING)
-            .addVar("separator", SimpleType.STRING)
-            .addVar("index", SimpleType.INT)
-            .addVar("offset", SimpleType.INT)
-            .addVar("indexOfParam", SimpleType.STRING)
-            .addVar("beginIndex", SimpleType.INT)
-            .addVar("endIndex", SimpleType.INT)
-            .addVar("limit", SimpleType.INT)
-            .build();
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .addCompilerLibraries(CelExtensions.strings())
+        .addRuntimeLibraries(CelExtensions.strings())
+        .addVar("s", SimpleType.STRING)
+        .addVar("separator", SimpleType.STRING)
+        .addVar("index", SimpleType.INT)
+        .addVar("offset", SimpleType.INT)
+        .addVar("indexOfParam", SimpleType.STRING)
+        .addVar("beginIndex", SimpleType.INT)
+        .addVar("endIndex", SimpleType.INT)
+        .addVar("limit", SimpleType.INT)
+        .build();
   }
 
   @Test
@@ -388,13 +377,10 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void split_withLimitOverflow_throwsException() throws Exception {
+    ImmutableMap<String, Object> variables = ImmutableMap.of("limit", 2147483648L); // INT_MAX + 1
     CelEvaluationException exception =
         assertThrows(
-            CelEvaluationException.class,
-            () ->
-                eval(
-                    "'test'.split('', limit)",
-                    ImmutableMap.of("limit", 2147483648L))); // INT_MAX + 1
+            CelEvaluationException.class, () -> eval("'test'.split('', limit)", variables));
 
     assertThat(exception)
         .hasMessageThat()
@@ -454,13 +440,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '', beginIndex: 2}")
   public void substring_beginIndexOutOfRange_ascii_throwsException(String string, int beginIndex)
       throws Exception {
+    ImmutableMap<String, Object> variables = ImmutableMap.of("s", string, "beginIndex", beginIndex);
     CelEvaluationException exception =
         assertThrows(
-            CelEvaluationException.class,
-            () ->
-                eval(
-                    "s.substring(beginIndex)",
-                    ImmutableMap.of("s", string, "beginIndex", beginIndex)));
+            CelEvaluationException.class, () -> eval("s.substring(beginIndex)", variables));
 
     String exceptionMessage =
         String.format(
@@ -478,13 +461,10 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁가나', beginIndex: 4, uniqueCharCount: 3}")
   public void substring_beginIndexOutOfRange_unicode_throwsException(
       String string, int beginIndex, int uniqueCharCount) throws Exception {
+    ImmutableMap<String, Object> variables = ImmutableMap.of("s", string, "beginIndex", beginIndex);
     CelEvaluationException exception =
         assertThrows(
-            CelEvaluationException.class,
-            () ->
-                eval(
-                    "s.substring(beginIndex)",
-                    ImmutableMap.of("s", string, "beginIndex", beginIndex)));
+            CelEvaluationException.class, () -> eval("s.substring(beginIndex)", variables));
 
     String exceptionMessage =
         String.format(
@@ -501,13 +481,12 @@ public final class CelStringExtensionsTest {
   @TestParameters("{string: '😁😑😦', beginIndex: 2, endIndex: 1}")
   public void substring_beginAndEndIndexOutOfRange_throwsException(
       String string, int beginIndex, int endIndex) throws Exception {
+    ImmutableMap<String, Object> variables =
+        ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex);
     CelEvaluationException exception =
         assertThrows(
             CelEvaluationException.class,
-            () ->
-                eval(
-                    "s.substring(beginIndex, endIndex)",
-                    ImmutableMap.of("s", string, "beginIndex", beginIndex, "endIndex", endIndex)));
+            () -> eval("s.substring(beginIndex, endIndex)", variables));
 
     String exceptionMessage =
         String.format("substring failure: Range [%d, %d) out of bounds", beginIndex, endIndex);
@@ -516,13 +495,11 @@ public final class CelStringExtensionsTest {
 
   @Test
   public void substring_beginIndexOverflow_throwsException() throws Exception {
+    ImmutableMap<String, Object> variables =
+        ImmutableMap.of("beginIndex", 2147483648L); // INT_MAX + 1
     CelEvaluationException exception =
         assertThrows(
-            CelEvaluationException.class,
-            () ->
-                eval(
-                    "'abcd'.substring(beginIndex)",
-                    ImmutableMap.of("beginIndex", 2147483648L))); // INT_MAX + 1
+            CelEvaluationException.class, () -> eval("'abcd'.substring(beginIndex)", variables));
 
     assertThat(exception)
         .hasMessageThat()
@@ -1381,10 +1358,7 @@ public final class CelStringExtensionsTest {
             .build();
 
     Object evaluatedResult =
-        eval(
-            customCel,
-            "'test'.substring(2) == 'st' && 'hello'.charAt(1) == 'e'",
-            ImmutableMap.of());
+        eval(customCel, "'test'.substring(2) == 'st' && 'hello'.charAt(1) == 'e'");
 
     assertThat(evaluatedResult).isEqualTo(true);
   }
@@ -1499,21 +1473,5 @@ public final class CelStringExtensionsTest {
     assertThrows(CelEvaluationException.class, () -> customRuntimeCel.createProgram(ast).eval());
   }
 
-  private Object eval(Cel cel, String expression, Map<String, ?> variables) throws Exception {
-    CelAbstractSyntaxTree ast;
-    if (isParseOnly) {
-      ast = cel.parse(expression).getAst();
-    } else {
-      ast = cel.compile(expression).getAst();
-    }
-    return cel.createProgram(ast).eval(variables);
-  }
 
-  private Object eval(String expression) throws Exception {
-    return eval(this.cel, expression, ImmutableMap.of());
-  }
-
-  private Object eval(String expression, Map<String, ?> variables) throws Exception {
-    return eval(this.cel, expression, variables);
-  }
 }

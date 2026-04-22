@@ -23,7 +23,6 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
-import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
@@ -39,27 +38,39 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.testing.CelRuntimeFlavor;
 import java.util.List;
-import java.util.Map;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class CelSetsExtensionsTest {
+public final class CelSetsExtensionsTest extends CelExtensionTestBase {
   private static final CelOptions CEL_OPTIONS =
       CelOptions.current().enableHeterogeneousNumericComparisons(true).build();
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
-
-  private Cel cel;
-
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    this.cel = setupEnv(runtimeFlavor.builder());
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .addMessageTypes(TestAllTypes.getDescriptor())
+        .setOptions(CEL_OPTIONS)
+        .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+        .addCompilerLibraries(CelExtensions.sets(CEL_OPTIONS))
+        .addRuntimeLibraries(CelExtensions.sets(CEL_OPTIONS))
+        .addVar("list", ListType.create(SimpleType.INT))
+        .addVar("subList", ListType.create(SimpleType.INT))
+        .addFunctionDeclarations(
+            CelFunctionDecl.newFunctionDeclaration(
+                "new_int",
+                CelOverloadDecl.newGlobalOverload("new_int_int64", SimpleType.INT, SimpleType.INT)))
+        .addFunctionBindings(
+            CelFunctionBinding.fromOverloads(
+                "new_int",
+                CelFunctionBinding.from(
+                    "new_int_int64",
+                    Long.class,
+                    // Intentionally return java.lang.Integer to test primitive type adaptation
+                    Math::toIntExact)))
+        .build();
   }
 
   @Test
@@ -375,7 +386,7 @@ public final class CelSetsExtensionsTest {
             .addRuntimeLibraries(setsExtensions)
             .build();
 
-    Object evaluatedResult = eval(cel, "sets.contains([1, 2], [2])", ImmutableMap.of());
+    Object evaluatedResult = eval(cel, "sets.contains([1, 2], [2])");
 
     assertThat(evaluatedResult).isEqualTo(true);
   }
@@ -391,7 +402,7 @@ public final class CelSetsExtensionsTest {
             .addRuntimeLibraries(setsExtensions)
             .build();
 
-    Object evaluatedResult = eval(cel, "sets.equivalent([1, 1], [1])", ImmutableMap.of());
+    Object evaluatedResult = eval(cel, "sets.equivalent([1, 1], [1])");
 
     assertThat(evaluatedResult).isEqualTo(true);
   }
@@ -407,7 +418,7 @@ public final class CelSetsExtensionsTest {
             .addRuntimeLibraries(setsExtensions)
             .build();
 
-    Object evaluatedResult = eval(cel, "sets.intersects([1, 1], [1])", ImmutableMap.of());
+    Object evaluatedResult = eval(cel, "sets.intersects([1, 1], [1])");
 
     assertThat(evaluatedResult).isEqualTo(true);
   }
@@ -450,45 +461,5 @@ public final class CelSetsExtensionsTest {
     }
   }
 
-  private Object eval(Cel cel, String expression, Map<String, ?> variables) throws Exception {
-    CelAbstractSyntaxTree ast;
-    if (isParseOnly) {
-      ast = cel.parse(expression).getAst();
-    } else {
-      ast = cel.compile(expression).getAst();
-    }
-    return cel.createProgram(ast).eval(variables);
-  }
 
-  private Object eval(String expression) throws Exception {
-    return eval(this.cel, expression, ImmutableMap.of());
-  }
-
-  private Object eval(String expression, Map<String, ?> variables) throws Exception {
-    return eval(this.cel, expression, variables);
-  }
-
-  private static Cel setupEnv(CelBuilder celBuilder) {
-    return celBuilder
-        .addMessageTypes(TestAllTypes.getDescriptor())
-        .setOptions(CEL_OPTIONS)
-        .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
-        .addCompilerLibraries(CelExtensions.sets(CEL_OPTIONS))
-        .addRuntimeLibraries(CelExtensions.sets(CEL_OPTIONS))
-        .addVar("list", ListType.create(SimpleType.INT))
-        .addVar("subList", ListType.create(SimpleType.INT))
-        .addFunctionDeclarations(
-            CelFunctionDecl.newFunctionDeclaration(
-                "new_int",
-                CelOverloadDecl.newGlobalOverload("new_int_int64", SimpleType.INT, SimpleType.INT)))
-        .addFunctionBindings(
-            CelFunctionBinding.fromOverloads(
-                "new_int",
-                CelFunctionBinding.from(
-                    "new_int_int64",
-                    Long.class,
-                    // Intentionally return java.lang.Integer to test primitive type adaptation
-                    Math::toIntExact)))
-        .build();
-  }
 }
