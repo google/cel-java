@@ -30,6 +30,9 @@ import java.util.List;
 @Internal
 public abstract class CelResolvedOverload {
 
+  /** The base function name. */
+  public abstract String getFunctionName();
+
   /** The overload id of the function. */
   public abstract String getOverloadId();
 
@@ -61,7 +64,7 @@ public abstract class CelResolvedOverload {
         || CelFunctionOverload.canHandle(args, getParameterTypes(), isStrict())) {
       return getDefinition().apply(args);
     }
-    throw new CelOverloadNotFoundException(getOverloadId());
+    throw new CelOverloadNotFoundException(getFunctionName(), ImmutableList.of(getOverloadId()));
   }
 
   public Object invoke(Object arg) throws CelEvaluationException {
@@ -69,7 +72,7 @@ public abstract class CelResolvedOverload {
         || CelFunctionOverload.canHandle(arg, getParameterTypes(), isStrict())) {
       return getOptimizedDefinition().apply(arg);
     }
-    throw new CelOverloadNotFoundException(getOverloadId());
+    throw new CelOverloadNotFoundException(getFunctionName(), ImmutableList.of(getOverloadId()));
   }
 
   public Object invoke(Object arg1, Object arg2) throws CelEvaluationException {
@@ -77,24 +80,28 @@ public abstract class CelResolvedOverload {
         || CelFunctionOverload.canHandle(arg1, arg2, getParameterTypes(), isStrict())) {
       return getOptimizedDefinition().apply(arg1, arg2);
     }
-    throw new CelOverloadNotFoundException(getOverloadId());
+    throw new CelOverloadNotFoundException(getFunctionName(), ImmutableList.of(getOverloadId()));
   }
 
   /**
-   * Creates a new resolved overload from the given overload id, parameter types, and definition.
+   * Creates a new resolved overload from the given function name, overload id, parameter types, and
+   * definition.
    */
   public static CelResolvedOverload of(
+      String functionName,
       String overloadId,
       CelFunctionOverload definition,
       boolean isStrict,
       Class<?>... parameterTypes) {
-    return of(overloadId, definition, isStrict, ImmutableList.copyOf(parameterTypes));
+    return of(functionName, overloadId, definition, isStrict, ImmutableList.copyOf(parameterTypes));
   }
 
   /**
-   * Creates a new resolved overload from the given overload id, parameter types, and definition.
+   * Creates a new resolved overload from the given function name, overload id, parameter types, and
+   * definition.
    */
   public static CelResolvedOverload of(
+      String functionName,
       String overloadId,
       CelFunctionOverload definition,
       boolean isStrict,
@@ -104,7 +111,12 @@ public abstract class CelResolvedOverload {
             ? (OptimizedFunctionOverload) definition
             : definition::apply;
     return new AutoValue_CelResolvedOverload(
-        overloadId, ImmutableList.copyOf(parameterTypes), isStrict, definition, optimizedDef);
+        functionName,
+        overloadId,
+        ImmutableList.copyOf(parameterTypes),
+        isStrict,
+        definition,
+        optimizedDef);
   }
 
   /**

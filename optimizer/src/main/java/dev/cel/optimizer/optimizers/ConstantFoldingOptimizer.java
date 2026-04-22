@@ -46,7 +46,6 @@ import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.CelOptimizationException;
-import dev.cel.runtime.CelAttribute.Qualifier;
 import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.PartialVars;
@@ -683,8 +682,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
             .allNodes()
             .filter(node -> node.getKind().equals(Kind.IDENT))
             .map(node -> node.expr().ident().name())
-            .filter(Qualifier::isLegalIdentifier)
-            .map(CelAttributePattern::create)
+            .map(CelAttributePattern::fromQualifiedIdentifier)
             .collect(toImmutableList());
     CelAbstractSyntaxTree ast =
         CelAbstractSyntaxTree.newParsedAst(

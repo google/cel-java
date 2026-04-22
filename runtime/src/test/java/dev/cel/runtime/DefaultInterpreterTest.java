@@ -77,15 +77,21 @@ public class DefaultInterpreterTest {
     CelAbstractSyntaxTree ast = celCompiler.compile("[1].all(x, [2].all(y, error()))").getAst();
     DefaultDispatcher.Builder dispatcherBuilder = DefaultDispatcher.newBuilder();
     dispatcherBuilder.addOverload(
-        "error",
-        ImmutableList.of(long.class),
+        /* functionName= */ "error",
+        /* overloadId= */ "error_overload",
+        ImmutableList.<Class<?>>of(long.class),
         /* isStrict= */ true,
         (args) -> new IllegalArgumentException("Always throws"));
     CelFunctionBinding notStrictlyFalseBinding =
         NotStrictlyFalseOverload.NOT_STRICTLY_FALSE.newFunctionBinding(
             CelOptions.DEFAULT,
             RuntimeEquality.create(RuntimeHelpers.create(), CelOptions.DEFAULT));
+    String functionName = notStrictlyFalseBinding.getOverloadId();
+    if (notStrictlyFalseBinding instanceof InternalCelFunctionBinding) {
+      functionName = ((InternalCelFunctionBinding) notStrictlyFalseBinding).getFunctionName();
+    }
     dispatcherBuilder.addOverload(
+        functionName,
         notStrictlyFalseBinding.getOverloadId(),
         notStrictlyFalseBinding.getArgTypes(),
         notStrictlyFalseBinding.isStrict(),

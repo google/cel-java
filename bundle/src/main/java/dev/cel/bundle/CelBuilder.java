@@ -165,6 +165,14 @@ public interface CelBuilder {
   @CanIgnoreReturnValue
   CelBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings);
 
+  /** Adds bindings for functions that are allowed to be late-bound (resolved at execution time). */
+  @CanIgnoreReturnValue
+  CelBuilder addLateBoundFunctions(String... lateBoundFunctionNames);
+
+  /** Adds bindings for functions that are allowed to be late-bound (resolved at execution time). */
+  @CanIgnoreReturnValue
+  CelBuilder addLateBoundFunctions(Iterable<String> lateBoundFunctionNames);
+
   /** Set the expected {@code resultType} for the type-checked expression. */
   @CanIgnoreReturnValue
   CelBuilder setResultType(CelType resultType);

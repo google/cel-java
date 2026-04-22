@@ -26,9 +26,9 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameterValue;
 import com.google.testing.junit.testparameterinjector.TestParameterValuesProvider;
 import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelBuilder;
 import dev.cel.bundle.CelEnvironment;
 import dev.cel.bundle.CelEnvironmentYamlParser;
-import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.types.OptionalType;
@@ -45,6 +45,7 @@ import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyT
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
+import dev.cel.testing.CelRuntimeFlavor;
 import dev.cel.testing.testdata.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
@@ -61,7 +62,12 @@ public final class CelPolicyCompilerImplTest {
   private static final CelEnvironmentYamlParser ENVIRONMENT_PARSER =
       CelEnvironmentYamlParser.newInstance();
   private static final CelOptions CEL_OPTIONS =
-      CelOptions.current().populateMacroCalls(true).build();
+      CelOptions.current()
+          .populateMacroCalls(true)
+          .enableHeterogeneousNumericComparisons(true)
+          .build();
+
+  @TestParameter private CelRuntimeFlavor runtimeFlavor;
 
   @Test
   public void compileYamlPolicy_success(@TestParameter TestYamlPolicy yamlPolicy) throws Exception {
@@ -258,7 +264,6 @@ public final class CelPolicyCompilerImplTest {
     CelPolicy policy = POLICY_PARSER.parse(policySource);
     CelAbstractSyntaxTree compiledPolicyAst =
         CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
-
     Optional<Object> evalResult = (Optional<Object>) cel.createProgram(compiledPolicyAst).eval();
 
     // Result is Optional<Optional<Object>>
@@ -278,7 +283,12 @@ public final class CelPolicyCompilerImplTest {
             + "        return:\n"
             + "          type_name: 'string'\n";
     CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
-    Cel cel = celEnvironment.extend(newCel(), CelOptions.DEFAULT);
+    CelBuilder celBuilder = newCel().toCelBuilder();
+    if (runtimeFlavor == CelRuntimeFlavor.PLANNER) {
+      celBuilder.addLateBoundFunctions("lateBoundFunc");
+    }
+    Cel cel = celEnvironment.extend(celBuilder.build(), CEL_OPTIONS);
+
     String policySource =
         "name: late_bound_function_policy\n"
             + "rule:\n"
@@ -298,7 +308,6 @@ public final class CelPolicyCompilerImplTest {
         (String)
             cel.createProgram(compiledPolicyAst)
                 .eval((unused) -> Optional.empty(), lateFunctionBindings);
-
     assertThat(evalResult).isEqualTo("foo" + exampleValue);
   }
 
@@ -319,7 +328,6 @@ public final class CelPolicyCompilerImplTest {
 
     CelAbstractSyntaxTree compiledPolicyAst =
         CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
-
     boolean evalResult = (boolean) cel.createProgram(compiledPolicyAst).eval();
 
     assertThat(evalResult).isFalse();
@@ -358,8 +366,9 @@ public final class CelPolicyCompilerImplTest {
     }
   }
 
-  private static Cel newCel() {
-    return CelFactory.standardCelBuilder()
+  private Cel newCel() {
+    return runtimeFlavor
+        .builder()
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
@@ -367,19 +376,21 @@ public final class CelPolicyCompilerImplTest {
         .addMessageTypes(TestAllTypes.getDescriptor(), SingleFile.getDescriptor())
         .setOptions(CEL_OPTIONS)
         .addFunctionBindings(
-            CelFunctionBinding.from(
-                "locationCode_string",
-                String.class,
-                (ip) -> {
-                  switch (ip) {
-                    case "10.0.0.1":
-                      return "us";
-                    case "10.0.0.2":
-                      return "de";
-                    default:
-                      return "ir";
-                  }
-                }))
+            CelFunctionBinding.fromOverloads(
+                "locationCode",
+                CelFunctionBinding.from(
+                    "locationCode_string",
+                    String.class,
+                    (ip) -> {
+                      switch (ip) {
+                        case "10.0.0.1":
+                          return "us";
+                        case "10.0.0.2":
+                          return "de";
+                        default:
+                          return "ir";
+                      }
+                    })))
         .build();
   }
 

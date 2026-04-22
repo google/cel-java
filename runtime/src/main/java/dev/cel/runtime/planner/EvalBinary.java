@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
@@ -25,13 +26,14 @@ import dev.cel.runtime.GlobalResolver;
 
 final class EvalBinary extends PlannedInterpretable {
 
+  private final String functionName;
   private final CelResolvedOverload resolvedOverload;
   private final PlannedInterpretable arg1;
   private final PlannedInterpretable arg2;
   private final CelValueConverter celValueConverter;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object argVal1 =
         resolvedOverload.isStrict()
             ? evalStrictly(arg1, resolver, frame)
@@ -48,25 +50,29 @@ final class EvalBinary extends PlannedInterpretable {
       return unknowns;
     }
 
-    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVal1, argVal2);
+    return EvalHelpers.dispatch(
+        functionName, resolvedOverload, celValueConverter, argVal1, argVal2);
   }
 
   static EvalBinary create(
-      long exprId,
+      CelExpr expr,
+      String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable arg1,
       PlannedInterpretable arg2,
       CelValueConverter celValueConverter) {
-    return new EvalBinary(exprId, resolvedOverload, arg1, arg2, celValueConverter);
+    return new EvalBinary(expr, functionName, resolvedOverload, arg1, arg2, celValueConverter);
   }
 
   private EvalBinary(
-      long exprId,
+      CelExpr expr,
+      String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable arg1,
       PlannedInterpretable arg2,
       CelValueConverter celValueConverter) {
-    super(exprId);
+    super(expr);
+    this.functionName = functionName;
     this.resolvedOverload = resolvedOverload;
     this.arg1 = arg1;
     this.arg2 = arg2;

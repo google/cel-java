@@ -21,35 +21,23 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
-import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.testing.CelRuntimeFlavor;
 import java.util.Optional;
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class CelRegexExtensionsTest {
+public final class CelRegexExtensionsTest extends CelExtensionTestBase {
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
-
-  private Cel cel;
-
-  @Before
-  public void setUp() {
-    // Legacy runtime does not support parsed-only evaluation mode.
-    Assume.assumeFalse(runtimeFlavor.equals(CelRuntimeFlavor.LEGACY) && isParseOnly);
-    this.cel =
-        runtimeFlavor
-            .builder()
-            .addCompilerLibraries(CelExtensions.regex())
-            .addRuntimeLibraries(CelExtensions.regex())
-            .build();
+  @Override
+  protected Cel newCelEnv() {
+    return runtimeFlavor
+        .builder()
+        .addCompilerLibraries(CelExtensions.regex())
+        .addRuntimeLibraries(CelExtensions.regex())
+        .build();
   }
 
 
@@ -276,9 +264,5 @@ public final class CelRegexExtensionsTest {
         .contains("Regular expression has more than one capturing group:");
   }
 
-  private Object eval(String expr) throws Exception {
-    CelAbstractSyntaxTree ast =
-        isParseOnly ? cel.parse(expr).getAst() : cel.compile(expr).getAst();
-    return cel.createProgram(ast).eval();
-  }
+
 }

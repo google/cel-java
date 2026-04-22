@@ -93,7 +93,7 @@ public final class ProgramPlanner {
   private PlannedInterpretable plan(CelExpr celExpr, PlannerContext ctx) {
     switch (celExpr.getKind()) {
       case CONSTANT:
-        return planConstant(celExpr.id(), celExpr.constant());
+        return planConstant(celExpr, celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
       case SELECT:
@@ -123,35 +123,34 @@ public final class ProgramPlanner {
     if (operand instanceof EvalAttribute) {
       attribute = (EvalAttribute) operand;
     } else {
-      attribute =
-          EvalAttribute.create(celExpr.id(), attributeFactory.newRelativeAttribute(operand));
+      attribute = EvalAttribute.create(celExpr, attributeFactory.newRelativeAttribute(operand));
     }
 
     if (select.testOnly()) {
-      attribute = EvalTestOnly.create(celExpr.id(), attribute);
+      attribute = EvalTestOnly.create(celExpr, attribute);
     }
 
     Qualifier qualifier = StringQualifier.create(select.field());
 
-    return attribute.addQualifier(celExpr.id(), qualifier);
+    return attribute.addQualifier(celExpr, qualifier);
   }
 
-  private PlannedInterpretable planConstant(long exprId, CelConstant celConstant) {
+  private PlannedInterpretable planConstant(CelExpr expr, CelConstant celConstant) {
     switch (celConstant.getKind()) {
       case NULL_VALUE:
-        return EvalConstant.create(exprId, celConstant.nullValue());
+        return EvalConstant.create(expr, celConstant.nullValue());
       case BOOLEAN_VALUE:
-        return EvalConstant.create(exprId, celConstant.booleanValue());
+        return EvalConstant.create(expr, celConstant.booleanValue());
       case INT64_VALUE:
-        return EvalConstant.create(exprId, celConstant.int64Value());
+        return EvalConstant.create(expr, celConstant.int64Value());
       case UINT64_VALUE:
-        return EvalConstant.create(exprId, celConstant.uint64Value());
+        return EvalConstant.create(expr, celConstant.uint64Value());
       case DOUBLE_VALUE:
-        return EvalConstant.create(exprId, celConstant.doubleValue());
+        return EvalConstant.create(expr, celConstant.doubleValue());
       case STRING_VALUE:
-        return EvalConstant.create(exprId, celConstant.stringValue());
+        return EvalConstant.create(expr, celConstant.stringValue());
       case BYTES_VALUE:
-        return EvalConstant.create(exprId, celConstant.bytesValue());
+        return EvalConstant.create(expr, celConstant.bytesValue());
       default:
         throw new IllegalStateException("Unsupported kind: " + celConstant.getKind());
     }
@@ -160,29 +159,29 @@ public final class ProgramPlanner {
   private PlannedInterpretable planIdent(CelExpr celExpr, PlannerContext ctx) {
     CelReference ref = ctx.referenceMap().get(celExpr.id());
     if (ref != null) {
-      return planCheckedIdent(celExpr.id(), ref, ctx.typeMap());
+      return planCheckedIdent(celExpr, ref, ctx.typeMap());
     }
 
     String identName = celExpr.ident().name();
-    PlannedInterpretable blockSlot = maybeInterceptBlockSlot(celExpr.id(), identName).orElse(null);
+    PlannedInterpretable blockSlot = maybeInterceptBlockSlot(celExpr, identName).orElse(null);
     if (blockSlot != null) {
       return blockSlot;
     }
 
     if (ctx.isLocalVar(identName)) {
-      return EvalAttribute.create(celExpr.id(), attributeFactory.newAbsoluteAttribute(identName));
+      return EvalAttribute.create(celExpr, attributeFactory.newAbsoluteAttribute(identName));
     }
 
-    return EvalAttribute.create(celExpr.id(), attributeFactory.newMaybeAttribute(identName));
+    return EvalAttribute.create(celExpr, attributeFactory.newMaybeAttribute(identName));
   }
 
   private PlannedInterpretable planCheckedIdent(
-      long id, CelReference identRef, ImmutableMap<Long, CelType> typeMap) {
+      CelExpr expr, CelReference identRef, ImmutableMap<Long, CelType> typeMap) {
     if (identRef.value().isPresent()) {
-      return planConstant(id, identRef.value().get());
+      return planConstant(expr, identRef.value().get());
     }
 
-    CelType type = typeMap.get(id);
+    CelType type = typeMap.get(expr.id());
     if (type.kind().equals(CelKind.TYPE)) {
       TypeType identType =
           typeProvider
@@ -198,19 +197,19 @@ public final class ProgramPlanner {
                   () ->
                       new NoSuchElementException(
                           "Reference to an undefined type: " + identRef.name()));
-      return EvalConstant.create(id, identType);
+      return EvalConstant.create(expr, identType);
     }
 
     String identName = identRef.name();
-    PlannedInterpretable blockSlot = maybeInterceptBlockSlot(id, identName).orElse(null);
+    PlannedInterpretable blockSlot = maybeInterceptBlockSlot(expr, identName).orElse(null);
     if (blockSlot != null) {
       return blockSlot;
     }
 
-    return EvalAttribute.create(id, attributeFactory.newAbsoluteAttribute(identRef.name()));
+    return EvalAttribute.create(expr, attributeFactory.newAbsoluteAttribute(identRef.name()));
   }
 
-  private Optional<PlannedInterpretable> maybeInterceptBlockSlot(long id, String identName) {
+  private Optional<PlannedInterpretable> maybeInterceptBlockSlot(CelExpr expr, String identName) {
     if (!identName.startsWith("@index")) {
       return Optional.empty();
     }
@@ -222,7 +221,7 @@ public final class ProgramPlanner {
       if (slotIndex < 0) {
         throw new IllegalArgumentException("Negative block slot index: " + identName);
       }
-      return Optional.of(EvalBlock.EvalBlockSlot.create(id, slotIndex));
+      return Optional.of(EvalBlock.EvalBlockSlot.create(expr, slotIndex));
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException("Invalid block slot index: " + identName, e);
     }
@@ -260,11 +259,17 @@ public final class ProgramPlanner {
     if (operator != null) {
       switch (operator) {
         case LOGICAL_OR:
-          return EvalOr.create(expr.id(), evaluatedArgs);
+          return options.enableShortCircuiting()
+              ? EvalOr.create(expr, evaluatedArgs)
+              : EvalExhaustiveOr.create(expr, evaluatedArgs);
         case LOGICAL_AND:
-          return EvalAnd.create(expr.id(), evaluatedArgs);
+          return options.enableShortCircuiting()
+              ? EvalAnd.create(expr, evaluatedArgs)
+              : EvalExhaustiveAnd.create(expr, evaluatedArgs);
         case CONDITIONAL:
-          return EvalConditional.create(expr.id(), evaluatedArgs);
+          return options.enableShortCircuiting()
+              ? EvalConditional.create(expr, evaluatedArgs)
+              : EvalExhaustiveConditional.create(expr, evaluatedArgs);
         default:
           // fall-through
       }
@@ -303,20 +308,26 @@ public final class ProgramPlanner {
       }
 
       return EvalLateBoundCall.create(
-          expr.id(), functionName, overloadIds, evaluatedArgs, celValueConverter);
+          expr, functionName, overloadIds, evaluatedArgs, celValueConverter);
     }
 
     switch (argCount) {
       case 0:
-        return EvalZeroArity.create(expr.id(), resolvedOverload, celValueConverter);
+        return EvalZeroArity.create(expr, functionName, resolvedOverload, celValueConverter);
       case 1:
-        return EvalUnary.create(expr.id(), resolvedOverload, evaluatedArgs[0], celValueConverter);
+        return EvalUnary.create(
+            expr, functionName, resolvedOverload, evaluatedArgs[0], celValueConverter);
       case 2:
         return EvalBinary.create(
-            expr.id(), resolvedOverload, evaluatedArgs[0], evaluatedArgs[1], celValueConverter);
+            expr,
+            functionName,
+            resolvedOverload,
+            evaluatedArgs[0],
+            evaluatedArgs[1],
+            celValueConverter);
       default:
         return EvalVarArgsCall.create(
-            expr.id(), resolvedOverload, evaluatedArgs, celValueConverter);
+            expr, functionName, resolvedOverload, evaluatedArgs, celValueConverter);
     }
   }
 
@@ -339,7 +350,7 @@ public final class ProgramPlanner {
       slotExprs[i] = plan(exprList.elements().get(i), ctx);
     }
     PlannedInterpretable resultExpr = plan(blockCall.args().get(1), ctx);
-    return Optional.of(EvalBlock.create(expr.id(), slotExprs, resultExpr));
+    return Optional.of(EvalBlock.create(expr, slotExprs, resultExpr));
   }
 
   /**
@@ -362,14 +373,13 @@ public final class ProgramPlanner {
     switch (functionName) {
       case "or":
         if (overloadId.isEmpty() || overloadId.equals("optional_or_optional")) {
-          return Optional.of(EvalOptionalOr.create(expr.id(), evaluatedArgs[0], evaluatedArgs[1]));
+          return Optional.of(EvalOptionalOr.create(expr, evaluatedArgs[0], evaluatedArgs[1]));
         }
 
         return Optional.empty();
       case "orValue":
         if (overloadId.isEmpty() || overloadId.equals("optional_orValue_value")) {
-          return Optional.of(
-              EvalOptionalOrValue.create(expr.id(), evaluatedArgs[0], evaluatedArgs[1]));
+          return Optional.of(EvalOptionalOrValue.create(expr, evaluatedArgs[0], evaluatedArgs[1]));
         }
 
         return Optional.empty();
@@ -384,15 +394,14 @@ public final class ProgramPlanner {
         attribute = (EvalAttribute) evaluatedArgs[0];
       } else {
         attribute =
-            EvalAttribute.create(
-                expr.id(), attributeFactory.newRelativeAttribute(evaluatedArgs[0]));
+            EvalAttribute.create(expr, attributeFactory.newRelativeAttribute(evaluatedArgs[0]));
       }
       Qualifier qualifier = StringQualifier.create(field);
-      PlannedInterpretable selectAttribute = attribute.addQualifier(expr.id(), qualifier);
+      PlannedInterpretable selectAttribute = attribute.addQualifier(expr, qualifier);
 
       return Optional.of(
           EvalOptionalSelectField.create(
-              expr.id(), evaluatedArgs[0], field, selectAttribute, celValueConverter));
+              expr, evaluatedArgs[0], field, selectAttribute, celValueConverter));
     }
 
     return Optional.empty();
@@ -414,8 +423,7 @@ public final class ProgramPlanner {
       isOptional[i] = entry.optionalEntry();
     }
 
-    return EvalCreateStruct.create(
-        celExpr.id(), valueProvider, structType, keys, values, isOptional);
+    return EvalCreateStruct.create(celExpr, valueProvider, structType, keys, values, isOptional);
   }
 
   private PlannedInterpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
@@ -432,7 +440,7 @@ public final class ProgramPlanner {
       isOptional[optionalIndex] = true;
     }
 
-    return EvalCreateList.create(celExpr.id(), values, isOptional);
+    return EvalCreateList.create(celExpr, values, isOptional);
   }
 
   private PlannedInterpretable planCreateMap(CelExpr celExpr, PlannerContext ctx) {
@@ -450,7 +458,7 @@ public final class ProgramPlanner {
       isOptional[i] = entry.optionalEntry();
     }
 
-    return EvalCreateMap.create(celExpr.id(), keys, values, isOptional);
+    return EvalCreateMap.create(celExpr, keys, values, isOptional);
   }
 
   private PlannedInterpretable planComprehension(CelExpr expr, PlannerContext ctx) {
@@ -471,7 +479,7 @@ public final class ProgramPlanner {
     ctx.popLocalVars(comprehension.accuVar());
 
     return EvalFold.create(
-        expr.id(),
+        expr,
         comprehension.accuVar(),
         accuInit,
         comprehension.iterVar(),

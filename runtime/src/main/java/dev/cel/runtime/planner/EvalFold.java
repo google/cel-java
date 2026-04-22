@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.exceptions.CelRuntimeException;
 import dev.cel.common.values.MutableMapValue;
 import dev.cel.runtime.AccumulatedUnknowns;
@@ -40,7 +41,7 @@ final class EvalFold extends PlannedInterpretable {
   private final PlannedInterpretable result;
 
   static EvalFold create(
-      long exprId,
+      CelExpr expr,
       String accuVar,
       PlannedInterpretable accuInit,
       String iterVar,
@@ -50,11 +51,11 @@ final class EvalFold extends PlannedInterpretable {
       PlannedInterpretable loopStep,
       PlannedInterpretable result) {
     return new EvalFold(
-        exprId, accuVar, accuInit, iterVar, iterVar2, iterRange, loopCondition, loopStep, result);
+        expr, accuVar, accuInit, iterVar, iterVar2, iterRange, loopCondition, loopStep, result);
   }
 
   private EvalFold(
-      long exprId,
+      CelExpr expr,
       String accuVar,
       PlannedInterpretable accuInit,
       String iterVar,
@@ -63,7 +64,7 @@ final class EvalFold extends PlannedInterpretable {
       PlannedInterpretable condition,
       PlannedInterpretable loopStep,
       PlannedInterpretable result) {
-    super(exprId);
+    super(expr);
     this.accuVar = accuVar;
     this.accuInit = accuInit;
     this.iterVar = iterVar;
@@ -75,7 +76,7 @@ final class EvalFold extends PlannedInterpretable {
   }
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object iterRangeRaw = iterRange.eval(resolver, frame);
     if (iterRangeRaw instanceof AccumulatedUnknowns) {
       return iterRangeRaw;

@@ -61,7 +61,7 @@ final class BlockMemoizer {
       return result;
     } catch (CelEvaluationException e) {
       LocalizedEvaluationException localizedException =
-          new LocalizedEvaluationException(e, e.getErrorCode(), slotExprs[idx].exprId());
+          new LocalizedEvaluationException(e, e.getErrorCode(), slotExprs[idx].expr().id());
       slotVals[idx] = localizedException;
       throw localizedException;
     } catch (RuntimeException e) {

@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.runtime.planner;
+package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.ast.CelExpr;
+import dev.cel.common.annotations.Internal;
 
+/**
+ * Internal interface to expose the function name associated with a binding.
+ *
+ * <p>CEL Library Internals. Do Not Use.
+ */
+@Internal
 @Immutable
-abstract class InterpretableAttribute extends PlannedInterpretable {
-
-  abstract InterpretableAttribute addQualifier(CelExpr expr, Qualifier qualifier);
-
-  InterpretableAttribute(CelExpr expr) {
-    super(expr);
-  }
+public interface InternalCelFunctionBinding extends CelFunctionBinding {
+  String getFunctionName();
 }

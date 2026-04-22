@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
@@ -24,16 +25,16 @@ final class EvalConstant extends PlannedInterpretable {
   private final Object constant;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
     return constant;
   }
 
-  static EvalConstant create(long exprId, Object value) {
-    return new EvalConstant(exprId, value);
+  static EvalConstant create(CelExpr expr, Object value) {
+    return new EvalConstant(expr, value);
   }
 
-  private EvalConstant(long exprId, Object constant) {
-    super(exprId);
+  private EvalConstant(CelExpr expr, Object constant) {
+    super(expr);
     this.constant = constant;
   }
 }

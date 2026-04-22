@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 
@@ -24,22 +25,22 @@ final class EvalTestOnly extends InterpretableAttribute {
   private final InterpretableAttribute attr;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     return attr.eval(resolver, frame);
   }
 
   @Override
-  public EvalTestOnly addQualifier(long exprId, Qualifier qualifier) {
+  public EvalTestOnly addQualifier(CelExpr expr, Qualifier qualifier) {
     PresenceTestQualifier presenceTestQualifier = PresenceTestQualifier.create(qualifier.value());
-    return new EvalTestOnly(exprId(), attr.addQualifier(exprId, presenceTestQualifier));
+    return new EvalTestOnly(expr(), attr.addQualifier(expr, presenceTestQualifier));
   }
 
-  static EvalTestOnly create(long exprId, InterpretableAttribute attr) {
-    return new EvalTestOnly(exprId, attr);
+  static EvalTestOnly create(CelExpr expr, InterpretableAttribute attr) {
+    return new EvalTestOnly(expr, attr);
   }
 
-  private EvalTestOnly(long exprId, InterpretableAttribute attr) {
-    super(exprId);
+  private EvalTestOnly(CelExpr expr, InterpretableAttribute attr) {
+    super(expr);
     this.attr = attr;
   }
 }

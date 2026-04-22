@@ -16,6 +16,7 @@ package dev.cel.runtime.planner;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.SelectableValue;
 import dev.cel.runtime.AccumulatedUnknowns;
@@ -31,7 +32,7 @@ final class EvalOptionalSelectField extends PlannedInterpretable {
   private final CelValueConverter celValueConverter;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
     Object operandValue = EvalHelpers.evalStrictly(operand, resolver, frame);
 
     if (operandValue instanceof Optional) {
@@ -75,21 +76,21 @@ final class EvalOptionalSelectField extends PlannedInterpretable {
   }
 
   static EvalOptionalSelectField create(
-      long exprId,
+      CelExpr expr,
       PlannedInterpretable operand,
       String field,
       PlannedInterpretable selectAttribute,
       CelValueConverter celValueConverter) {
-    return new EvalOptionalSelectField(exprId, operand, field, selectAttribute, celValueConverter);
+    return new EvalOptionalSelectField(expr, operand, field, selectAttribute, celValueConverter);
   }
 
   private EvalOptionalSelectField(
-      long exprId,
+      CelExpr expr,
       PlannedInterpretable operand,
       String field,
       PlannedInterpretable selectAttribute,
       CelValueConverter celValueConverter) {
-    super(exprId);
+    super(expr);
     this.operand = Preconditions.checkNotNull(operand);
     this.field = Preconditions.checkNotNull(field);
     this.selectAttribute = Preconditions.checkNotNull(selectAttribute);

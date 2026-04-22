@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
@@ -23,27 +24,27 @@ final class EvalAttribute extends InterpretableAttribute {
   private final Attribute attr;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
-    Object resolved = attr.resolve(exprId(), resolver, frame);
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
+    Object resolved = attr.resolve(expr().id(), resolver, frame);
     if (resolved instanceof MissingAttribute) {
-      ((MissingAttribute) resolved).resolve(exprId(), resolver, frame);
+      ((MissingAttribute) resolved).resolve(expr().id(), resolver, frame);
     }
 
     return resolved;
   }
 
   @Override
-  public EvalAttribute addQualifier(long exprId, Qualifier qualifier) {
+  public EvalAttribute addQualifier(CelExpr expr, Qualifier qualifier) {
     Attribute newAttribute = attr.addQualifier(qualifier);
-    return create(exprId, newAttribute);
+    return create(expr, newAttribute);
   }
 
-  static EvalAttribute create(long exprId, Attribute attr) {
-    return new EvalAttribute(exprId, attr);
+  static EvalAttribute create(CelExpr expr, Attribute attr) {
+    return new EvalAttribute(expr, attr);
   }
 
-  private EvalAttribute(long exprId, Attribute attr) {
-    super(exprId);
+  private EvalAttribute(CelExpr expr, Attribute attr) {
+    super(expr);
     this.attr = attr;
   }
 }
