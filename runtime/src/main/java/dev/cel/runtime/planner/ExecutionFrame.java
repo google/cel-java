@@ -17,11 +17,13 @@ package dev.cel.runtime.planner;
 import dev.cel.common.CelOptions;
 import dev.cel.common.exceptions.CelIterationLimitExceededException;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.PartialVars;
 import java.util.Collection;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /** Tracks execution context within a planned program. */
 final class ExecutionFrame {
@@ -29,6 +31,7 @@ final class ExecutionFrame {
   private final int comprehensionIterationLimit;
   private final CelFunctionResolver functionResolver;
   private final PartialVars partialVars;
+  private final @Nullable CelEvaluationListener listener;
   private int iterationCount;
   private BlockMemoizer blockMemoizer;
 
@@ -62,18 +65,30 @@ final class ExecutionFrame {
   }
 
   static ExecutionFrame create(
-      CelFunctionResolver functionResolver, PartialVars partialVars, CelOptions celOptions) {
+      CelFunctionResolver functionResolver,
+      CelOptions celOptions,
+      @Nullable PartialVars partialVars,
+      @Nullable CelEvaluationListener listener) {
     return new ExecutionFrame(
-        functionResolver, partialVars, celOptions.comprehensionMaxIterations());
+        functionResolver, celOptions.comprehensionMaxIterations(), partialVars, listener);
   }
 
   Optional<PartialVars> partialVars() {
     return Optional.ofNullable(partialVars);
   }
 
-  private ExecutionFrame(CelFunctionResolver functionResolver, PartialVars partialVars, int limit) {
+  @Nullable CelEvaluationListener getListener() {
+    return listener;
+  }
+
+  private ExecutionFrame(
+      CelFunctionResolver functionResolver,
+      int limit,
+      @Nullable PartialVars partialVars,
+      @Nullable CelEvaluationListener listener) {
     this.comprehensionIterationLimit = limit;
     this.functionResolver = functionResolver;
     this.partialVars = partialVars;
+    this.listener = listener;
   }
 }

@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
@@ -30,7 +31,7 @@ final class EvalUnary extends PlannedInterpretable {
   private final CelValueConverter celValueConverter;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object argVal =
         resolvedOverload.isStrict()
             ? evalStrictly(arg, resolver, frame)
@@ -39,21 +40,21 @@ final class EvalUnary extends PlannedInterpretable {
   }
 
   static EvalUnary create(
-      long exprId,
+      CelExpr expr,
       String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable arg,
       CelValueConverter celValueConverter) {
-    return new EvalUnary(exprId, functionName, resolvedOverload, arg, celValueConverter);
+    return new EvalUnary(expr, functionName, resolvedOverload, arg, celValueConverter);
   }
 
   private EvalUnary(
-      long exprId,
+      CelExpr expr,
       String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable arg,
       CelValueConverter celValueConverter) {
-    super(exprId);
+    super(expr);
     this.functionName = functionName;
     this.resolvedOverload = resolvedOverload;
     this.arg = arg;

@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 
 import com.google.common.base.Preconditions;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.GlobalResolver;
@@ -27,7 +28,7 @@ final class EvalAnd extends PlannedInterpretable {
   private final PlannedInterpretable[] args;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
     ErrorValue errorValue = null;
     AccumulatedUnknowns unknowns = null;
     for (PlannedInterpretable arg : args) {
@@ -47,7 +48,7 @@ final class EvalAnd extends PlannedInterpretable {
       } else {
         errorValue =
             ErrorValue.create(
-                arg.exprId(),
+                arg.expr().id(),
                 new IllegalArgumentException(
                     String.format("Expected boolean value, found: %s", argVal)));
       }
@@ -64,12 +65,12 @@ final class EvalAnd extends PlannedInterpretable {
     return true;
   }
 
-  static EvalAnd create(long exprId, PlannedInterpretable[] args) {
-    return new EvalAnd(exprId, args);
+  static EvalAnd create(CelExpr expr, PlannedInterpretable[] args) {
+    return new EvalAnd(expr, args);
   }
 
-  private EvalAnd(long exprId, PlannedInterpretable[] args) {
-    super(exprId);
+  private EvalAnd(CelExpr expr, PlannedInterpretable[] args) {
+    super(expr);
     Preconditions.checkArgument(args.length == 2);
     this.args = args;
   }

@@ -122,7 +122,6 @@ java_library(
         ":extension_library",
         "//checker:checker_builder",
         "//common:compiler_common",
-        "//common:options",
         "//common/ast",
         "//common/exceptions:numeric_overflow",
         "//common/internal:comparison_functions",

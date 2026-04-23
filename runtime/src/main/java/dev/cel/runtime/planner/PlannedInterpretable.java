@@ -15,21 +15,33 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
 abstract class PlannedInterpretable {
-  private final long exprId;
+  private final CelExpr expr;
 
   /** Runs interpretation with the given activation which supplies name/value bindings. */
-  abstract Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException;
-
-  long exprId() {
-    return exprId;
+  final Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+    Object result = evalInternal(resolver, frame);
+    CelEvaluationListener listener = frame.getListener();
+    if (listener != null) {
+      listener.callback(expr, result);
+    }
+    return result;
   }
 
-  PlannedInterpretable(long exprId) {
-    this.exprId = exprId;
+  abstract Object evalInternal(GlobalResolver resolver, ExecutionFrame frame)
+      throws CelEvaluationException;
+
+  CelExpr expr() {
+    return expr;
+  }
+
+  PlannedInterpretable(CelExpr expr) {
+    this.expr = expr;
   }
 }

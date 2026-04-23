@@ -16,8 +16,8 @@ package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.AccumulatedUnknowns;
-import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ final class EvalCreateList extends PlannedInterpretable {
   private final boolean[] isOptional;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(values.length);
     AccumulatedUnknowns unknowns = null;
     for (int i = 0; i < values.length; i++) {
@@ -66,12 +66,12 @@ final class EvalCreateList extends PlannedInterpretable {
     return builder.build();
   }
 
-  static EvalCreateList create(long exprId, PlannedInterpretable[] values, boolean[] isOptional) {
-    return new EvalCreateList(exprId, values, isOptional);
+  static EvalCreateList create(CelExpr expr, PlannedInterpretable[] values, boolean[] isOptional) {
+    return new EvalCreateList(expr, values, isOptional);
   }
 
-  private EvalCreateList(long exprId, PlannedInterpretable[] values, boolean[] isOptional) {
-    super(exprId);
+  private EvalCreateList(CelExpr expr, PlannedInterpretable[] values, boolean[] isOptional) {
+    super(expr);
     this.values = values;
     this.isOptional = isOptional;
   }

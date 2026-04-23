@@ -15,13 +15,14 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 
 @Immutable
 abstract class InterpretableAttribute extends PlannedInterpretable {
 
-  abstract InterpretableAttribute addQualifier(long exprId, Qualifier qualifier);
+  abstract InterpretableAttribute addQualifier(CelExpr expr, Qualifier qualifier);
 
-  InterpretableAttribute(long exprId) {
-    super(exprId);
+  InterpretableAttribute(CelExpr expr) {
+    super(expr);
   }
 }

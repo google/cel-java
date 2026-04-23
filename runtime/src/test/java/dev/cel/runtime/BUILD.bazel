@@ -89,6 +89,7 @@ java_library(
         "//runtime/standard:not_strictly_false",
         "//runtime/standard:standard_overload",
         "//runtime/standard:subtract",
+        "//testing:cel_runtime_flavor",
         "//testing/protos:message_with_enum_cel_java_proto",
         "//testing/protos:message_with_enum_java_proto",
         "//testing/protos:multi_file_cel_java_proto",

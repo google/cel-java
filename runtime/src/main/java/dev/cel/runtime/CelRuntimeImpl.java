@@ -45,12 +45,14 @@ import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.CombinedCelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
+import dev.cel.runtime.planner.PlannedProgram;
 import dev.cel.runtime.planner.ProgramPlanner;
 import dev.cel.runtime.standard.TypeFunction;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
@@ -98,6 +100,21 @@ public abstract class CelRuntimeImpl implements CelRuntime {
     return toRuntimeProgram(planner().plan(ast));
   }
 
+  private static final CelFunctionResolver EMPTY_FUNCTION_RESOLVER =
+      new CelFunctionResolver() {
+        @Override
+        public Optional<CelResolvedOverload> findOverloadMatchingArgs(
+            String functionName, Collection<String> overloadIds, Object[] args) {
+          return Optional.empty();
+        }
+
+        @Override
+        public Optional<CelResolvedOverload> findOverloadMatchingArgs(
+            String functionName, Object[] args) {
+          return Optional.empty();
+        }
+      };
+
   public Program toRuntimeProgram(dev.cel.runtime.Program program) {
     return new Program() {
 
@@ -119,7 +136,13 @@ public abstract class CelRuntimeImpl implements CelRuntime {
 
       @Override
       public Object eval(Message message) throws CelEvaluationException {
-        throw new UnsupportedOperationException("Not yet supported.");
+        PlannedProgram plannedProgram = (PlannedProgram) program;
+        return plannedProgram.evalOrThrow(
+            plannedProgram.interpretable(),
+            ProtoMessageActivationFactory.fromProto(message, plannedProgram.options()),
+            EMPTY_FUNCTION_RESOLVER,
+            /* partialVars= */ null,
+            /* listener= */ null);
       }
 
       @Override
@@ -141,25 +164,38 @@ public abstract class CelRuntimeImpl implements CelRuntime {
 
       @Override
       public Object trace(CelEvaluationListener listener) throws CelEvaluationException {
-        throw new UnsupportedOperationException("Trace is not yet supported.");
+        return ((PlannedProgram) program)
+            .trace(GlobalResolver.EMPTY, EMPTY_FUNCTION_RESOLVER, null, listener);
       }
 
       @Override
       public Object trace(Map<String, ?> mapValue, CelEvaluationListener listener)
           throws CelEvaluationException {
-        throw new UnsupportedOperationException("Trace is not yet supported.");
+        return ((PlannedProgram) program)
+            .trace(Activation.copyOf(mapValue), EMPTY_FUNCTION_RESOLVER, null, listener);
       }
 
       @Override
       public Object trace(Message message, CelEvaluationListener listener)
           throws CelEvaluationException {
-        throw new UnsupportedOperationException("Trace is not yet supported.");
+        PlannedProgram plannedProgram = (PlannedProgram) program;
+        return plannedProgram.evalOrThrow(
+            plannedProgram.interpretable(),
+            ProtoMessageActivationFactory.fromProto(message, plannedProgram.options()),
+            EMPTY_FUNCTION_RESOLVER,
+            /* partialVars= */ null,
+            listener);
       }
 
       @Override
       public Object trace(CelVariableResolver resolver, CelEvaluationListener listener)
           throws CelEvaluationException {
-        throw new UnsupportedOperationException("Trace is not yet supported.");
+        return ((PlannedProgram) program)
+            .trace(
+                (name) -> resolver.find(name).orElse(null),
+                EMPTY_FUNCTION_RESOLVER,
+                null,
+                listener);
       }
 
       @Override
@@ -168,7 +204,12 @@ public abstract class CelRuntimeImpl implements CelRuntime {
           CelFunctionResolver lateBoundFunctionResolver,
           CelEvaluationListener listener)
           throws CelEvaluationException {
-        throw new UnsupportedOperationException("Trace is not yet supported.");
+        return ((PlannedProgram) program)
+            .trace(
+                (name) -> resolver.find(name).orElse(null),
+                lateBoundFunctionResolver,
+                null,
+                listener);
       }
 
       @Override
@@ -177,7 +218,8 @@ public abstract class CelRuntimeImpl implements CelRuntime {
           CelFunctionResolver lateBoundFunctionResolver,
           CelEvaluationListener listener)
           throws CelEvaluationException {
-        throw new UnsupportedOperationException("Trace is not yet supported.");
+        return ((PlannedProgram) program)
+            .trace(Activation.copyOf(mapValue), lateBoundFunctionResolver, null, listener);
       }
 
       @Override

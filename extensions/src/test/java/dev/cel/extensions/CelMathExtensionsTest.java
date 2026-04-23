@@ -46,8 +46,8 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class CelMathExtensionsTest {
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
+  @TestParameter private CelRuntimeFlavor runtimeFlavor;
+  @TestParameter private boolean isParseOnly;
 
   private Cel cel;
 

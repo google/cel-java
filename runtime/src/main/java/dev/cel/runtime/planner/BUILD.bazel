@@ -66,17 +66,21 @@ java_library(
 java_library(
     name = "planned_program",
     srcs = ["PlannedProgram.java"],
+    tags = [
+    ],
     deps = [
         ":error_metadata",
         ":localized_evaluation_exception",
         ":planned_interpretable",
         "//:auto_value",
         "//common:options",
+        "//common/annotations",
         "//common/exceptions:runtime_exception",
         "//common/values",
         "//runtime:activation",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
+        "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
         "//runtime:interpreter_util",
@@ -85,6 +89,7 @@ java_library(
         "//runtime:resolved_overload",
         "//runtime:variable_resolver",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -93,6 +98,7 @@ java_library(
     srcs = ["EvalConstant.java"],
     deps = [
         ":planned_interpretable",
+        "//common/ast",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
@@ -104,6 +110,7 @@ java_library(
     deps = [
         ":planned_interpretable",
         ":qualifier",
+        "//common/ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -183,6 +190,7 @@ java_library(
         ":interpretable_attribute",
         ":planned_interpretable",
         ":qualifier",
+        "//common/ast",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
@@ -196,6 +204,7 @@ java_library(
         ":planned_interpretable",
         ":presence_test_qualifier",
         ":qualifier",
+        "//common/ast",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -208,6 +217,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/values",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
@@ -221,6 +231,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/values",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
@@ -234,6 +245,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/values",
         "//runtime:accumulated_unknowns",
         "//runtime:evaluation_exception",
@@ -248,6 +260,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/values",
         "//runtime:accumulated_unknowns",
         "//runtime:evaluation_exception",
@@ -262,6 +275,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/exceptions:overload_not_found",
         "//common/values",
         "//runtime:accumulated_unknowns",
@@ -278,6 +292,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/values",
         "//runtime:accumulated_unknowns",
         "//runtime:interpretable",
@@ -291,6 +306,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/values",
         "//runtime:accumulated_unknowns",
         "//runtime:interpretable",
@@ -303,6 +319,7 @@ java_library(
     srcs = ["EvalConditional.java"],
     deps = [
         ":planned_interpretable",
+        "//common/ast",
         "//runtime:accumulated_unknowns",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
@@ -316,11 +333,11 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/types:type_providers",
         "//common/values",
         "//common/values:cel_value_provider",
         "//runtime:accumulated_unknowns",
-        "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -333,8 +350,8 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//runtime:accumulated_unknowns",
-        "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -348,6 +365,7 @@ java_library(
         ":eval_helpers",
         ":localized_evaluation_exception",
         ":planned_interpretable",
+        "//common/ast",
         "//common/exceptions:duplicate_key",
         "//common/exceptions:invalid_argument",
         "//runtime:accumulated_unknowns",
@@ -364,6 +382,7 @@ java_library(
     deps = [
         ":activation_wrapper",
         ":planned_interpretable",
+        "//common/ast",
         "//common/exceptions:runtime_exception",
         "//common/values:mutable_map_value",
         "//runtime:accumulated_unknowns",
@@ -421,13 +440,16 @@ java_library(
     deps = [
         ":localized_evaluation_exception",
         "//common:options",
+        "//common/ast",
         "//common/exceptions:iteration_budget_exceeded",
         "//runtime:evaluation_exception",
+        "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
         "//runtime:partial_vars",
         "//runtime:resolved_overload",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -437,6 +459,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/exceptions:overload_not_found",
         "//runtime:accumulated_unknowns",
         "//runtime:interpretable",
@@ -451,6 +474,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/exceptions:overload_not_found",
         "//runtime:accumulated_unknowns",
         "//runtime:interpretable",
@@ -465,6 +489,7 @@ java_library(
     deps = [
         ":eval_helpers",
         ":planned_interpretable",
+        "//common/ast",
         "//common/values",
         "//runtime:accumulated_unknowns",
         "//runtime:interpretable",
@@ -478,6 +503,7 @@ java_library(
     srcs = ["EvalBlock.java"],
     deps = [
         ":planned_interpretable",
+        "//common/ast",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",

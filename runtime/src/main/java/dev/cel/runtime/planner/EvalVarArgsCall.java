@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
@@ -34,7 +35,7 @@ final class EvalVarArgsCall extends PlannedInterpretable {
   private final CelValueConverter celValueConverter;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object[] argVals = new Object[args.length];
     AccumulatedUnknowns unknowns = null;
     for (int i = 0; i < args.length; i++) {
@@ -55,21 +56,21 @@ final class EvalVarArgsCall extends PlannedInterpretable {
   }
 
   static EvalVarArgsCall create(
-      long exprId,
+      CelExpr expr,
       String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
-    return new EvalVarArgsCall(exprId, functionName, resolvedOverload, args, celValueConverter);
+    return new EvalVarArgsCall(expr, functionName, resolvedOverload, args, celValueConverter);
   }
 
   private EvalVarArgsCall(
-      long exprId,
+      CelExpr expr,
       String functionName,
       CelResolvedOverload resolvedOverload,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
-    super(exprId);
+    super(expr);
     this.functionName = functionName;
     this.resolvedOverload = resolvedOverload;
     this.args = args;

@@ -16,11 +16,11 @@ package dev.cel.runtime.planner;
 
 import com.google.common.collect.Maps;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.CelType;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.StructValue;
 import dev.cel.runtime.AccumulatedUnknowns;
-import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Collections;
 import java.util.Map;
@@ -45,7 +45,7 @@ final class EvalCreateStruct extends PlannedInterpretable {
   private final boolean[] isOptional;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) {
     Map<String, Object> fieldValues = Maps.newHashMapWithExpectedSize(keys.length);
     AccumulatedUnknowns unknowns = null;
     for (int i = 0; i < keys.length; i++) {
@@ -96,23 +96,23 @@ final class EvalCreateStruct extends PlannedInterpretable {
   }
 
   static EvalCreateStruct create(
-      long exprId,
+      CelExpr expr,
       CelValueProvider valueProvider,
       CelType structType,
       String[] keys,
       PlannedInterpretable[] values,
       boolean[] isOptional) {
-    return new EvalCreateStruct(exprId, valueProvider, structType, keys, values, isOptional);
+    return new EvalCreateStruct(expr, valueProvider, structType, keys, values, isOptional);
   }
 
   private EvalCreateStruct(
-      long exprId,
+      CelExpr expr,
       CelValueProvider valueProvider,
       CelType structType,
       String[] keys,
       PlannedInterpretable[] values,
       boolean[] isOptional) {
-    super(exprId);
+    super(expr);
     this.valueProvider = valueProvider;
     this.structType = structType;
     this.keys = keys;

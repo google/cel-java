@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.common.base.Preconditions;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.AccumulatedUnknowns;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
@@ -25,7 +26,7 @@ final class EvalConditional extends PlannedInterpretable {
   private final PlannedInterpretable[] args;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     PlannedInterpretable condition = args[0];
     PlannedInterpretable truthy = args[1];
     PlannedInterpretable falsy = args[2];
@@ -46,12 +47,12 @@ final class EvalConditional extends PlannedInterpretable {
     return falsy.eval(resolver, frame);
   }
 
-  static EvalConditional create(long exprId, PlannedInterpretable[] args) {
-    return new EvalConditional(exprId, args);
+  static EvalConditional create(CelExpr expr, PlannedInterpretable[] args) {
+    return new EvalConditional(expr, args);
   }
 
-  private EvalConditional(long exprId, PlannedInterpretable[] args) {
-    super(exprId);
+  private EvalConditional(CelExpr expr, PlannedInterpretable[] args) {
+    super(expr);
     Preconditions.checkArgument(args.length == 3);
     this.args = args;
   }

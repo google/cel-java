@@ -34,7 +34,7 @@ final class EvalHelpers {
       // Example: foo [1] && strict_err [2] -> ID 2 is propagated.
       return ErrorValue.create(e.exprId(), e);
     } catch (Exception e) {
-      return ErrorValue.create(interpretable.exprId(), e);
+      return ErrorValue.create(interpretable.expr().id(), e);
     }
   }
 
@@ -47,11 +47,11 @@ final class EvalHelpers {
       throw e;
     } catch (CelRuntimeException e) {
       // Wrap with current interpretable's location
-      throw new LocalizedEvaluationException(e, interpretable.exprId());
+      throw new LocalizedEvaluationException(e, interpretable.expr().id());
     } catch (Exception e) {
       // Wrap generic exceptions with location
       throw new LocalizedEvaluationException(
-          e, CelErrorCode.INTERNAL_ERROR, interpretable.exprId());
+          e, CelErrorCode.INTERNAL_ERROR, interpretable.expr().id());
     }
   }
 

@@ -67,7 +67,7 @@ public final class CelPolicyCompilerImplTest {
           .enableHeterogeneousNumericComparisons(true)
           .build();
 
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
+  @TestParameter private CelRuntimeFlavor runtimeFlavor;
 
   @Test
   public void compileYamlPolicy_success(@TestParameter TestYamlPolicy yamlPolicy) throws Exception {

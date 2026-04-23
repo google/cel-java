@@ -29,8 +29,8 @@ import org.junit.Before;
  * planner runtime, along with parsed-only and checked expression evaluations for the planner.
  */
 abstract class CelExtensionTestBase {
-  @TestParameter public CelRuntimeFlavor runtimeFlavor;
-  @TestParameter public boolean isParseOnly;
+  @TestParameter CelRuntimeFlavor runtimeFlavor;
+  @TestParameter boolean isParseOnly;
 
   @Before
   public void setUpBase() {

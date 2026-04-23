@@ -14,6 +14,7 @@
 
 package dev.cel.runtime.planner;
 
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
@@ -27,24 +28,24 @@ final class EvalZeroArity extends PlannedInterpretable {
   private final CelValueConverter celValueConverter;
 
   @Override
-  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+  Object evalInternal(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     return EvalHelpers.dispatch(functionName, resolvedOverload, celValueConverter, EMPTY_ARRAY);
   }
 
   static EvalZeroArity create(
-      long exprId,
+      CelExpr expr,
       String functionName,
       CelResolvedOverload resolvedOverload,
       CelValueConverter celValueConverter) {
-    return new EvalZeroArity(exprId, functionName, resolvedOverload, celValueConverter);
+    return new EvalZeroArity(expr, functionName, resolvedOverload, celValueConverter);
   }
 
   private EvalZeroArity(
-      long exprId,
+      CelExpr expr,
       String functionName,
       CelResolvedOverload resolvedOverload,
       CelValueConverter celValueConverter) {
-    super(exprId);
+    super(expr);
     this.functionName = functionName;
     this.resolvedOverload = resolvedOverload;
     this.celValueConverter = celValueConverter;
