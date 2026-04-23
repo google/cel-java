@@ -1070,3 +1070,57 @@ Examples:
 
     {'greeting': 'aloha', 'farewell': 'aloha'}
       .transformMapEntry(k, v, {v: k}) // error, duplicate key
+
+## Native Types
+
+The `nativeTypes` extension allows registering native Java types (POJOs) to be
+used in CEL expressions.
+
+All POJO classes are exposed to CEL using their fully qualified canonical name.
+For example, if you have a class `com.example.Account`:
+
+```java
+package com.example;
+public class Account {
+  public int id;
+}
+```
+
+The type `com.example.Account` would be exported to CEL using its full name. If
+you set the container to `com.example` on the compiler, you can use it simply
+as `Account`: `Account{id: 1234}` would create a new `Account` instance with the
+`id` field populated.
+
+Properties are discovered by reflectively scanning public fields and public
+getter methods of public classes. For field selection (reading) and object
+creation (writing), resolution happens in the following order of precedence:
+
+1.  Standard JavaBeans getter (e.g., `getFoo()`) or setter (e.g., `setFoo(...)`)
+2.  Boolean getter (e.g., `isFoo()`) for boolean properties
+3.  Prefix-less getter (e.g., `foo()`) matching a declared field name
+4.  Public field directly (e.g., `public String foo`)
+
+### Type Mapping
+
+The type-mapping between Java and CEL is as follows:
+
+| Java type | CEL type |
+| :--- | :--- |
+| `boolean`, `Boolean` | `bool` |
+| `byte[]` | `bytes` |
+| `float`, `Float`, `double`, `Double` | `double` |
+| `int`, `Integer`, `long`, `Long` | `int` |
+| `com.google.common.primitives.UnsignedLong` | `uint` |
+| `String` | `string` |
+| `java.time.Duration` | `duration` |
+| `java.time.Instant` | `timestamp` |
+| `java.util.List` | `list` |
+| `java.util.Map` | `map` |
+| `java.util.Optional` | `optional_type` |
+
+### Notes
+
+*   This is only supported for the planner runtime (e.g., `CelRuntimeFactory.plannerRuntimeBuilder()`).
+*   Native Java arrays (except `byte[]`) are not supported. Use `java.util.List` instead.
+*   If there is a name collision with a Protobuf type, the protobuf type will take precedence.
+*   Instantiating new struct values (e.g., `Account{id: 1234}`) requires the class to have a no-argument constructor (public, protected, package-private, or private).

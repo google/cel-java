@@ -15,13 +15,13 @@
 package dev.cel.extensions;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.Arrays.stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.CelOptions;
 import dev.cel.extensions.CelMathExtensions.Function;
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -351,6 +351,18 @@ public final class CelExtensions {
   }
 
   /**
+   * Extensions for supporting native Java types (POJOs) in CEL.
+   *
+   * <p>Refer to README.md for details on property discovery, type mapping, and limitations.
+   *
+   * <p>Note: Passing classes with unsupported types or anonymous/local classes will result in an
+   * {@link IllegalArgumentException} when the runtime is built.
+   */
+  public static CelNativeTypesExtensions nativeTypes(Class<?>... classes) {
+    return CelNativeTypesExtensions.nativeTypes(classes);
+  }
+
+  /**
    * Retrieves all function names used by every extension libraries.
    *
    * <p>Note: Certain extensions such as {@link CelProtoExtensions} and {@link
@@ -359,18 +371,17 @@ public final class CelExtensions {
    */
   public static ImmutableSet<String> getAllFunctionNames() {
     return Streams.concat(
-            stream(CelMathExtensions.Function.values())
-                .map(CelMathExtensions.Function::getFunction),
-            stream(CelStringExtensions.Function.values())
+            EnumSet.allOf(Function.class).stream().map(CelMathExtensions.Function::getFunction),
+            EnumSet.allOf(CelStringExtensions.Function.class).stream()
                 .map(CelStringExtensions.Function::getFunction),
-            stream(SetsFunction.values()).map(SetsFunction::getFunction),
-            stream(CelEncoderExtensions.Function.values())
+            EnumSet.allOf(SetsFunction.class).stream().map(SetsFunction::getFunction),
+            EnumSet.allOf(CelEncoderExtensions.Function.class).stream()
                 .map(CelEncoderExtensions.Function::getFunction),
-            stream(CelListsExtensions.Function.values())
+            EnumSet.allOf(CelListsExtensions.Function.class).stream()
                 .map(CelListsExtensions.Function::getFunction),
-            stream(CelRegexExtensions.Function.values())
+            EnumSet.allOf(CelRegexExtensions.Function.class).stream()
                 .map(CelRegexExtensions.Function::getFunction),
-            stream(CelComprehensionsExtensions.Function.values())
+            EnumSet.allOf(CelComprehensionsExtensions.Function.class).stream()
                 .map(CelComprehensionsExtensions.Function::getFunction))
         .collect(toImmutableSet());
   }

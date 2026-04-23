@@ -192,7 +192,9 @@ final class NamespacedAttribute implements Attribute {
 
     // Avoid enhanced for loop to prevent UnmodifiableIterator from being allocated
     for (int i = 0; i < qualifiers.size(); i++) {
-      obj = qualifiers.get(i).qualify(obj);
+      Qualifier element = qualifiers.get(i);
+      obj = element.qualify(obj);
+      obj = celValueConverter.toRuntimeValue(obj);
     }
 
     return celValueConverter.maybeUnwrap(obj);
