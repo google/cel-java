@@ -223,6 +223,17 @@ public abstract class CelRuntimeImpl implements CelRuntime {
       }
 
       @Override
+      public Object trace(PartialVars partialVars, CelEvaluationListener listener)
+          throws CelEvaluationException {
+        return ((PlannedProgram) program)
+            .trace(
+                (name) -> partialVars.resolver().find(name).orElse(null),
+                EMPTY_FUNCTION_RESOLVER,
+                partialVars,
+                listener);
+      }
+
+      @Override
       public Object advanceEvaluation(UnknownContext context) throws CelEvaluationException {
         throw new UnsupportedOperationException("Unsupported operation.");
       }

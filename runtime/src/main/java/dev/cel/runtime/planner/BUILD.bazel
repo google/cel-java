@@ -24,6 +24,9 @@ java_library(
         ":eval_create_list",
         ":eval_create_map",
         ":eval_create_struct",
+        ":eval_exhaustive_and",
+        ":eval_exhaustive_conditional",
+        ":eval_exhaustive_or",
         ":eval_fold",
         ":eval_late_bound_call",
         ":eval_optional_or",
@@ -446,6 +449,7 @@ java_library(
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
+        "//runtime:interpreter_util",
         "//runtime:partial_vars",
         "//runtime:resolved_overload",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -495,6 +499,48 @@ java_library(
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_exhaustive_and",
+    srcs = ["EvalExhaustiveAnd.java"],
+    deps = [
+        ":eval_helpers",
+        ":planned_interpretable",
+        "//common/ast",
+        "//common/values",
+        "//runtime:accumulated_unknowns",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "eval_exhaustive_or",
+    srcs = ["EvalExhaustiveOr.java"],
+    deps = [
+        ":eval_helpers",
+        ":planned_interpretable",
+        "//common/ast",
+        "//common/values",
+        "//runtime:accumulated_unknowns",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "eval_exhaustive_conditional",
+    srcs = ["EvalExhaustiveConditional.java"],
+    deps = [
+        ":eval_helpers",
+        ":planned_interpretable",
+        "//common/ast",
+        "//runtime:accumulated_unknowns",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 

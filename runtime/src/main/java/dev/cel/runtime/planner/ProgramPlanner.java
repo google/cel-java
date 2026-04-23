@@ -259,11 +259,17 @@ public final class ProgramPlanner {
     if (operator != null) {
       switch (operator) {
         case LOGICAL_OR:
-          return EvalOr.create(expr, evaluatedArgs);
+          return options.enableShortCircuiting()
+              ? EvalOr.create(expr, evaluatedArgs)
+              : EvalExhaustiveOr.create(expr, evaluatedArgs);
         case LOGICAL_AND:
-          return EvalAnd.create(expr, evaluatedArgs);
+          return options.enableShortCircuiting()
+              ? EvalAnd.create(expr, evaluatedArgs)
+              : EvalExhaustiveAnd.create(expr, evaluatedArgs);
         case CONDITIONAL:
-          return EvalConditional.create(expr, evaluatedArgs);
+          return options.enableShortCircuiting()
+              ? EvalConditional.create(expr, evaluatedArgs)
+              : EvalExhaustiveConditional.create(expr, evaluatedArgs);
         default:
           // fall-through
       }

@@ -16,8 +16,8 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assume.assumeTrue;
 
+import com.google.api.expr.v1alpha1.CheckedExpr;
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
@@ -36,7 +36,10 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoV1Alpha1AbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelConstant;
@@ -104,8 +107,8 @@ public class CelRuntimeTest {
   public void evaluate_v1alpha1CheckedExpr() throws Exception {
     // Note: v1alpha1 proto support exists only to help migrate existing consumers.
     // New users of CEL should use the canonical protos instead (I.E: dev.cel.expr)
-    com.google.api.expr.v1alpha1.CheckedExpr checkedExpr =
-        com.google.api.expr.v1alpha1.CheckedExpr.newBuilder()
+    CheckedExpr checkedExpr =
+        CheckedExpr.newBuilder()
             .setExpr(
                 Expr.newBuilder()
                     .setId(1)
@@ -469,8 +472,6 @@ public class CelRuntimeTest {
   public void trace_shortCircuitingDisabled_logicalAndAllBranchesVisited(
       @TestParameter boolean first, @TestParameter boolean second, @TestParameter boolean third)
       throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     String expression = String.format("%s && %s && %s", first, second, third);
     ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
@@ -516,8 +517,6 @@ public class CelRuntimeTest {
   @TestParameters("{source: 'x && false && false'}")
   public void trace_shortCircuitingDisabledWithUnknownsAndedToFalse_returnsFalse(String source)
       throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -542,7 +541,8 @@ public class CelRuntimeTest {
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    boolean result = (boolean) cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(result).isFalse();
     assertThat(branchResults.build()).containsExactly(false, false, "x");
@@ -554,8 +554,6 @@ public class CelRuntimeTest {
   @TestParameters("{source: 'x && true && true'}")
   public void trace_shortCircuitingDisabledWithUnknownAndedToTrue_returnsUnknown(String source)
       throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -576,7 +574,8 @@ public class CelRuntimeTest {
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    Object unknownResult = cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    Object unknownResult = cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(true, true, unknownResult);
@@ -586,8 +585,6 @@ public class CelRuntimeTest {
   public void trace_shortCircuitingDisabled_logicalOrAllBranchesVisited(
       @TestParameter boolean first, @TestParameter boolean second, @TestParameter boolean third)
       throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     String expression = String.format("%s || %s || %s", first, second, third);
     ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
@@ -633,8 +630,6 @@ public class CelRuntimeTest {
   @TestParameters("{source: 'x || false || false'}")
   public void trace_shortCircuitingDisabledWithUnknownsOredToFalse_returnsUnknown(String source)
       throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -655,7 +650,8 @@ public class CelRuntimeTest {
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    Object unknownResult = cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    Object unknownResult = cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(false, false, unknownResult);
@@ -667,8 +663,6 @@ public class CelRuntimeTest {
   @TestParameters("{source: 'x || true || true'}")
   public void trace_shortCircuitingDisabledWithUnknownOredToTrue_returnsTrue(String source)
       throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -693,7 +687,8 @@ public class CelRuntimeTest {
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    boolean result = (boolean) cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(result).isTrue();
     assertThat(branchResults.build()).containsExactly(true, true, "x");
@@ -701,7 +696,6 @@ public class CelRuntimeTest {
 
   @Test
   public void trace_shortCircuitingDisabled_ternaryAllBranchesVisited() throws Exception {
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -731,8 +725,6 @@ public class CelRuntimeTest {
   @TestParameters("{source: 'true ? x : false'}")
   @TestParameters("{source: 'x ? true : false'}")
   public void trace_shortCircuitingDisabled_ternaryWithUnknowns(String source) throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -753,7 +745,8 @@ public class CelRuntimeTest {
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
-    Object unknownResult = cel.createProgram(ast).trace(listener);
+    PartialVars partialVars = PartialVars.of(CelAttributePattern.create("x"));
+    Object unknownResult = cel.createProgram(ast).trace(partialVars, listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(false, unknownResult, true);
@@ -770,8 +763,6 @@ public class CelRuntimeTest {
       "{expression: 'true ? true : (1 / 0) > 2', firstVisited: true, secondVisited: true}")
   public void trace_shortCircuitingDisabled_ternaryWithError(
       String expression, boolean firstVisited, boolean secondVisited) throws Exception {
-    // TODO: Implement exhaustive eval
-    assumeTrue(runtimeFlavor != CelRuntimeFlavor.PLANNER);
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -811,17 +802,146 @@ public class CelRuntimeTest {
   }
 
   @Test
+  public void trace_shortCircuitingDisabled_ternaryWithSelectedError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("true ? (1 / 0) : 2").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasMessageThat().contains("evaluation error at <input>:10: / by zero");
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_ternaryWithCustomError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_func",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_func_overload", SimpleType.BOOL, ImmutableList.of())))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "error_func_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("custom error");
+                    }))
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("true ? error_func() : false").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasCauseThat().hasMessageThat().contains("custom error");
+  }
+
+  @Test
   public void standardEnvironmentDisabledForRuntime_throws() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder().setStandardEnvironmentEnabled(true).build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder().setStandardEnvironmentEnabled(false).build();
     CelAbstractSyntaxTree ast = celCompiler.compile("size('hello')").getAst();
+    CelRuntime.Program program = celRuntime.createProgram(ast);
 
-    CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> celRuntime.createProgram(ast).eval());
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> program.eval());
     assertThat(e)
         .hasMessageThat()
         .contains("No matching overload for function 'size'. Overload candidates: size_string");
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalAndPrefersFirstError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_1",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_1_overload", SimpleType.BOOL, ImmutableList.of())),
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_2",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_2_overload", SimpleType.BOOL, ImmutableList.of())))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "error_1_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 1");
+                    }),
+                CelFunctionBinding.from(
+                    "error_2_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 2");
+                    }))
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("error_1() && error_2()").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasCauseThat().hasMessageThat().contains("error 1");
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalOrPrefersFirstError() throws Exception {
+    Cel cel =
+        runtimeFlavor
+            .builder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_1",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_1_overload", SimpleType.BOOL, ImmutableList.of())),
+                CelFunctionDecl.newFunctionDeclaration(
+                    "error_2",
+                    CelOverloadDecl.newGlobalOverload(
+                        "error_2_overload", SimpleType.BOOL, ImmutableList.of())))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "error_1_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 1");
+                    }),
+                CelFunctionBinding.from(
+                    "error_2_overload",
+                    ImmutableList.of(),
+                    args -> {
+                      throw new IllegalArgumentException("error 2");
+                    }))
+            .setOptions(
+                CelOptions.current()
+                    .enableShortCircuiting(false)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("error_1() || error_2()").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> program.eval());
+    assertThat(e).hasCauseThat().hasMessageThat().contains("error 1");
   }
 }

@@ -19,6 +19,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.InterpreterUtil;
 
 @Immutable
 abstract class PlannedInterpretable {
@@ -29,7 +30,7 @@ abstract class PlannedInterpretable {
     Object result = evalInternal(resolver, frame);
     CelEvaluationListener listener = frame.getListener();
     if (listener != null) {
-      listener.callback(expr, result);
+      listener.callback(expr, InterpreterUtil.maybeAdaptToCelUnknownSet(result));
     }
     return result;
   }
