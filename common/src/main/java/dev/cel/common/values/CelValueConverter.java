@@ -117,7 +117,7 @@ public class CelValueConverter {
   }
 
   /** Adapts a {@link CelValue} to a plain old Java Object. */
-  private static Object unwrap(CelValue celValue) {
+  private Object unwrap(CelValue celValue) {
     Preconditions.checkNotNull(celValue);
 
     if (celValue instanceof OptionalValue) {
@@ -126,7 +126,7 @@ public class CelValueConverter {
         return Optional.empty();
       }
 
-      return Optional.of(optionalValue.value());
+      return Optional.of(maybeUnwrap(optionalValue.value()));
     }
 
     if (celValue instanceof ErrorValue) {
