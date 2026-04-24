@@ -34,6 +34,7 @@ java_library(
         ":encoders",
         ":lists",
         ":math",
+        ":native",
         ":optional_library",
         ":protos",
         ":regex",
@@ -316,5 +317,28 @@ java_library(
         "//runtime:function_binding",
         "//runtime:runtime_equality",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "native",
+    srcs = ["CelNativeTypesExtensions.java"],
+    tags = [
+    ],
+    deps = [
+        "//checker:checker_builder",
+        "//common/exceptions:attribute_not_found",
+        "//common/internal:reflection_util",
+        "//common/types",
+        "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_byte_string",
+        "//common/values:cel_value",
+        "//common/values:cel_value_provider",
+        "//compiler:compiler_builder",
+        "//runtime",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
     ],
 )

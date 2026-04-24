@@ -398,8 +398,12 @@ java_library(
 java_library(
     name = "reflection_util",
     srcs = ["ReflectionUtil.java"],
+    tags = [
+        "alt_dep=//common/internal:reflection_util",
+    ],
     deps = [
         "//common/annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 

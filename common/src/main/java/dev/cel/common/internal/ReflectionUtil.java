@@ -14,9 +14,15 @@
 
 package dev.cel.common.internal;
 
+import com.google.common.reflect.TypeToken;
 import dev.cel.common.annotations.Internal;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Utility class for invoking Java reflection.
@@ -46,6 +52,49 @@ public final class ReflectionUtil {
               method.getName(), method.getDeclaringClass()),
           e);
     }
+  }
+
+  /**
+   * Extracts the element type of a container type (List, Map, or Optional). Returns the type itself
+   * if it's not a container or if generic type info is missing.
+   */
+  public static Class<?> getElementType(Class<?> type, Type genericType) {
+    TypeToken<?> token = TypeToken.of(genericType);
+
+    if (List.class.isAssignableFrom(type)) {
+      return token.resolveType(List.class.getTypeParameters()[0]).getRawType();
+    }
+    if (Map.class.isAssignableFrom(type)) {
+      return token.resolveType(Map.class.getTypeParameters()[1]).getRawType();
+    }
+    if (type == Optional.class) {
+      return token.resolveType(Optional.class.getTypeParameters()[0]).getRawType();
+    }
+
+    return type;
+  }
+
+  /**
+   * Extracts the raw Class from a Type. Handles Class, ParameterizedType, and WildcardType (returns
+   * upper bound). Returns Object.class as fallback.
+   */
+  public static Class<?> getRawType(Type type) {
+    return TypeToken.of(type).getRawType();
+  }
+
+  /**
+   * Extracts the actual type arguments from a ParameterizedType, if it has at least the expected
+   * minimum number of arguments. Returns Optional.empty() if the type is not parameterized or has
+   * fewer arguments than expected.
+   */
+  public static Optional<Type[]> getTypeArguments(Type type, int minArgs) {
+    if (type instanceof ParameterizedType) {
+      Type[] args = ((ParameterizedType) type).getActualTypeArguments();
+      if (args.length >= minArgs) {
+        return Optional.of(args);
+      }
+    }
+    return Optional.empty();
   }
 
   private ReflectionUtil() {}
