@@ -28,7 +28,7 @@ import java.util.Optional;
 /** ProtoMessageValue is a struct value with protobuf support. */
 @AutoValue
 @Immutable
-public abstract class ProtoMessageValue extends StructValue<String> {
+public abstract class ProtoMessageValue extends StructValue<String, Message> {
 
   @Override
   public abstract Message value();

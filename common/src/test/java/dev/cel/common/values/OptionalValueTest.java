@@ -141,7 +141,7 @@ public class OptionalValueTest {
   }
 
   @SuppressWarnings("Immutable") // Test only
-  private static class CelCustomStruct extends StructValue<String> {
+  private static class CelCustomStruct extends StructValue<String, Long> {
     private final long data;
 
     @Override

@@ -59,18 +59,34 @@ public final class StructValueTest {
       };
 
   private static final CelValueProvider CUSTOM_STRUCT_VALUE_PROVIDER =
-      (structType, fields) -> {
-        if (structType.equals(CUSTOM_STRUCT_TYPE.name())) {
-          return Optional.of(new CelCustomStructValue(fields));
+      new CelValueProvider() {
+        @Override
+        public Optional<Object> newValue(String structType, Map<String, Object> fields) {
+          if (structType.equals(CUSTOM_STRUCT_TYPE.name())) {
+            return Optional.of(new CelCustomStructValue(fields));
+          }
+          return Optional.empty();
         }
-        return Optional.empty();
+
+        @Override
+        public CelValueConverter celValueConverter() {
+          return new CelValueConverter() {
+            @Override
+            public Object toRuntimeValue(Object value) {
+              if (value instanceof CustomPojo) {
+                return new CelCustomStructValue((CustomPojo) value);
+              }
+              return super.toRuntimeValue(value);
+            }
+          };
+        }
       };
 
   @Test
   public void emptyStruct() {
     CelCustomStructValue celCustomStruct = new CelCustomStructValue(0);
 
-    assertThat(celCustomStruct.value()).isEqualTo(celCustomStruct);
+    assertThat(celCustomStruct.value().getData()).isEqualTo(0L);
     assertThat(celCustomStruct.isZeroValue()).isTrue();
   }
 
@@ -78,7 +94,7 @@ public final class StructValueTest {
   public void constructStruct() {
     CelCustomStructValue celCustomStruct = new CelCustomStructValue(5);
 
-    assertThat(celCustomStruct.value()).isEqualTo(celCustomStruct);
+    assertThat(celCustomStruct.value().getData()).isEqualTo(5L);
     assertThat(celCustomStruct.isZeroValue()).isFalse();
   }
 
@@ -115,41 +131,41 @@ public final class StructValueTest {
   @Test
   public void evaluate_usingCustomClass_createNewStruct() throws Exception {
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+        CelFactory.plannerCelBuilder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
             .build();
     CelAbstractSyntaxTree ast = cel.compile("custom_struct{data: 50}").getAst();
 
-    CelCustomStructValue result = (CelCustomStructValue) cel.createProgram(ast).eval();
+    CustomPojo result = (CustomPojo) cel.createProgram(ast).eval();
 
-    assertThat(result.data).isEqualTo(50);
+    assertThat(result.getData()).isEqualTo(50);
   }
 
   @Test
   public void evaluate_usingCustomClass_asVariable() throws Exception {
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+        CelFactory.plannerCelBuilder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .addVar("a", CUSTOM_STRUCT_TYPE)
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
             .build();
     CelAbstractSyntaxTree ast = cel.compile("a").getAst();
 
-    CelCustomStructValue result =
-        (CelCustomStructValue)
+    CustomPojo result =
+        (CustomPojo)
             cel.createProgram(ast).eval(ImmutableMap.of("a", new CelCustomStructValue(10)));
 
-    assertThat(result.data).isEqualTo(10);
+    assertThat(result.getData()).isEqualTo(10);
   }
 
   @Test
   public void evaluate_usingCustomClass_asVariableSelectField() throws Exception {
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+        CelFactory.plannerCelBuilder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .addVar("a", CUSTOM_STRUCT_TYPE)
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
@@ -163,8 +179,8 @@ public final class StructValueTest {
   @Test
   public void evaluate_usingCustomClass_selectField() throws Exception {
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+        CelFactory.plannerCelBuilder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
             .build();
@@ -178,8 +194,8 @@ public final class StructValueTest {
   @Test
   public void evaluate_usingMultipleProviders_selectFieldFromCustomClass() throws Exception {
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+        CelFactory.plannerCelBuilder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(
                 CombinedCelValueProvider.combine(
@@ -197,19 +213,31 @@ public final class StructValueTest {
   // TODO: Bring back evaluate_usingMultipleProviders_selectFieldFromProtobufMessage
   // once planner is exposed from factory
 
-  @SuppressWarnings("Immutable") // Test only
-  private static class CelCustomStructValue extends StructValue<String> {
-
+  private static class CustomPojo {
     private final long data;
 
+    CustomPojo(long data) {
+      this.data = data;
+    }
+
+    long getData() {
+      return data;
+    }
+  }
+
+  @SuppressWarnings("Immutable") // Test only
+  private static class CelCustomStructValue extends StructValue<String, CustomPojo> {
+
+    private final CustomPojo pojo;
+
     @Override
-    public CelCustomStructValue value() {
-      return this;
+    public CustomPojo value() {
+      return pojo;
     }
 
     @Override
     public boolean isZeroValue() {
-      return data == 0;
+      return pojo.getData() == 0;
     }
 
     @Override
@@ -226,7 +254,7 @@ public final class StructValueTest {
     @Override
     public Optional<Object> find(String field) {
       if (field.equals("data")) {
-        return Optional.of(value().data);
+        return Optional.of(pojo.getData());
       }
 
       return Optional.empty();
@@ -237,7 +265,11 @@ public final class StructValueTest {
     }
 
     private CelCustomStructValue(long data) {
-      this.data = data;
+      this.pojo = new CustomPojo(data);
+    }
+
+    private CelCustomStructValue(CustomPojo pojo) {
+      this.pojo = pojo;
     }
   }
 }

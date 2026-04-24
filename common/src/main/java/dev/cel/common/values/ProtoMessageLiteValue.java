@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 @AutoValue
 @Immutable
-public abstract class ProtoMessageLiteValue extends StructValue<String> {
+public abstract class ProtoMessageLiteValue extends StructValue<String, MessageLite> {
 
   @Override
   public abstract MessageLite value();

@@ -87,9 +87,8 @@ final class EvalCreateStruct extends PlannedInterpretable {
             .newValue(structType.name(), Collections.unmodifiableMap(fieldValues))
             .orElseThrow(
                 () -> new IllegalArgumentException("Type name not found: " + structType.name()));
-
     if (value instanceof StructValue) {
-      return ((StructValue<?>) value).value();
+      return ((StructValue<?, ?>) value).value();
     }
 
     return value;
