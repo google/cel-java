@@ -32,5 +32,24 @@ public final class CelRuntimeFactory {
         .setStandardEnvironmentEnabled(true);
   }
 
+  /**
+   * Create a new builder for constructing a {@code CelRuntime} instance.
+   *
+   * <p>The {@code ProgramPlanner} architecture provides key benefits over the {@link
+   * #standardCelRuntimeBuilder()}:
+   *
+   * <ul>
+   *   <li><b>Performance:</b> Programs can be cached for improving evaluation speed.
+   *   <li><b>Parsed-only expression evaluation:</b> Unlike the runtime returned by {@link
+   *       #standardCelRuntimeBuilder()}, which only supported evaluating type-checked expressions,
+   *       this architecture handles both parsed-only and type-checked expressions.
+   * </ul>
+   */
+  public static CelRuntimeBuilder plannerRuntimeBuilder() {
+    return CelRuntimeImpl.newBuilder()
+        // CEL-Internal-2
+        .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build());
+  }
+
   private CelRuntimeFactory() {}
 }

@@ -35,7 +35,6 @@ java_library(
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
@@ -54,22 +53,6 @@ java_library(
         "//compiler:compiler_builder",
         "//parser",
         "//runtime",
-    ],
-)
-
-java_library(
-    name = "cel_experimental_factory",
-    srcs = ["CelExperimentalFactory.java"],
-    tags = [
-    ],
-    deps = [
-        ":cel",
-        ":cel_impl",
-        "//checker",
-        "//common:options",
-        "//common/annotations",
-        "//compiler",
-        "//parser",
         "//runtime:runtime_planner_impl",
     ],
 )
@@ -117,7 +100,6 @@ java_library(
     tags = [
     ],
     deps = [
-        ":cel_factory",
         ":environment_exception",
         ":required_fields_checker",
         "//:auto_value",
@@ -190,7 +172,6 @@ java_library(
         "//common:options",
         "//common/internal:env_visitor",
         "//common/types:cel_proto_types",
-        "//common/types:cel_types",
         "//common/types:type_providers",
         "//compiler:compiler_builder",
         "//extensions",

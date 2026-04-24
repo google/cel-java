@@ -102,7 +102,6 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:junit_junit",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -113,6 +112,5 @@ java_library(
     ],
     deps = [
         "//bundle:cel",
-        "//bundle:cel_experimental_factory",
     ],
 )

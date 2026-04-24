@@ -32,7 +32,6 @@ RUNTIME_TARGETS = [
     "//runtime/src/main/java/dev/cel/runtime:base",
     "//runtime/src/main/java/dev/cel/runtime:interpreter",
     "//runtime/src/main/java/dev/cel/runtime:late_function_binding",
-    "//runtime/src/main/java/dev/cel/runtime:runtime_experimental_factory",
     "//runtime/src/main/java/dev/cel/runtime:runtime_factory",
     "//runtime/src/main/java/dev/cel/runtime:runtime_helpers",
     "//runtime/src/main/java/dev/cel/runtime:runtime_legacy_impl",
@@ -125,7 +124,6 @@ EXTENSION_TARGETS = [
 # keep sorted
 BUNDLE_TARGETS = [
     "//bundle/src/main/java/dev/cel/bundle:cel",
-    "//bundle/src/main/java/dev/cel/bundle:cel_experimental_factory",
     "//bundle/src/main/java/dev/cel/bundle:environment",
     "//bundle/src/main/java/dev/cel/bundle:environment_yaml_parser",
 ]

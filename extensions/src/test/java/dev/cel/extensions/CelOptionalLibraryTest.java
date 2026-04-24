@@ -26,7 +26,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
-import dev.cel.bundle.CelExperimentalFactory;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
@@ -113,7 +112,7 @@ public class CelOptionalLibraryTest {
     switch (testMode) {
       case PLANNER_PARSE_ONLY:
       case PLANNER_CHECKED:
-        celBuilder = CelExperimentalFactory.plannerCelBuilder();
+        celBuilder = CelFactory.plannerCelBuilder();
         break;
       case LEGACY_CHECKED:
         celBuilder = CelFactory.standardCelBuilder();

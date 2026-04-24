@@ -15,7 +15,6 @@
 package dev.cel.testing;
 
 import dev.cel.bundle.CelBuilder;
-import dev.cel.bundle.CelExperimentalFactory;
 import dev.cel.bundle.CelFactory;
 
 /** Enumeration of supported CEL runtime environments for testing. */
@@ -29,7 +28,7 @@ public enum CelRuntimeFlavor {
   PLANNER {
     @Override
     public CelBuilder builder() {
-      return CelExperimentalFactory.plannerCelBuilder();
+      return CelFactory.plannerCelBuilder();
     }
   };
 

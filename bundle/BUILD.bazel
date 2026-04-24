@@ -14,14 +14,6 @@ java_library(
 )
 
 java_library(
-    name = "cel_experimental_factory",
-    visibility = ["//:internal"],
-    exports = [
-        "//bundle/src/main/java/dev/cel/bundle:cel_experimental_factory",
-    ],
-)
-
-java_library(
     name = "environment",
     exports = ["//bundle/src/main/java/dev/cel/bundle:environment"],
 )

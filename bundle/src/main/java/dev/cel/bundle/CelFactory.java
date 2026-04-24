@@ -20,6 +20,7 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerImpl;
 import dev.cel.parser.CelParserImpl;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeImpl;
 import dev.cel.runtime.CelRuntimeLegacyImpl;
 
 /** Helper class to configure the entire CEL stack in a common interface. */
@@ -42,6 +43,30 @@ public final class CelFactory {
         .setOptions(CelOptions.current().build())
         // CEL-Internal-2
         .setStandardEnvironmentEnabled(true);
+  }
+
+  /**
+   * Creates a builder for configuring CEL for the parsing, optional type-checking, and evaluation
+   * of expressions using the Program Planner.
+   *
+   * <p>The {@code ProgramPlanner} architecture provides key benefits over the {@link
+   * #standardCelBuilder()}:
+   *
+   * <ul>
+   *   <li><b>Performance:</b> Programs can be cached for improving evaluation speed.
+   *   <li><b>Parsed-only expression evaluation:</b> Unlike the traditional stack which required
+   *       supplying type-checked expressions, this architecture handles both parsed-only and
+   *       type-checked expressions.
+   * </ul>
+   */
+  public static CelBuilder plannerCelBuilder() {
+    return CelImpl.newBuilder(
+            CelCompilerImpl.newBuilder(
+                CelParserImpl.newBuilder(),
+                CelCheckerLegacyImpl.newBuilder().setStandardEnvironmentEnabled(true)),
+            CelRuntimeImpl.newBuilder())
+        // CEL-Internal-2
+        .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build());
   }
 
   /** Combines a prebuilt {@link CelCompiler} and {@link CelRuntime} into {@link Cel}. */

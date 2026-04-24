@@ -916,20 +916,8 @@ java_library(
     deps = [
         ":runtime",
         ":runtime_legacy_impl",
-        "//common:options",
-    ],
-)
-
-java_library(
-    name = "runtime_experimental_factory",
-    srcs = ["CelRuntimeExperimentalFactory.java"],
-    tags = [
-    ],
-    deps = [
-        ":runtime",
         ":runtime_planner_impl",
         "//common:options",
-        "//common/annotations",
     ],
 )
 

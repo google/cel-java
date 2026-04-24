@@ -10,7 +10,6 @@ java_library(
     deps = [
         "//:java_truth",
         "//bundle:cel",
-        "//bundle:cel_experimental_factory",
         "//common:cel_ast",
         "//common:cel_exception",
         "//common:compiler_common",

@@ -30,14 +30,6 @@ java_library(
 )
 
 java_library(
-    name = "runtime_experimental_factory",
-    visibility = ["//:internal"],
-    exports = [
-        "//runtime/src/main/java/dev/cel/runtime:runtime_experimental_factory",
-    ],
-)
-
-java_library(
     name = "runtime_legacy_impl",
     visibility = ["//:internal"],
     exports = [

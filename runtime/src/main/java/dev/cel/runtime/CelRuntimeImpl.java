@@ -474,7 +474,8 @@ public abstract class CelRuntimeImpl implements CelRuntime {
 
     @Override
     public CelRuntime build() {
-      assertAllowedCelOptions(options());
+      CelOptions options = options();
+      assertAllowedCelOptions(options);
       CelDescriptors celDescriptors =
           CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptorsBuilder().build());
 

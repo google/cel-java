@@ -146,7 +146,6 @@ java_library(
         "//extensions",
         "//runtime",
         "//runtime:function_binding",
-        "//runtime:runtime_experimental_factory",
         "//runtime:unknown_attributes",
         "//testing:base_interpreter_test",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
