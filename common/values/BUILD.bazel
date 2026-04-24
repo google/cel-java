@@ -38,6 +38,18 @@ cel_android_library(
 )
 
 java_library(
+    name = "combined_cel_value_converter",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/values:combined_cel_value_converter"],
+)
+
+cel_android_library(
+    name = "combined_cel_value_converter_android",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/values:combined_cel_value_converter_android"],
+)
+
+java_library(
     name = "values",
     exports = ["//common/src/main/java/dev/cel/common/values"],
 )

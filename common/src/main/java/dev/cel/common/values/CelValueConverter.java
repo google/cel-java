@@ -21,8 +21,8 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * {@code CelValueConverter} handles bidirectional conversion between native Java objects to {@link
@@ -36,6 +36,12 @@ import java.util.Optional;
 public class CelValueConverter {
 
   private static final CelValueConverter DEFAULT_INSTANCE = new CelValueConverter();
+
+  @SuppressWarnings("Immutable") // Method reference is immutable
+  private final Function<Object, Object> maybeUnwrapFunction;
+
+  @SuppressWarnings("Immutable") // Method reference is immutable
+  private final Function<Object, Object> toRuntimeValueFunction;
 
   public static CelValueConverter getDefaultInstance() {
     return DEFAULT_INSTANCE;
@@ -51,14 +57,26 @@ public class CelValueConverter {
       return unwrap((CelValue) value);
     }
 
+    Object mapped = mapContainer(value, maybeUnwrapFunction);
+    if (mapped != value) {
+      return mapped;
+    }
+
+    return value;
+  }
+
+  /**
+   * Maps a container (Collection or Map) by applying the provided mapper function to its elements.
+   * Returns the original value if it's not a supported container.
+   */
+  protected Object mapContainer(Object value, Function<Object, Object> mapper) {
     if (value instanceof Collection) {
       Collection<Object> collection = (Collection<Object>) value;
       ImmutableList.Builder<Object> builder =
           ImmutableList.builderWithExpectedSize(collection.size());
       for (Object element : collection) {
-        builder.add(maybeUnwrap(element));
+        builder.add(mapper.apply(element));
       }
-
       return builder.build();
     }
 
@@ -67,19 +85,14 @@ public class CelValueConverter {
       ImmutableMap.Builder<Object, Object> builder =
           ImmutableMap.builderWithExpectedSize(map.size());
       for (Map.Entry<Object, Object> entry : map.entrySet()) {
-        builder.put(maybeUnwrap(entry.getKey()), maybeUnwrap(entry.getValue()));
+        builder.put(mapper.apply(entry.getKey()), mapper.apply(entry.getValue()));
       }
-
       return builder.buildOrThrow();
     }
 
     return value;
   }
 
-  /**
-   * Canonicalizes an inbound {@code value} into a suitable Java object representation for
-   * evaluation.
-   */
   public Object toRuntimeValue(Object value) {
     Preconditions.checkNotNull(value);
 
@@ -87,14 +100,15 @@ public class CelValueConverter {
       return value;
     }
 
-    if (value instanceof Collection) {
-      return toListValue((Collection<Object>) value);
-    } else if (value instanceof Map) {
-      return toMapValue((Map<Object, Object>) value);
-    } else if (value instanceof Optional) {
+    Object mapped = mapContainer(value, toRuntimeValueFunction);
+    if (mapped != value) {
+      return mapped;
+    }
+
+    if (value instanceof Optional) {
       Optional<Object> optionalValue = (Optional<Object>) value;
       return optionalValue
-          .map(this::toRuntimeValue)
+          .map(toRuntimeValueFunction)
           .map(OptionalValue::create)
           .orElse(OptionalValue.EMPTY);
     }
@@ -136,31 +150,8 @@ public class CelValueConverter {
     return celValue.value();
   }
 
-  private ImmutableList<Object> toListValue(Collection<Object> iterable) {
-    Preconditions.checkNotNull(iterable);
-
-    ImmutableList.Builder<Object> listBuilder =
-        ImmutableList.builderWithExpectedSize(iterable.size());
-    for (Object entry : iterable) {
-      listBuilder.add(toRuntimeValue(entry));
-    }
-
-    return listBuilder.build();
+  protected CelValueConverter() {
+    this.maybeUnwrapFunction = this::maybeUnwrap;
+    this.toRuntimeValueFunction = this::toRuntimeValue;
   }
-
-  private ImmutableMap<Object, Object> toMapValue(Map<Object, Object> map) {
-    Preconditions.checkNotNull(map);
-
-    ImmutableMap.Builder<Object, Object> mapBuilder =
-        ImmutableMap.builderWithExpectedSize(map.size());
-    for (Entry<Object, Object> entry : map.entrySet()) {
-      Object mapKey = toRuntimeValue(entry.getKey());
-      Object mapValue = toRuntimeValue(entry.getValue());
-      mapBuilder.put(mapKey, mapValue);
-    }
-
-    return mapBuilder.buildOrThrow();
-  }
-
-  protected CelValueConverter() {}
 }

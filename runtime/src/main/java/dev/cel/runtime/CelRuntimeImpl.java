@@ -487,12 +487,6 @@ public abstract class CelRuntimeImpl implements CelRuntime {
       DynamicProto dynamicProto = DynamicProto.create(defaultMessageFactory);
       CelValueProvider protoMessageValueProvider =
           ProtoMessageValueProvider.newInstance(options(), dynamicProto);
-      CelValueConverter celValueConverter = protoMessageValueProvider.celValueConverter();
-      if (valueProvider() != null) {
-        protoMessageValueProvider =
-            CombinedCelValueProvider.combine(protoMessageValueProvider, valueProvider());
-      }
-
       RuntimeEquality runtimeEquality = ProtoMessageRuntimeEquality.create(dynamicProto, options());
       ImmutableSet<CelRuntimeLibrary> runtimeLibraries = runtimeLibrariesBuilder().build();
       // Add libraries, such as extensions
@@ -504,6 +498,12 @@ public abstract class CelRuntimeImpl implements CelRuntime {
           celLibrary.setRuntimeOptions(this);
         }
       }
+
+      if (valueProvider() != null) {
+        protoMessageValueProvider =
+            CombinedCelValueProvider.combine(protoMessageValueProvider, valueProvider());
+      }
+      CelValueConverter celValueConverter = protoMessageValueProvider.celValueConverter();
 
       CelTypeProvider messageTypeProvider =
           ProtoMessageTypeProvider.newBuilder()

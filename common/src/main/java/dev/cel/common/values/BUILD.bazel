@@ -78,10 +78,14 @@ cel_android_library(
 
 java_library(
     name = "combined_cel_value_provider",
-    srcs = ["CombinedCelValueProvider.java"],
+    srcs = [
+        "CombinedCelValueProvider.java",
+    ],
     tags = [
     ],
     deps = [
+        ":combined_cel_value_converter",
+        ":values",
         "//common/values:cel_value_provider",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -90,12 +94,48 @@ java_library(
 
 cel_android_library(
     name = "combined_cel_value_provider_android",
-    srcs = ["CombinedCelValueProvider.java"],
+    srcs = [
+        "CombinedCelValueProvider.java",
+    ],
     tags = [
     ],
     deps = [
+        ":combined_cel_value_converter_android",
+        ":values_android",
         "//common/values:cel_value_provider_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "combined_cel_value_converter",
+    srcs = [
+        "CombinedCelValueConverter.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":values",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+cel_android_library(
+    name = "combined_cel_value_converter_android",
+    srcs = [
+        "CombinedCelValueConverter.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":values_android",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
         "@maven_android//:com_google_guava_guava",
     ],
 )
