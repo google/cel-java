@@ -60,7 +60,6 @@ java_library(
     deps = [
         "//common/values",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -72,7 +71,6 @@ cel_android_library(
     deps = [
         "//common/values:values_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -118,7 +116,6 @@ java_library(
     deps = [
         ":values",
         "//common/annotations",
-        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_jspecify_jspecify",
     ],
@@ -134,10 +131,29 @@ cel_android_library(
     deps = [
         ":values_android",
         "//common/annotations",
-        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:org_jspecify_jspecify",
         "@maven_android//:com_google_guava_guava",
     ],
+)
+
+java_library(
+    name = "preadapted_list",
+    srcs = [
+        "CelPreAdaptedList.java",
+    ],
+    tags = [
+    ],
+    deps = ["//common/annotations"],
+)
+
+cel_android_library(
+    name = "preadapted_list_android",
+    srcs = [
+        "CelPreAdaptedList.java",
+    ],
+    tags = [
+    ],
+    deps = ["//common/annotations"],
 )
 
 java_library(
@@ -148,6 +164,7 @@ java_library(
     deps = [
         ":cel_byte_string",
         ":cel_value",
+        ":preadapted_list",
         "//:auto_value",
         "//common/annotations",
         "//common/types",
@@ -198,6 +215,7 @@ cel_android_library(
     deps = [
         ":cel_byte_string",
         ":cel_value_android",
+        ":preadapted_list_android",
         "//:auto_value",
         "//common/annotations",
         "//common/types:type_providers_android",
@@ -226,7 +244,6 @@ java_library(
     ],
     deps = [
         ":cel_byte_string",
-        ":values",
         "//common/annotations",
         "//common/internal:proto_time_utils",
         "//common/internal:well_known_proto",
@@ -234,6 +251,7 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -261,6 +279,7 @@ java_library(
     ],
     deps = [
         ":base_proto_cel_value_converter",
+        ":preadapted_list",
         ":values",
         "//:auto_value",
         "//common:options",
@@ -273,7 +292,7 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -316,8 +335,6 @@ java_library(
         "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:org_jspecify_jspecify",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
@@ -343,7 +360,6 @@ cel_android_library(
         "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:org_jspecify_jspecify",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
