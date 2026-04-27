@@ -126,6 +126,12 @@ final class DefaultInterpreter implements Interpreter {
     private final CelAbstractSyntaxTree ast;
     private final CelOptions celOptions;
 
+    @SuppressWarnings("Immutable")
+    private final CelReference[] referencesById;
+
+    @SuppressWarnings("Immutable")
+    private final CelType[] typesById;
+
     DefaultInterpretable(
         TypeResolver typeResolver,
         RuntimeTypeProvider typeProvider,
@@ -138,6 +144,24 @@ final class DefaultInterpreter implements Interpreter {
       this.ast = checkNotNull(ast);
       this.metadata = new DefaultMetadata(ast);
       this.celOptions = checkNotNull(celOptions);
+
+      Map<Long, CelReference> refMap = ast.getReferenceMap();
+      Map<Long, CelType> typeMap = ast.getTypeMap();
+      long maxId = 0;
+      for (long id : refMap.keySet()) {
+        if (id > maxId) maxId = id;
+      }
+      for (long id : typeMap.keySet()) {
+        if (id > maxId) maxId = id;
+      }
+      this.referencesById = new CelReference[(int) maxId + 1];
+      for (Map.Entry<Long, CelReference> entry : refMap.entrySet()) {
+        this.referencesById[entry.getKey().intValue()] = entry.getValue();
+      }
+      this.typesById = new CelType[(int) maxId + 1];
+      for (Map.Entry<Long, CelType> entry : typeMap.entrySet()) {
+        this.typesById[entry.getKey().intValue()] = entry.getValue();
+      }
     }
 
     @Override
@@ -324,7 +348,7 @@ final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalIdent(ExecutionFrame frame, CelExpr expr)
         throws CelEvaluationException {
-      CelReference reference = ast.getReferenceOrThrow(expr.id());
+      CelReference reference = getReferenceOrThrow(expr);
       if (reference.value().isPresent()) {
         return IntermediateResult.create(evalConstant(frame, expr, reference.value().get()));
       }
@@ -366,9 +390,12 @@ final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalSelect(ExecutionFrame frame, CelExpr expr, CelSelect selectExpr)
         throws CelEvaluationException {
-      Optional<CelReference> referenceOptional = ast.getReference(expr.id());
-      if (referenceOptional.isPresent()) {
-        CelReference reference = referenceOptional.get();
+      int exprIdInt = (int) expr.id();
+      CelReference reference =
+          (exprIdInt >= 0 && exprIdInt < referencesById.length)
+              ? referencesById[exprIdInt]
+              : null;
+      if (reference != null) {
         // This indicates it's a qualified name.
         if (reference.value().isPresent()) {
           // If the value is identified as a constant, skip attribute tracking.
@@ -413,7 +440,7 @@ final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalCall(ExecutionFrame frame, CelExpr expr, CelCall callExpr)
         throws CelEvaluationException {
-      CelReference reference = ast.getReferenceOrThrow(expr.id());
+      CelReference reference = getReferenceOrThrow(expr);
       Preconditions.checkState(!reference.overloadIds().isEmpty());
 
       // Handle cases with special semantics. Those cannot have overloads.
@@ -900,13 +927,15 @@ final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalStruct(ExecutionFrame frame, CelExpr expr, CelStruct structExpr)
         throws CelEvaluationException {
+      int structExprId = (int) expr.id();
       CelReference reference =
-          ast.getReference(expr.id())
-              .orElseThrow(
-                  () ->
-                      new IllegalStateException(
-                          "Could not find a reference for CelStruct expression at ID: "
-                              + expr.id()));
+          (structExprId >= 0 && structExprId < referencesById.length)
+              ? referencesById[structExprId]
+              : null;
+      if (reference == null) {
+        throw new IllegalStateException(
+            "Could not find a reference for CelStruct expression at ID: " + expr.id());
+      }
 
       // Message creation.
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
@@ -1099,17 +1128,12 @@ final class DefaultInterpreter implements Interpreter {
       }
     }
 
-    private CelType getCheckedTypeOrThrow(CelExpr expr) throws CelEvaluationException {
-      return ast.getType(expr.id())
-          .orElseThrow(
-              () ->
-                  CelEvaluationExceptionBuilder.newBuilder(
-                          "expected a runtime type for expression ID '%d' from checked expression,"
-                              + " but found none.",
-                          expr.id())
-                      .setErrorCode(CelErrorCode.TYPE_NOT_FOUND)
-                      .setMetadata(metadata, expr.id())
-                      .build());
+    private CelReference getReferenceOrThrow(CelExpr expr) {
+      return referencesById[(int) expr.id()];
+    }
+
+    private CelType getCheckedTypeOrThrow(CelExpr expr) {
+      return typesById[(int) expr.id()];
     }
   }
 
