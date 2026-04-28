@@ -214,7 +214,30 @@ public final class CelPolicyCompilerImplTest {
     // Read the policy source
     String policySource = testData.yamlPolicy.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource);
-    CelAbstractSyntaxTree expectedOutputAst = cel.compile(testData.testCase.getOutput()).getAst();
+    Object outputObj = testData.testCase.getOutput();
+    String exprToCompile;
+    if (outputObj instanceof String) {
+      exprToCompile = (String) outputObj;
+    } else if (outputObj instanceof Map) {
+      @SuppressWarnings("unchecked") // Test only
+      Map<String, Object> outputMap = (Map<String, Object>) outputObj;
+      if (outputMap.containsKey("value")) {
+        Object value = outputMap.get("value");
+        if (value instanceof String) {
+          String escapedValue = ((String) value).replace("\"", "\\\"");
+          exprToCompile = "\"" + escapedValue + "\""; // Quote string literals
+        } else {
+          exprToCompile = String.valueOf(value);
+        }
+      } else if (outputMap.containsKey("expr")) {
+        exprToCompile = (String) outputMap.get("expr");
+      } else {
+        throw new IllegalArgumentException("Invalid output format: " + outputObj);
+      }
+    } else {
+      throw new IllegalArgumentException("Invalid output format: " + outputObj);
+    }
+    CelAbstractSyntaxTree expectedOutputAst = cel.compile(exprToCompile).getAst();
     Object expectedOutput = cel.createProgram(expectedOutputAst).eval();
 
     // Act
@@ -266,8 +289,8 @@ public final class CelPolicyCompilerImplTest {
         CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
     Optional<Object> evalResult = (Optional<Object>) cel.createProgram(compiledPolicyAst).eval();
 
-    // Result is Optional<Optional<Object>>
-    assertThat(evalResult).hasValue(Optional.of(true));
+    // Result is Optional<Object> containing true
+    assertThat(evalResult).hasValue(true);
   }
 
   @Test

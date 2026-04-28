@@ -14,25 +14,29 @@
 
 description: Limits related tests
 section:
-- name: "now_after_hours"
-  tests:
-  - name: "7pm"
-    input:
-      now:
-        expr: "timestamp('2024-07-30T00:30:00Z')"
-    output: "'hello, me'"
-  - name: "8pm"
-    input:
-      now:
-        expr: "timestamp('2024-07-30T20:30:00Z')"
-    output: "'goodbye, me!'"
-  - name: "9pm"
-    input:
-      now:
-        expr: "timestamp('2024-07-30T21:30:00Z')"
-    output: "'goodbye, me!!'"
-  - name: "11pm"
-    input:
-      now:
-        expr: "timestamp('2024-07-30T23:30:00Z')"
-    output: "'goodbye, me!!!'"
+  - name: "now_after_hours"
+    tests:
+      - name: "7pm"
+        input:
+          now:
+            expr: "timestamp('2024-07-30T00:30:00Z')"
+        output:
+          value: "hello, me"
+      - name: "8pm"
+        input:
+          now:
+            expr: "timestamp('2024-07-30T20:30:00Z')"
+        output:
+          value: "goodbye, me!"
+      - name: "9pm"
+        input:
+          now:
+            expr: "timestamp('2024-07-30T21:30:00Z')"
+        output:
+          value: "goodbye, me!!"
+      - name: "11pm"
+        input:
+          now:
+            expr: "timestamp('2024-07-30T23:30:00Z')"
+        output:
+          value: "goodbye, me!!!"

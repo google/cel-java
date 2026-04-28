@@ -14,18 +14,19 @@
 
 description: K8s admission control tests
 section:
-- name: "invalid"
-  tests:
-  - name: "restricted_container"
-    input:
-      resource.namespace:
-        value: "dev.cel"
-      resource.labels:
-        value:
-          environment: "staging"
-      resource.containers:
-        value:
-        - staging.dev.cel.container1
-        - staging.dev.cel.container2
-        - preprod.dev.cel.container3
-    output: "'only staging containers are allowed in namespace dev.cel'"
+  - name: "invalid"
+    tests:
+      - name: "restricted_container"
+        input:
+          resource.namespace:
+            value: "dev.cel"
+          resource.labels:
+            value:
+              environment: "staging"
+          resource.containers:
+            value:
+              - staging.dev.cel.container1
+              - staging.dev.cel.container2
+              - preprod.dev.cel.container3
+        output:
+          value: "only staging containers are allowed in namespace dev.cel"

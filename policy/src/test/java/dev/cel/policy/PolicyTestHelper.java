@@ -40,11 +40,11 @@ final class PolicyTestHelper {
   enum TestYamlPolicy {
     NESTED_RULE(
         "nested_rule",
-        true,
+        false,
         "cel.@block([resource.origin, @index0 in [\"us\", \"uk\", \"es\"], {\"banned\": true}],"
             + " ((@index0 in {\"us\": false, \"ru\": false, \"ir\": false} && !@index1) ?"
-            + " optional.of(@index2) : optional.none()).or(optional.of(@index1 ? {\"banned\":"
-            + " false} : @index2)))"),
+            + " optional.of(@index2) : optional.none()).orValue(@index1 ? {\"banned\":"
+            + " false} : @index2))"),
     NESTED_RULE2(
         "nested_rule2",
         false,
@@ -61,6 +61,22 @@ final class PolicyTestHelper {
             + " false, \"ru\": false, \"ir\": false} && @index1) ? {\"banned\":"
             + " \"restricted_region\"} : {\"banned\": \"bad_actor\"}) : (@index1 ?"
             + " optional.of({\"banned\": \"unconfigured_region\"}) : optional.none()))"),
+    NESTED_RULE4("nested_rule4", false, "(x > 0) ? true : false"),
+    NESTED_RULE5(
+        "nested_rule5",
+        true,
+        "cel.@block([optional.of(true), optional.none()], (x > 0) ? ((x > 2) ? @index0 : @index1) :"
+            + " ((x > 1) ? ((x >= 2) ? @index0 : @index1) : optional.of(false)))"),
+    NESTED_RULE6(
+        "nested_rule6",
+        false,
+        "cel.@block([optional.of(true), optional.none()], ((x > 2) ? @index0 : @index1).orValue(((x"
+            + " > 3) ? @index0 : @index1).orValue(false)))"),
+    NESTED_RULE7(
+        "nested_rule7",
+        true,
+        "cel.@block([optional.of(true), optional.none()], ((x > 2) ? @index0 : @index1).or(((x > 3)"
+            + " ? @index0 : @index1).or((x > 1) ? optional.of(false) : @index1)))"),
     REQUIRED_LABELS(
         "required_labels",
         true,
@@ -198,7 +214,7 @@ final class PolicyTestHelper {
       public static final class PolicyTestCase {
         private String name;
         private Map<String, PolicyTestInput> input;
-        private String output;
+        private Object output;
 
         public void setName(String name) {
           this.name = name;
@@ -208,7 +224,7 @@ final class PolicyTestHelper {
           this.input = input;
         }
 
-        public void setOutput(String output) {
+        public void setOutput(Object output) {
           this.output = output;
         }
 
@@ -220,7 +236,7 @@ final class PolicyTestHelper {
           return input;
         }
 
-        public String getOutput() {
+        public Object getOutput() {
           return output;
         }
 

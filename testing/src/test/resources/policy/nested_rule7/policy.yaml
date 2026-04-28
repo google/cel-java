@@ -12,23 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-description: "Protobuf input tests"
-section:
-  - name: "valid"
-    tests:
-      - name: "good spec"
-        input:
-          spec:
-            expr: >
-              TestAllTypes{single_int32: 10}
-        output:
-          expr: "optional.none()"
-  - name: "invalid"
-    tests:
-      - name: "bad spec"
-        input:
-          spec:
-            expr: >
-              TestAllTypes{single_int32: 11}
-        output:
-          value: "invalid spec, got single_int32=11, wanted <= 10"
+name: nested_rule7
+rule:
+  match:
+    - rule:
+        match:
+          - rule:
+              match:
+                - condition: "x > 2"
+                  output: "true"
+    - rule:
+        match:
+          - condition: "x > 3"
+            output: "true"
+    - condition: "x > 1"
+      output: "false"

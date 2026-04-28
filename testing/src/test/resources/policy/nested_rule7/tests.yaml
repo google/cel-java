@@ -12,30 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-description: Nested rule conformance tests
+description: "Nested rule tests which explore optional vs non-optional returns"
 section:
-  - name: "banned"
+  - name: "valid"
     tests:
-      - name: "restricted_origin"
+      - name: "x=1"
         input:
-          resource:
-            value:
-              origin: "ir"
+          x:
+            value: 1
         output:
-          expr: "{'banned': true}"
-      - name: "by_default"
+          expr: "optional.none()"
+      - name: "x=2"
         input:
-          resource:
-            value:
-              origin: "de"
+          x:
+            value: 2
         output:
-          expr: "{'banned': true}"
-  - name: "permitted"
-    tests:
-      - name: "valid_origin"
+          value: false
+      - name: "x=3"
         input:
-          resource:
-            value:
-              origin: "uk"
+          x:
+            value: 3
         output:
-          expr: "{'banned': false}"
+          value: true
+      - name: "x=4"
+        input:
+          x:
+            value: 4
+        output:
+          value: true

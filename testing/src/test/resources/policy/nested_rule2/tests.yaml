@@ -14,35 +14,39 @@
 
 description: Nested rule conformance tests
 section:
-- name: "banned"
-  tests:
-  - name: "restricted_origin"
-    input:
-      resource:
-        value:
-          user: "bad-user"
-          origin: "ir"
-    output: "{'banned': 'restricted_region'}"
-  - name: "by_default"
-    input:
-      resource:
-        value:
-          user: "bad-user"
-          origin: "de"
-    output: "{'banned': 'bad_actor'}"
-  - name: "unconfigured_region"
-    input:
-      resource:
-        value:
-          user: "good-user"
-          origin: "de"
-    output: "{'banned': 'unconfigured_region'}"
-- name: "permitted"
-  tests:
-  - name: "valid_origin"
-    input:
-      resource:
-        value:
-          user: "good-user"
-          origin: "uk"
-    output: "{}"
+  - name: "banned"
+    tests:
+      - name: "restricted_origin"
+        input:
+          resource:
+            value:
+              user: "bad-user"
+              origin: "ir"
+        output:
+          expr: "{'banned': 'restricted_region'}"
+      - name: "by_default"
+        input:
+          resource:
+            value:
+              user: "bad-user"
+              origin: "de"
+        output:
+          expr: "{'banned': 'bad_actor'}"
+      - name: "unconfigured_region"
+        input:
+          resource:
+            value:
+              user: "good-user"
+              origin: "de"
+        output:
+          expr: "{'banned': 'unconfigured_region'}"
+  - name: "permitted"
+    tests:
+      - name: "valid_origin"
+        input:
+          resource:
+            value:
+              user: "good-user"
+              origin: "uk"
+        output:
+          expr: "{}"
