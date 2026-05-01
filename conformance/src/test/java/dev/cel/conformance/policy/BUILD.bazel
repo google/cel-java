@@ -12,6 +12,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//bundle:cel",
+        "//runtime:function_binding",
         "//testing/testrunner:cel_expression_source",
         "//testing/testrunner:cel_test_context",
         "//testing/testrunner:cel_test_suite",

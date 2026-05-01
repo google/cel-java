@@ -90,7 +90,7 @@ public final class CelTestSuiteYamlParser {
   }
 
   private CelTestSuite.Builder parseTestSuite(ParserContext<Node> ctx, Node node) {
-    CelTestSuite.Builder builder = CelTestSuite.newBuilder();
+    CelTestSuite.Builder builder = CelTestSuite.newBuilder().setName("").setDescription("");
     long id = ctx.collectMetadata(node);
     if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
       ctx.reportError(id, "Unknown test suite type: " + node.getTag());

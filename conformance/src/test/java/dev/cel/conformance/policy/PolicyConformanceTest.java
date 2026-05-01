@@ -19,6 +19,7 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.testing.testrunner.CelExpressionSource;
 import dev.cel.testing.testrunner.CelTestContext;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
@@ -31,7 +32,25 @@ import org.junit.runners.model.Statement;
 /** Statement representing a single CEL policy conformance test case. */
 public final class PolicyConformanceTest extends Statement {
 
-  private static final Cel CEL = CelFactory.standardCelBuilder().build();
+  private static final Cel CEL =
+      CelFactory.standardCelBuilder()
+          .addFunctionBindings(
+              CelFunctionBinding.fromOverloads(
+                  "locationCode",
+                  CelFunctionBinding.from(
+                      "locationCode_string",
+                      String.class,
+                      (ip) -> {
+                        switch (ip) {
+                          case "10.0.0.1":
+                            return "us";
+                          case "10.0.0.2":
+                            return "de";
+                          default:
+                            return "ir";
+                        }
+                      })))
+          .build();
 
   private final String name;
   private final CelTestCase testCase;
