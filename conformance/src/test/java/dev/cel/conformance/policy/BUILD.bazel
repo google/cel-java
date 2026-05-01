@@ -1,0 +1,25 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load(":cel_policy_conformance_test.bzl", "cel_policy_conformance_test_java")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+)
+
+java_library(
+    name = "run",
+    srcs = glob(["*.java"]),
+    deps = [
+        "//:auto_value",
+        "//bundle:cel",
+        "//testing/testrunner:cel_expression_source",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_test_suite",
+        "//testing/testrunner:cel_test_suite_text_proto_parser",
+        "//testing/testrunner:cel_test_suite_yaml_parser",
+        "//testing/testrunner:test_runner_library",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:junit_junit",
+    ],
+)
