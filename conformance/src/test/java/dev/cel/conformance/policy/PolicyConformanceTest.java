@@ -14,11 +14,10 @@
 
 package dev.cel.conformance.policy;
 
-import com.google.protobuf.ListValue;
 import com.google.protobuf.Struct;
-import com.google.protobuf.Value;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.testing.testrunner.CelExpressionSource;
 import dev.cel.testing.testrunner.CelTestContext;
@@ -74,8 +73,9 @@ public final class PolicyConformanceTest extends Statement {
         CelTestContext.newBuilder()
             .setCelExpression(CelExpressionSource.fromSource(policyFile))
             .setCel(CEL)
-            .addMessageTypes(
-                Struct.getDescriptor(), Value.getDescriptor(), ListValue.getDescriptor());
+            .addFileTypes(
+                TestAllTypes.getDescriptor().getFile(),
+                Struct.getDescriptor().getFile());
 
     Path yamlConfigPath = Paths.get(dirPath, "config.yaml");
     Path textprotoConfigPath = Paths.get(dirPath, "config.textproto");
