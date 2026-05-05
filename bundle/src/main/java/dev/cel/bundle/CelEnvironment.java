@@ -30,6 +30,7 @@ import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.checker.CelStandardDeclarations.StandardFunction;
 import dev.cel.checker.CelStandardDeclarations.StandardOverload;
+import dev.cel.checker.ProtoTypeMask;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
@@ -134,6 +135,9 @@ public abstract class CelEnvironment {
   /** Limits to set in the environment. */
   public abstract ImmutableSet<Limit> limits();
 
+  /** Context variable to enable in the environment. */
+  public abstract Optional<ContextVariable> contextVariable();
+
   /** Builder for {@link CelEnvironment}. */
   @AutoValue.Builder
   public abstract static class Builder {
@@ -199,6 +203,8 @@ public abstract class CelEnvironment {
 
     public abstract Builder setLimits(ImmutableSet<Limit> limits);
 
+    public abstract Builder setContextVariable(ContextVariable contextVariable);
+
     abstract CelEnvironment autoBuild();
 
     @CheckReturnValue
@@ -257,6 +263,12 @@ public abstract class CelEnvironment {
       addAllCompilerExtensions(compilerBuilder, celOptions);
 
       applyStandardLibrarySubset(compilerBuilder);
+
+      contextVariable()
+          .ifPresent(
+              cv ->
+                  compilerBuilder.addProtoTypeMasks(
+                      ProtoTypeMask.ofAllFields(cv.typeName()).withFieldsAsVariableDeclarations()));
 
       return compilerBuilder.build();
     } catch (RuntimeException e) {
@@ -404,6 +416,17 @@ public abstract class CelEnvironment {
     }
 
     return extension;
+  }
+
+  /** Represents a context variable declaration. */
+  @AutoValue
+  public abstract static class ContextVariable {
+    /** Fully qualified type name of the context variable. */
+    public abstract String typeName();
+
+    public static ContextVariable create(String typeName) {
+      return new AutoValue_CelEnvironment_ContextVariable(typeName);
+    }
   }
 
   /** Represents a policy variable declaration. */

@@ -161,6 +161,7 @@ java_library(
     deps = [
         ":cel_expression_source",
         ":default_result_matcher",
+        ":registry_utils",
         ":result_matcher",
         "//:auto_value",
         "//bundle:cel",

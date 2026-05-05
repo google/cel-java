@@ -262,7 +262,7 @@ public class TestRunnerLibraryTest {
 
     assertThat(thrown)
         .hasMessageThat()
-        .contains("Proto descriptors are required for unpacking Any messages.");
+        .contains("Proto descriptors or type registry are required for unpacking Any messages");
   }
 
   @Test

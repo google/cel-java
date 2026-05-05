@@ -140,21 +140,21 @@ public abstract class CelTestContext {
     return Optional.empty();
   }
 
+  /** Returns a unified set of {@link CelDescriptors} combined from all descriptor sources. */
   @Memoized
-  public Optional<TypeRegistry> typeRegistry() {
+  public Optional<CelDescriptors> mergedDescriptors() {
     if (fileTypes().isEmpty() && !fileDescriptorSetPath().isPresent()) {
       return Optional.empty();
     }
-    TypeRegistry.Builder builder = TypeRegistry.newBuilder();
-    if (!fileTypes().isEmpty()) {
-      builder.add(
-          CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileTypes())
-              .messageTypeDescriptors());
-    }
-    if (celDescriptors().isPresent()) {
-      builder.add(celDescriptors().get().messageTypeDescriptors());
-    }
-    return Optional.of(builder.build());
+    ImmutableSet.Builder<FileDescriptor> allFiles =
+        ImmutableSet.<FileDescriptor>builder().addAll(fileTypes());
+    celDescriptors().ifPresent(d -> allFiles.addAll(d.fileDescriptors()));
+    return Optional.of(CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(allFiles.build()));
+  }
+
+  @Memoized
+  public Optional<TypeRegistry> typeRegistry() {
+    return mergedDescriptors().map(RegistryUtils::getTypeRegistry);
   }
 
   public abstract Optional<ExtensionRegistry> extensionRegistry();

@@ -360,18 +360,33 @@ public final class TestRunnerLibrary {
   }
 
   private static Message unpackAny(Any any, CelTestContext celTestContext) throws IOException {
-    if (!celTestContext.fileDescriptorSetPath().isPresent()) {
-      throw new IllegalArgumentException(
-          "Proto descriptors are required for unpacking Any messages.");
+    TypeRegistry typeRegistry =
+        celTestContext
+            .typeRegistry()
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Proto descriptors or type registry are required for unpacking Any"
+                            + " messages."));
+
+    Descriptor descriptor = typeRegistry.getDescriptorForTypeUrl(any.getTypeUrl());
+    if (descriptor == null) {
+      throw new IllegalArgumentException("Descriptor not found for type URL: " + any.getTypeUrl());
     }
-    Descriptor descriptor =
-        RegistryUtils.getTypeRegistry(celTestContext.celDescriptors().get())
-            .getDescriptorForTypeUrl(any.getTypeUrl());
+
+    ExtensionRegistry extensionRegistry =
+        celTestContext
+            .extensionRegistry()
+            .orElseGet(
+                () ->
+                    celTestContext
+                        .mergedDescriptors()
+                        .map(RegistryUtils::getExtensionRegistry)
+                        .orElseGet(ExtensionRegistry::getEmptyRegistry));
+
     return DynamicMessage.getDefaultInstance(descriptor)
         .getParserForType()
-        .parseFrom(
-            any.getValue(),
-            RegistryUtils.getExtensionRegistry(celTestContext.celDescriptors().get()));
+        .parseFrom(any.getValue(), extensionRegistry);
   }
 
   private static Message getEvaluatedContextExpr(

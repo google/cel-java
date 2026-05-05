@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.CelEnvironment.Alias;
+import dev.cel.bundle.CelEnvironment.ContextVariable;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
 import dev.cel.bundle.CelEnvironment.LibrarySubset;
@@ -318,6 +319,36 @@ public final class CelEnvironmentYamlParser {
       builder.add(((ScalarNode) elementNode).getValue());
     }
     return builder.build();
+  }
+
+  private ContextVariable parseContextVariable(ParserContext<Node> ctx, Node node) {
+    long id = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
+      return ContextVariable.create("");
+    }
+
+    MappingNode mapNode = (MappingNode) node;
+    String typeName = "";
+    for (NodeTuple nodeTuple : mapNode.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "type_name":
+          typeName = newString(ctx, valueNode);
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported context_variable tag: %s", keyName));
+          break;
+      }
+    }
+
+    if (typeName.isEmpty()) {
+      ctx.reportError(id, "Missing required attribute(s): type_name");
+    }
+
+    return ContextVariable.create(typeName);
   }
 
   private ImmutableSet<VariableDecl> parseVariables(ParserContext<Node> ctx, Node node) {
@@ -899,6 +930,9 @@ public final class CelEnvironmentYamlParser {
             break;
           case "limits":
             builder.setLimits(parseLimits(ctx, valueNode));
+            break;
+          case "context_variable":
+            builder.setContextVariable(parseContextVariable(ctx, valueNode));
             break;
           default:
             ctx.reportError(id, "Unknown config tag: " + fieldName);
