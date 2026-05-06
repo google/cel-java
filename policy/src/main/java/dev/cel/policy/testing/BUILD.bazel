@@ -1,0 +1,27 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//policy/testing:__pkg__",
+    ],
+)
+
+java_library(
+    name = "k8s_tag_handler",
+    srcs = ["K8sTagHandler.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/formats:value_string",
+        "//common/formats:yaml_helper",
+        "//policy",
+        "//policy:parser",
+        "//policy:policy_parser_context",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)

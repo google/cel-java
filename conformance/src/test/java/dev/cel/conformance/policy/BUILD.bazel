@@ -12,6 +12,8 @@ java_library(
     deps = [
         "//:auto_value",
         "//bundle:cel",
+        "//policy:parser_factory",
+        "//policy/testing:k8s_test_tag_handler",
         "//runtime:function_binding",
         "//testing/testrunner:cel_expression_source",
         "//testing/testrunner:cel_test_context",

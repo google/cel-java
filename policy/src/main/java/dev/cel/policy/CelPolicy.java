@@ -252,7 +252,7 @@ public abstract class CelPolicy {
 
       abstract Optional<Long> id();
 
-      abstract Optional<Result> result();
+      public abstract Optional<Result> result();
 
       abstract Optional<ValueString> explanation();
 

@@ -19,11 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
 import com.google.common.io.Resources;
-import dev.cel.common.formats.ValueString;
-import dev.cel.policy.CelPolicy.Match;
-import dev.cel.policy.CelPolicy.Match.Result;
-import dev.cel.policy.CelPolicy.Rule;
-import dev.cel.policy.CelPolicyParser.TagVisitor;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -31,8 +26,6 @@ import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.SequenceNode;
 
 /** Package-private class to assist with policy testing. */
 final class PolicyTestHelper {
@@ -271,107 +264,6 @@ final class PolicyTestHelper {
 
   private static String readFile(String path) throws IOException {
     return Resources.toString(getResource(path), UTF_8);
-  }
-
-  static class K8sTagHandler implements TagVisitor<Node> {
-
-    @Override
-    public void visitPolicyTag(
-        PolicyParserContext<Node> ctx,
-        long id,
-        String tagName,
-        Node node,
-        CelPolicy.Builder policyBuilder) {
-      switch (tagName) {
-        case "kind":
-          policyBuilder.putMetadata("kind", ctx.newYamlString(node));
-          break;
-        case "metadata":
-          long metadataId = ctx.collectMetadata(node);
-          if (!node.getTag().getValue().equals("tag:yaml.org,2002:map")) {
-            ctx.reportError(
-                metadataId,
-                String.format(
-                    "invalid 'metadata' type, expected map got: %s", node.getTag().getValue()));
-          }
-          break;
-        case "spec":
-          Rule rule = ctx.parseRule(ctx, policyBuilder, node);
-          policyBuilder.setRule(rule);
-          break;
-        default:
-          TagVisitor.super.visitPolicyTag(ctx, id, tagName, node, policyBuilder);
-          break;
-      }
-    }
-
-    @Override
-    public void visitRuleTag(
-        PolicyParserContext<Node> ctx,
-        long id,
-        String tagName,
-        Node node,
-        CelPolicy.Builder policyBuilder,
-        Rule.Builder ruleBuilder) {
-      switch (tagName) {
-        case "failurePolicy":
-          policyBuilder.putMetadata(tagName, ctx.newYamlString(node));
-          break;
-        case "matchConstraints":
-          long matchConstraintsId = ctx.collectMetadata(node);
-          if (!node.getTag().getValue().equals("tag:yaml.org,2002:map")) {
-            ctx.reportError(
-                matchConstraintsId,
-                String.format(
-                    "invalid 'matchConstraints' type, expected map got: %s",
-                    node.getTag().getValue()));
-          }
-          break;
-        case "validations":
-          long validationId = ctx.collectMetadata(node);
-          if (!node.getTag().getValue().equals("tag:yaml.org,2002:seq")) {
-            ctx.reportError(
-                validationId,
-                String.format(
-                    "invalid 'validations' type, expected list got: %s", node.getTag().getValue()));
-          }
-
-          SequenceNode validationNodes = (SequenceNode) node;
-          for (Node element : validationNodes.getValue()) {
-            ruleBuilder.addMatches(ctx.parseMatch(ctx, policyBuilder, element));
-          }
-          break;
-        default:
-          TagVisitor.super.visitRuleTag(ctx, id, tagName, node, policyBuilder, ruleBuilder);
-          break;
-      }
-    }
-
-    @Override
-    public void visitMatchTag(
-        PolicyParserContext<Node> ctx,
-        long id,
-        String tagName,
-        Node node,
-        CelPolicy.Builder policyBuilder,
-        Match.Builder matchBuilder) {
-      switch (tagName) {
-        case "expression":
-          // The K8s expression to validate must return false in order to generate a violation
-          // message.
-          ValueString conditionValue = ctx.newYamlString(node);
-          conditionValue =
-              conditionValue.toBuilder().setValue("!(" + conditionValue.value() + ")").build();
-          matchBuilder.setCondition(conditionValue);
-          break;
-        case "messageExpression":
-          matchBuilder.setResult(Result.ofOutput(ctx.newYamlString(node)));
-          break;
-        default:
-          TagVisitor.super.visitMatchTag(ctx, id, tagName, node, policyBuilder, matchBuilder);
-          break;
-      }
-    }
   }
 
   private PolicyTestHelper() {}

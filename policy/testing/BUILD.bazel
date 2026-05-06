@@ -1,0 +1,12 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//:internal"],
+)
+
+java_library(
+    name = "k8s_test_tag_handler",
+    exports = ["//policy/src/main/java/dev/cel/policy/testing:k8s_tag_handler"],
+)

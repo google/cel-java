@@ -18,6 +18,8 @@ import com.google.protobuf.Struct;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.policy.CelPolicyParserFactory;
+import dev.cel.policy.testing.K8sTagHandler;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.testing.testrunner.CelExpressionSource;
 import dev.cel.testing.testrunner.CelTestContext;
@@ -76,6 +78,13 @@ public final class PolicyConformanceTest extends Statement {
             .addFileTypes(
                 TestAllTypes.getDescriptor().getFile(),
                 Struct.getDescriptor().getFile());
+
+    // Scopes the custom Kubernetes tag visitor exclusively to k8s tests to prevent non-standard
+    // grammar leakage.
+    if (name.startsWith("k8s/")) {
+      contextBuilder.setCelPolicyParser(
+          CelPolicyParserFactory.newYamlParserBuilder().addTagVisitor(new K8sTagHandler()).build());
+    }
 
     Path yamlConfigPath = Paths.get(dirPath, "config.yaml");
     Path textprotoConfigPath = Paths.get(dirPath, "config.textproto");

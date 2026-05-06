@@ -22,8 +22,8 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.formats.ValueString;
 import dev.cel.policy.CelPolicy.Import;
-import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
+import dev.cel.policy.testing.K8sTagHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
