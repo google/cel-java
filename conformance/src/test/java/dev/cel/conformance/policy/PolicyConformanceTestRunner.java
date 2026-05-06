@@ -44,6 +44,7 @@ public final class PolicyConformanceTestRunner extends ParentRunner<PolicyConfor
   private static final Splitter SPLITTER = Splitter.on(",").omitEmptyStrings();
   private static final String TESTS_YAML_FILE_NAME = "tests.yaml";
   private static final String TESTS_TEXTPROTO_FILE_NAME = "tests.textproto";
+  private static final String POLICY_YAML_FILE_NAME = "policy.yaml";
   private static final TypeRegistry TYPE_REGISTRY =
       TypeRegistry.newBuilder()
           .add(Struct.getDescriptor())
@@ -73,12 +74,40 @@ public final class PolicyConformanceTestRunner extends ParentRunner<PolicyConfor
     if (!dir.exists() || !dir.isDirectory()) {
       return ImmutableList.of();
     }
-    String[] directories = dir.list((current, name) -> new File(current, name).isDirectory());
-    if (directories == null) {
+    File[] topLevelDirs = dir.listFiles(File::isDirectory);
+    if (topLevelDirs == null) {
       return ImmutableList.of();
     }
-    Arrays.sort(directories);
-    return ImmutableList.copyOf(directories);
+
+    ImmutableList.Builder<String> testDirsBuilder = ImmutableList.builder();
+    Arrays.sort(topLevelDirs);
+    for (File topLevelDir : topLevelDirs) {
+      if (hasTestSuite(topLevelDir)) {
+        testDirsBuilder.add(topLevelDir.getName());
+        continue;
+      }
+
+      // Check one level deeper to support nested tests like compile_errors/unreachable
+      File[] subDirs = topLevelDir.listFiles(File::isDirectory);
+      if (subDirs == null) {
+        continue;
+      }
+
+      Arrays.sort(subDirs);
+      for (File subDir : subDirs) {
+        if (hasTestSuite(subDir)) {
+          testDirsBuilder.add(topLevelDir.getName() + "/" + subDir.getName());
+        }
+      }
+    }
+
+    return testDirsBuilder.build();
+  }
+
+  private static boolean hasTestSuite(File dir) {
+    return (new File(dir, TESTS_YAML_FILE_NAME).exists()
+            || new File(dir, TESTS_TEXTPROTO_FILE_NAME).exists())
+        && new File(dir, POLICY_YAML_FILE_NAME).exists();
   }
 
   private final ImmutableList<PolicyConformanceTest> tests;

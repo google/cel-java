@@ -93,7 +93,7 @@ final class RuleComposer implements CelAstOptimizer {
           assertComposedAstIsValid(
               cel,
               output.expr,
-              "conflicting output types found.",
+              "incompatible output types found.",
               matchOutput.sourceId(),
               lastOutputId);
           lastOutputId = matchOutput.sourceId();
@@ -115,7 +115,7 @@ final class RuleComposer implements CelAstOptimizer {
               cel,
               output.expr,
               String.format(
-                  "failed composing the subrule '%s' due to conflicting output types.",
+                  "failed composing the subrule '%s' due to incompatible output types.",
                   matchNestedRule.ruleId().map(ValueString::value).orElse("")),
               lastOutputId);
           break;

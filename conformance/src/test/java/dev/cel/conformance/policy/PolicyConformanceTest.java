@@ -14,11 +14,14 @@
 
 package dev.cel.conformance.policy;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.protobuf.Struct;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.policy.CelPolicyParserFactory;
+import dev.cel.policy.CelPolicyValidationException;
 import dev.cel.policy.testing.K8sTagHandler;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.testing.testrunner.CelExpressionSource;
@@ -28,6 +31,7 @@ import dev.cel.testing.testrunner.TestRunnerLibrary;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import org.junit.runners.model.Statement;
 
 /** Statement representing a single CEL policy conformance test case. */
@@ -95,6 +99,16 @@ public final class PolicyConformanceTest extends Statement {
       contextBuilder.setConfigFile(textprotoConfigPath.toString());
     }
 
-    TestRunnerLibrary.runTest(testCase, contextBuilder.build());
+    try {
+      TestRunnerLibrary.runTest(testCase, contextBuilder.build());
+    } catch (CelPolicyValidationException e) {
+      if (testCase.output().kind() == CelTestCase.Output.Kind.EVAL_ERROR) {
+        String expectedError = testCase.output().evalError().get(0).toString();
+        assertThat(e.getMessage().toLowerCase(Locale.US))
+            .contains(expectedError.toLowerCase(Locale.US));
+      } else {
+        throw e;
+      }
+    }
   }
 }

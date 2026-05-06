@@ -11,8 +11,10 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//:auto_value",
+        "//:java_truth",
         "//bundle:cel",
         "//policy:parser_factory",
+        "//policy:validation_exception",
         "//policy/testing:k8s_test_tag_handler",
         "//runtime:function_binding",
         "//testing/testrunner:cel_expression_source",
