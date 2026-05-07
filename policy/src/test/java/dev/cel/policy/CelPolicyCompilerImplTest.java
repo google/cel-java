@@ -31,6 +31,7 @@ import dev.cel.bundle.CelEnvironment;
 import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.formats.ValueString;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
@@ -354,6 +355,24 @@ public final class CelPolicyCompilerImplTest {
     boolean evalResult = (boolean) cel.createProgram(compiledPolicyAst).eval();
 
     assertThat(evalResult).isFalse();
+  }
+
+  @Test
+  public void compose_ruleWithNoOutputs_throws() throws Exception {
+    Cel cel = newCel();
+    CelCompiledRule emptyRule =
+        CelCompiledRule.create(
+            1L,
+            Optional.of(ValueString.of(2L, "empty_rule")),
+            ImmutableList.of(),
+            ImmutableList.of(),
+            cel);
+    RuleComposer composer = RuleComposer.newInstance(emptyRule, "variables.", 1000);
+    CelAbstractSyntaxTree ast = cel.compile("true").getAst();
+
+    IllegalStateException e =
+        assertThrows(IllegalStateException.class, () -> composer.optimize(ast, cel));
+    assertThat(e).hasMessageThat().isEqualTo("Policy contains no outputs.");
   }
 
   private static final class EvaluablePolicyTestData {

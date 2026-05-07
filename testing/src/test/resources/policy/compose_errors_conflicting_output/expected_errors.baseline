@@ -1,6 +1,6 @@
-ERROR: compose_errors_conflicting_output/policy.yaml:22:14: incompatible output types found.
+ERROR: compose_errors_conflicting_output/policy.yaml:22:14: incompatible output types: block has output type map(string, bool), but previous outputs have type bool
  |     output: "false"
  | .............^
-ERROR: compose_errors_conflicting_output/policy.yaml:23:14: incompatible output types found.
+ERROR: compose_errors_conflicting_output/policy.yaml:23:14: incompatible output types: block has output type map(string, bool), but previous outputs have type bool
  |   - output: "{'banned': true}"
  | .............^

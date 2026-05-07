@@ -244,7 +244,6 @@ java_library(
 java_library(
     name = "rule_composer",
     srcs = ["RuleComposer.java"],
-    visibility = ["//visibility:private"],
     deps = [
         ":compiled_rule",
         "//bundle:cel",
@@ -257,6 +256,8 @@ java_library(
         "//common/ast:mutable_expr",
         "//common/formats:value_string",
         "//common/navigation:mutable_navigation",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
         "//extensions:optional_library",
         "//optimizer:ast_optimizer",
         "//optimizer:mutable_ast",
