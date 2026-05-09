@@ -303,6 +303,24 @@ public final class ProtoMessageValueTest {
         .isEqualTo(Duration.ofSeconds(seconds, nanos));
   }
 
+  @Test
+  public void selectField_fieldMask_returnsProtoMessageValue() {
+    TestAllTypes testAllTypes =
+        TestAllTypes.newBuilder()
+            .setFieldMask(
+                com.google.protobuf.FieldMask.newBuilder().addPaths("foo").addPaths("bar"))
+            .build();
+
+    ProtoMessageValue protoMessageValue =
+        ProtoMessageValue.create(
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
+
+    Object selected = protoMessageValue.select("field_mask");
+    assertThat(selected).isInstanceOf(ProtoMessageValue.class);
+    assertThat(((ProtoMessageValue) selected).select("paths"))
+        .isEqualTo(ImmutableList.of("foo", "bar"));
+  }
+
   @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum SelectFieldJsonValueTestCase {
     NULL(Value.newBuilder().build(), NullValue.NULL_VALUE),
