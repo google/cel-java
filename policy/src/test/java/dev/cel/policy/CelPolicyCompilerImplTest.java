@@ -32,6 +32,8 @@ import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.formats.ValueString;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
@@ -106,6 +108,100 @@ public final class CelPolicyCompilerImplTest {
         CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
 
     assertThat(ast.getResultType()).isEqualTo(OptionalType.create(SimpleType.BOOL));
+  }
+
+  @Test
+  public void evalYamlPolicy_aggregate() throws Exception {
+    String policySource =
+        "name: \"aggregate_policy\"\n"
+            + "rule:\n"
+            + "  aggregate:\n"
+            + "    - condition: 'true'\n"
+            + "      emit: '\"PII\"'\n"
+            + "    - condition: 'true'\n"
+            + "      emit: '\"CONFIDENTIAL\"'\n";
+    Cel cel = newCel();
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    CelAbstractSyntaxTree ast =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+
+    Object evalResult = cel.createProgram(ast).eval();
+    assertThat(evalResult).isEqualTo(ImmutableList.of("PII", "CONFIDENTIAL"));
+  }
+
+  @Test
+  public void evaluateYamlPolicy_aggregate_cseApplied() throws Exception {
+    String policySource =
+        "name: \"cse_policy\"\n"
+            + "rule:\n"
+            + "  aggregate:\n"
+            + "    - condition: \"size(resource.payload) > 5\"\n"
+            + "      emit: '\"CSE1\"'\n"
+            + "    - condition: \"size(resource.payload) > 5\"\n"
+            + "      emit: '\"CSE2\"'\n"
+            + "    - condition: 'true'\n"
+            + "      emit: '\"ALWAYS\"'\n";
+    Cel cel =
+        newCel()
+            .toCelBuilder()
+            .addVar("resource", MapType.create(SimpleType.STRING, ListType.create(SimpleType.INT)))
+            .build();
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    CelAbstractSyntaxTree ast =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+
+    String unparsed = CelUnparserFactory.newUnparser().unparse(ast);
+    assertThat(unparsed)
+        .isEqualTo(
+            "cel.@block("
+                + "[size(resource.payload) > 5], "
+                + "(@index0 ? [\"CSE1\"] : []) "
+                + "+ ((@index0 ? [\"CSE2\"] : []) + [\"ALWAYS\"]))");
+
+    // Evaluate under true condition (size of payload is 6 > 5)
+    ImmutableMap<String, Object> inputTrue =
+        ImmutableMap.of("resource", ImmutableMap.of("payload", ImmutableList.of(1, 2, 3, 4, 5, 6)));
+    Object evalResultTrue = cel.createProgram(ast).eval(inputTrue);
+    assertThat(evalResultTrue).isEqualTo(ImmutableList.of("CSE1", "CSE2", "ALWAYS"));
+    // Evaluate under false condition (size of payload is 3 <= 5)
+    ImmutableMap<String, Object> inputFalse =
+        ImmutableMap.of("resource", ImmutableMap.of("payload", ImmutableList.of(1, 2, 3)));
+    Object evalResultFalse = cel.createProgram(ast).eval(inputFalse);
+    assertThat(evalResultFalse).isEqualTo(ImmutableList.of("ALWAYS"));
+  }
+
+  @Test
+  public void compileYamlPolicy_aggregate_macrosPreserved() throws Exception {
+    String policySource =
+        "name: aggregate_macros_preserved\n"
+            + "rule:\n"
+            + "  aggregate:\n"
+            + "    - condition: \"cond\"\n"
+            + "      rule:\n"
+            + "        match:\n"
+            + "          - condition: \"true\"\n"
+            + "            output: \"payload.filter(x, x > 10).exists(y, y % 2 == 0)\"\n"
+            + "    - condition: \"true\"\n"
+            + "      emit: \"payload.all(x, x > 0)\"\n";
+    Cel cel =
+        newCel()
+            .toCelBuilder()
+            .addVar("cond", SimpleType.BOOL)
+            .addVar("payload", ListType.create(SimpleType.INT))
+            .build();
+
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    CelAbstractSyntaxTree ast =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+
+    String unparsed = CelUnparserFactory.newUnparser().unparse(ast);
+    assertThat(unparsed)
+        .isEqualTo(
+            "(cond ? [payload.filter(x, x > 10, x).exists(y, y % 2 == 0)] : []) "
+                + "+ ([payload.all(x, x > 0)] + [])");
   }
 
   @Test
@@ -366,7 +462,8 @@ public final class CelPolicyCompilerImplTest {
             Optional.of(ValueString.of(2L, "empty_rule")),
             ImmutableList.of(),
             ImmutableList.of(),
-            cel);
+            cel,
+            CelPolicy.EvaluationSemantic.FIRST_MATCH);
     RuleComposer composer = RuleComposer.newInstance(emptyRule, "variables.", 1000);
     CelAbstractSyntaxTree ast = cel.compile("true").getAst();
 
@@ -512,7 +609,9 @@ public final class CelPolicyCompilerImplTest {
     COMPILE_ERRORS("compile_errors"),
     COMPOSE_ERRORS_CONFLICTING_OUTPUT("compose_errors_conflicting_output"),
     COMPOSE_ERRORS_CONFLICTING_SUBRULE("compose_errors_conflicting_subrule"),
-    ERRORS_UNREACHABLE("errors_unreachable");
+    ERRORS_UNREACHABLE("errors_unreachable"),
+    AGGREGATE_ERRORS("aggregate_errors"),
+    AGGREGATE_LIST_ERRORS("aggregate_list_errors");
 
     private final String name;
     private final String policyFilePath;

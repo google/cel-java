@@ -44,6 +44,7 @@ import dev.cel.policy.CelCompiledRule.CelCompiledMatch;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result.Kind;
 import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
+import dev.cel.policy.CelPolicy.EvaluationSemantic;
 import dev.cel.policy.CelPolicy.Import;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
@@ -240,7 +241,12 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
     CelCompiledRule compiledRule =
         CelCompiledRule.create(
-            rule.id(), rule.ruleId(), variableBuilder.build(), matchBuilder.build(), ruleCel);
+            rule.id(),
+            rule.ruleId(),
+            variableBuilder.build(),
+            matchBuilder.build(),
+            ruleCel,
+            rule.semantic());
 
     // Validate that all branches in the policy are reachable
     checkUnreachableCode(compiledRule, compilerContext);
@@ -256,7 +262,16 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       CelCompiledMatch compiledMatch = compiledMatches.get(i);
       boolean isTriviallyTrue = compiledMatch.isConditionTriviallyTrue();
 
-      if (isTriviallyTrue && !ruleHasOptional && i != matchCount - 1) {
+      // Flag literally false conditions as dead code regardless of semantic
+      if (isConditionLiterallyFalse(compiledMatch.condition())) {
+        compilerContext.addIssue(
+            compiledMatch.sourceId(), CelIssue.formatError(1, 0, "Condition is always false"));
+      }
+
+      if (compiledRule.semantic() == EvaluationSemantic.FIRST_MATCH
+          && isTriviallyTrue
+          && !ruleHasOptional
+          && i != matchCount - 1) {
         if (compiledMatch.result().kind().equals(Kind.OUTPUT)) {
           compilerContext.addIssue(
               compiledMatch.sourceId(),
@@ -268,6 +283,12 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
         }
       }
     }
+  }
+
+  private static boolean isConditionLiterallyFalse(CelAbstractSyntaxTree condition) {
+    CelExpr celExpr = condition.getExpr();
+    return celExpr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
+        && !celExpr.constant().booleanValue();
   }
 
   private static CelAbstractSyntaxTree newErrorAst() {
