@@ -20,8 +20,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.RandomAccess;
 import java.util.function.Function;
 
 /**
@@ -53,16 +56,11 @@ public class CelValueConverter {
    * <p>The value may be a {@link CelValue}, a {@link Collection} or a {@link Map}.
    */
   public Object maybeUnwrap(Object value) {
-    if (value instanceof CelValue) {
-      return unwrap((CelValue) value);
+    if (value instanceof CelValue || value instanceof CelPreAdaptedList) {
+      return value instanceof CelValue ? unwrap((CelValue) value) : value;
     }
 
-    Object mapped = mapContainer(value, maybeUnwrapFunction);
-    if (mapped != value) {
-      return mapped;
-    }
-
-    return value;
+    return mapContainer(value, maybeUnwrapFunction);
   }
 
   /**
@@ -70,6 +68,34 @@ public class CelValueConverter {
    * Returns the original value if it's not a supported container.
    */
   protected Object mapContainer(Object value, Function<Object, Object> mapper) {
+
+    // Zero allocation path for standard lists that support O(1) indexing
+    // Generally, protobuf lists (backed by arrays) fall into this category
+    if (value instanceof List && value instanceof RandomAccess) {
+      List<Object> list = (List<Object>) value;
+      for (int i = 0; i < list.size(); i++) {
+        Object element = list.get(i);
+        Object mapped = mapper.apply(element);
+
+        if (mapped != element) {
+          ImmutableList.Builder<Object> builder =
+              ImmutableList.builderWithExpectedSize(list.size());
+          for (int j = 0; j < i; j++) {
+            builder.add(list.get(j));
+          }
+          builder.add(mapped);
+          for (int j = i + 1; j < list.size(); j++) {
+            builder.add(mapper.apply(list.get(j)));
+          }
+          return builder.build();
+        }
+      }
+
+      // Zero allocations if unmodified
+      return value;
+    }
+
+    // Fallback for lists that are unordered
     if (value instanceof Collection) {
       Collection<Object> collection = (Collection<Object>) value;
       ImmutableList.Builder<Object> builder =
@@ -82,12 +108,32 @@ public class CelValueConverter {
 
     if (value instanceof Map) {
       Map<Object, Object> map = (Map<Object, Object>) value;
-      ImmutableMap.Builder<Object, Object> builder =
-          ImmutableMap.builderWithExpectedSize(map.size());
-      for (Map.Entry<Object, Object> entry : map.entrySet()) {
-        builder.put(mapper.apply(entry.getKey()), mapper.apply(entry.getValue()));
+      Iterator<Map.Entry<Object, Object>> iterator = map.entrySet().iterator();
+
+      while (iterator.hasNext()) {
+        Map.Entry<Object, Object> entry = iterator.next();
+        Object mappedKey = mapper.apply(entry.getKey());
+        Object mappedValue = mapper.apply(entry.getValue());
+
+        if (mappedKey != entry.getKey() || mappedValue != entry.getValue()) {
+          ImmutableMap.Builder<Object, Object> builder =
+              ImmutableMap.builderWithExpectedSize(map.size());
+
+          for (Map.Entry<Object, Object> prevEntry : map.entrySet()) {
+            if (prevEntry.getKey() == entry.getKey()) {
+              break;
+            }
+            builder.put(mapper.apply(prevEntry.getKey()), mapper.apply(prevEntry.getValue()));
+          }
+          builder.put(mappedKey, mappedValue);
+          while (iterator.hasNext()) {
+            Map.Entry<Object, Object> nextEntry = iterator.next();
+            builder.put(mapper.apply(nextEntry.getKey()), mapper.apply(nextEntry.getValue()));
+          }
+          return builder.buildOrThrow();
+        }
       }
-      return builder.buildOrThrow();
+      return value;
     }
 
     return value;
@@ -96,7 +142,7 @@ public class CelValueConverter {
   public Object toRuntimeValue(Object value) {
     Preconditions.checkNotNull(value);
 
-    if (value instanceof CelValue) {
+    if (value instanceof CelValue || value instanceof CelPreAdaptedList) {
       return value;
     }
 

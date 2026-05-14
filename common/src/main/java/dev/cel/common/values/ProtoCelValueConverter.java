@@ -167,6 +167,18 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
         break;
     }
 
+    if (fieldDescriptor.isRepeated()) {
+      switch (fieldDescriptor.getType()) {
+        case INT64:
+        case BOOL:
+        case STRING:
+        case DOUBLE:
+          return CelPreAdaptedList.wrap((List<?>) result);
+        default:
+          break;
+      }
+    }
+
     return toRuntimeValue(result);
   }
 
