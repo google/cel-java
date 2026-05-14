@@ -33,7 +33,11 @@ def cel_policy_conformance_test_java(
     """
 
     lbl = native.package_relative_label(testdata)
-    testdata_dir = lbl.package + "/" + lbl.name
+
+    # Under Bzlmod, external repository runfiles are located in sibling directories
+    # named after their canonical repository name.
+    repo_prefix = "../" + lbl.workspace_name + "/" if lbl.workspace_name else ""
+    testdata_dir = repo_prefix + lbl.package + "/" + lbl.name
 
     java_test(
         name = name,

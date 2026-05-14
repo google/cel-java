@@ -33,9 +33,20 @@ def bazel_common_dependency():
         url = "https://github.com/google/bazel-common/archive/%s.tar.gz" % bazel_common_tag,
     )
 
+def cel_policy_dependency():
+    cel_policy_tag = "569292f1c4eaa41894c1e37ee94eb146e284bcfa"
+    cel_policy_sha = "5a68318d906f6ce18492ad6f82b5f8bb083fd9d694cf567d399216c11da03157"
+    http_archive(
+        name = "cel_policy",
+        sha256 = cel_policy_sha,
+        strip_prefix = "cel-policy-%s" % cel_policy_tag,
+        url = "https://github.com/cel-expr/cel-policy/archive/%s.tar.gz" % cel_policy_tag,
+    )
+
 def _non_module_dependencies_impl(_ctx):
     antlr4_jar_dependency()
     bazel_common_dependency()
+    cel_policy_dependency()
 
 non_module_dependencies = module_extension(
     implementation = _non_module_dependencies_impl,
