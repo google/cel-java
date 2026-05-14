@@ -53,6 +53,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.CelValue;
 import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
@@ -415,9 +416,6 @@ public final class CelOptionalLibrary
     return list.stream().filter(Optional::isPresent).map(Optional::get).collect(toImmutableList());
   }
 
-  // TODO: This will need to be adapted to handle an intermediate CelValue instead,
-  // akin to Zeroer interface in Go. Currently, it is unable to handle zero-values for a
-  // user-defined custom type.
   private static boolean isZeroValue(Object val) {
     if (val instanceof Boolean) {
       return !((Boolean) val);
@@ -448,6 +446,8 @@ public final class CelOptionalLibrary
       return val.equals(Instant.EPOCH);
     } else if (val instanceof java.time.Duration) {
       return val.equals(java.time.Duration.ZERO);
+    } else if (val instanceof CelValue) {
+      return ((CelValue) val).isZeroValue();
     }
 
     // Unknown. Assume that it is non-zero.

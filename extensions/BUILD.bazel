@@ -56,3 +56,8 @@ java_library(
     name = "comprehensions",
     exports = ["//extensions/src/main/java/dev/cel/extensions:comprehensions"],
 )
+
+java_library(
+    name = "native",
+    exports = ["//extensions/src/main/java/dev/cel/extensions:native"],
+)

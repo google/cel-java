@@ -14,9 +14,11 @@
 
 package dev.cel.common.internal;
 
+import com.google.common.reflect.TypeToken;
 import dev.cel.common.annotations.Internal;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * Utility class for invoking Java reflection.
@@ -46,6 +48,19 @@ public final class ReflectionUtil {
               method.getName(), method.getDeclaringClass()),
           e);
     }
+  }
+
+  /** Resolves a generic parameter of a base class from a type token. */
+  public static Type resolveGenericParameter(TypeToken<?> token, Class<?> baseClass, int index) {
+    return token.resolveType(baseClass.getTypeParameters()[index]).getType();
+  }
+
+  /**
+   * Extracts the raw Class from a Type. Handles Class, ParameterizedType, and WildcardType (returns
+   * upper bound). Returns Object.class as fallback.
+   */
+  public static Class<?> getRawType(Type type) {
+    return TypeToken.of(type).getRawType();
   }
 
   private ReflectionUtil() {}
