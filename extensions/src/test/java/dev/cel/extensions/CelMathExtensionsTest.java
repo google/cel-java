@@ -735,6 +735,13 @@ public class CelMathExtensionsTest {
   @TestParameters("{expr: 'math.round(-1.5)' , expectedResult: -2.0}")
   @TestParameters("{expr: 'math.round(-1.2)' , expectedResult: -1.0}")
   @TestParameters("{expr: 'math.round(-1.6)' , expectedResult: -2.0}")
+  // Discriminating tie cases: confirm "ties round away from zero" (HALF_UP), not
+  // banker's rounding (HALF_EVEN).  1.5/-1.5 above don't distingish the two because
+  // their nearest-even neighbor (2/-2) is also the away-from-zero neighbor.
+  @TestParameters("{expr: 'math.round(0.5)' , expectedResult: 1.0}")
+  @TestParameters("{expr: 'math.round(2.5)' , expectedResult: 3.0}")
+  @TestParameters("{expr: 'math.round(-0.5)' , expectedResult: -1.0}")
+  @TestParameters("{expr: 'math.round(-2.5)' , expectedResult: -3.0}")
   @TestParameters("{expr: 'math.round(0.0/0.0)' , expectedResult: NaN}")
   @TestParameters("{expr: 'math.round(1.0/0.0)' , expectedResult: Infinity}")
   @TestParameters("{expr: 'math.round(-1.0/0.0)' , expectedResult: -Infinity}")

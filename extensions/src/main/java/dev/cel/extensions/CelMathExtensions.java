@@ -874,7 +874,7 @@ public final class CelMathExtensions
     if (isNaN(x) || isInfinite(x)) {
       return x;
     }
-    return DoubleMath.roundToLong(x, RoundingMode.HALF_EVEN);
+    return DoubleMath.roundToLong(x, RoundingMode.HALF_UP);
   }
 
   private static Number sign(Number x) {
