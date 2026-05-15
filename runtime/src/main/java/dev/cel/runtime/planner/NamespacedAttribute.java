@@ -171,19 +171,15 @@ final class NamespacedAttribute implements Attribute {
 
   @Override
   public NamespacedAttribute addQualifier(Qualifier qualifier) {
-    ImmutableMap.Builder<String, CelAttribute> attributesBuilder = ImmutableMap.builder();
-    CelAttribute.Qualifier celQualifier = CelAttribute.Qualifier.fromGeneric(qualifier.value());
-
-    for (Map.Entry<String, CelAttribute> entry : candidateAttributes.entrySet()) {
-      attributesBuilder.put(entry.getKey(), entry.getValue().qualify(celQualifier));
-    }
-
     return new NamespacedAttribute(
         typeProvider,
         celValueConverter,
-        attributesBuilder.buildOrThrow(),
+        candidateAttributes,
         disambiguateNames,
-        ImmutableList.<Qualifier>builder().addAll(qualifiers).add(qualifier).build());
+        ImmutableList.<Qualifier>builderWithExpectedSize(qualifiers.size() + 1)
+            .addAll(qualifiers)
+            .add(qualifier)
+            .build());
   }
 
   private static Object applyQualifiers(
