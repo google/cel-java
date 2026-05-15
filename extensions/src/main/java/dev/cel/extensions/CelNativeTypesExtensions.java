@@ -356,12 +356,12 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
       if (getter != null) {
         propType = getter.getReturnType();
         genericPropType = getter.getGenericReturnType();
-        discoverCustomTypes(genericPropType, queue);
+        queue.addAll(TypeReferenceCollector.collect(genericPropType));
         compiledGetter = compileGetter(getter);
       } else if (field != null) {
         propType = field.getType();
         genericPropType = field.getGenericType();
-        discoverCustomTypes(genericPropType, queue);
+        queue.addAll(TypeReferenceCollector.collect(genericPropType));
         compiledGetter = compileFieldGetter(field);
       }
 
@@ -386,46 +386,53 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
 
     /**
      * Recursively explores a {@link Type} and discovers any transitive, user-defined custom POJO
-     * classes nested inside multi-level generic collections, lists, maps, or optionals, pushing
-     * them into the scanning discovery queue.
+     * classes nested inside multi-level generic collections, lists, maps, or optionals, collecting
+     * them for subsequent properties discovery.
      *
      * <p>"Custom types" are any public non-primitive, non-built-in Java classes that require
      * explicit properties reflective scanning and mapping to a CEL StructType schema (as opposed to
      * standard built-in types like {@code String}, {@code List}, or {@code Map}).
-     *
-     * @param type The Java type token or parameterized collection type to recursively unpack.
-     * @param queue The central scanning queue where newly discovered custom classes are pushed for
-     *     subsequent properties discovery.
      */
-    private static void discoverCustomTypes(Type type, Queue<Class<?>> queue) {
-      Preconditions.checkNotNull(type, "Type to discover cannot be null.");
-      Preconditions.checkNotNull(queue, "Queue cannot be null.");
-      TypeToken<?> token = TypeToken.of(type);
-      Class<?> rawType = token.getRawType();
+    private static final class TypeReferenceCollector {
+      private final Set<Class<?>> collectedTypes = new HashSet<>();
 
-      if (List.class.isAssignableFrom(rawType)) {
-        Type elementType = ReflectionUtil.resolveGenericParameter(token, List.class, 0);
-        discoverCustomTypes(elementType, queue);
-        return;
+      /**
+       * Traverses the given type and returns an immutable set of all custom POJO classes found.
+       *
+       * @param type The Java type token or parameterized collection type to recursively unpack.
+       */
+      private static ImmutableSet<Class<?>> collect(Type type) {
+        TypeReferenceCollector collector = new TypeReferenceCollector();
+        collector.discover(type);
+        return ImmutableSet.copyOf(collector.collectedTypes);
       }
 
-      if (Map.class.isAssignableFrom(rawType)) {
-        Type keyType = ReflectionUtil.resolveGenericParameter(token, Map.class, 0);
-        Type valueType = ReflectionUtil.resolveGenericParameter(token, Map.class, 1);
-        discoverCustomTypes(keyType, queue);
-        discoverCustomTypes(valueType, queue);
-        return;
-      }
+      private void discover(Type type) {
+        Preconditions.checkNotNull(type, "Type to discover cannot be null.");
+        TypeToken<?> token = TypeToken.of(type);
+        Class<?> rawType = token.getRawType();
 
-      if (rawType == Optional.class) {
-        Type optionalType = ReflectionUtil.resolveGenericParameter(token, Optional.class, 0);
-        discoverCustomTypes(optionalType, queue);
-        return;
-      }
+        if (List.class.isAssignableFrom(rawType)) {
+          discover(ReflectionUtil.resolveGenericParameter(token, List.class, 0));
+          return;
+        }
 
-      if (!JAVA_TO_DEFAULT_VALUE_MAP.containsKey(rawType)
-          && Modifier.isPublic(rawType.getModifiers())) {
-        queue.add(rawType);
+        if (Map.class.isAssignableFrom(rawType)) {
+          discover(ReflectionUtil.resolveGenericParameter(token, Map.class, 0));
+          discover(ReflectionUtil.resolveGenericParameter(token, Map.class, 1));
+          return;
+        }
+
+        if (rawType == Optional.class) {
+          discover(ReflectionUtil.resolveGenericParameter(token, Optional.class, 0));
+          return;
+        }
+
+        // Custom types are non-builtin, public classes
+        if (!JAVA_TO_DEFAULT_VALUE_MAP.containsKey(rawType)
+            && Modifier.isPublic(rawType.getModifiers())) {
+          collectedTypes.add(rawType);
+        }
       }
     }
 
