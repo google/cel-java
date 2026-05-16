@@ -17,7 +17,6 @@ package dev.cel.common;
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Beta;
 
 /**
  * Options to configure how the CEL parser, type-checker, and evaluator behave.
@@ -434,13 +433,10 @@ public abstract class CelOptions {
     public abstract Builder enableUnknownTracking(boolean value);
 
     /**
-     * Enables the usage of {@code CelValue} for the runtime. It is a native value representation of
-     * CEL that wraps Java native objects, and comes with extended capabilities, such as allowing
-     * value constructs not understood by CEL (ex: POJOs).
-     *
-     * <p>Warning: This option is experimental.
+     * @deprecated Do not use, this flag will be removed in the future. Use the planner based
+     *     runtime instead, which supports CelValue by default.
      */
-    @Beta
+    @Deprecated
     public abstract Builder enableCelValue(boolean value);
 
     /**
