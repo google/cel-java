@@ -354,6 +354,5 @@ java_library(
 
 java_library(
     name = "partial_vars",
-    visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:partial_vars"],
 )
