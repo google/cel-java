@@ -1,0 +1,12 @@
+ERROR: syntax/policy.yaml:19:51: mismatched input 'resource' expecting {'==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', ')', '.', '-', '?', '+', '*', '/', '%%'}
+ |       expression: "variables.want.filter(l, !(lin resource.labels))"
+ | ..................................................^
+ERROR: syntax/policy.yaml:19:67: extraneous input ')' expecting <EOF>
+ |       expression: "variables.want.filter(l, !(lin resource.labels))"
+ | ..................................................................^
+ERROR: syntax/policy.yaml:21:27: mismatched input '2' expecting {'}', ','}
+ |       expression: "{1:305 2:569}"
+ | ..........................^
+ERROR: syntax/policy.yaml:24:33: extraneous input ']' expecting <EOF>
+ |       output: "variables.missing]"
+ | ................................^

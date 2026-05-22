@@ -34,8 +34,8 @@ def bazel_common_dependency():
     )
 
 def cel_policy_dependency():
-    cel_policy_tag = "569292f1c4eaa41894c1e37ee94eb146e284bcfa"
-    cel_policy_sha = "5a68318d906f6ce18492ad6f82b5f8bb083fd9d694cf567d399216c11da03157"
+    cel_policy_tag = "e4c38defbbf34dfff2dc448dc58e93a9733ae8b1"
+    cel_policy_sha = "46378e0d17a16465899f9fefc94c3d44e1f40aedd8a31c9c0b2b6198048eabd6"
     http_archive(
         name = "cel_policy",
         sha256 = cel_policy_sha,

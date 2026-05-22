@@ -1,0 +1,6 @@
+ERROR: import/policy.yaml:19:7: Error configuring import: invalid qualified name: punc.Import!, wanted name of the form 'qualified.name'
+ |       punc.Import!
+ | ......^
+ERROR: import/policy.yaml:20:12: Error configuring import: invalid qualified name: bad import, wanted name of the form 'qualified.name'
+ |   - name: "bad import"
+ | ...........^

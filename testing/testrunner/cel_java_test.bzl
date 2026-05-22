@@ -20,6 +20,9 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 
+def _is_label(s):
+    return s.startswith("//") or s.startswith(":") or s.startswith("@")
+
 def cel_java_test(
         name,
         cel_expr,
@@ -33,145 +36,124 @@ def cel_java_test(
         enable_coverage = False,
         test_data_path = "",
         data = []):
-    """trigger the java impl of the CEL test runner.
+    """Triggers the Java impl of the CEL test runner.
 
-    This rule will generate a java_binary and a run_test rule. This rule will be used to trigger
-    the java impl of the cel_test rule.
+    This rule generates a java_binary and a run_test rule.
 
-    Note: This rule is to be used only for OSS until cel/expr folder is made available in OSS. Internally,
-    the cel_test rule is supposed to be used.
+    Note: This rule is to be used only for OSS until cel/expr folder is made available in OSS.
+    Internally, the cel_test rule is supposed to be used.
 
     Args:
-        name: str name for the generated artifact
-        test_suite: str label of a file containing a test suite. The file should have a .yaml or a
-          .textproto extension.
-        cel_expr: cel expression to be evaluated. This could be a raw expression or a compiled
-          expression or cel policy.
-        is_raw_expr: bool whether the cel_expr is a raw expression or not. If true, the cel_expr
-          will be used as is and would not be treated as a file path.
-        filegroup: str label of a filegroup containing the test suite, the config and the checked
-          expression.
-        config: str label of a file containing a google.api.expr.conformance.Environment message.
-          The file should have the .textproto extension.
+        name: str name for the generated artifact.
+        cel_expr: cel expression to be evaluated (raw expression, compiled expression, or policy).
         test_src: user's test class build target.
+        is_raw_expr: bool whether the cel_expr is a raw expression (not treated as a file path).
+        test_suite: str label of a test suite file (.yaml or .textproto).
+        filegroup: str label of a filegroup containing the test suite, config, and checked expression.
+        config: str label of a google.api.expr.conformance.Environment textproto file.
         deps: list of dependencies for the java_binary rule.
+        proto_deps: list of proto_library dependencies for the test.
+        enable_coverage: bool whether to enable coverage for the test.
+        test_data_path: absolute path of the directory containing the test files (e.g., "//foo/bar").
         data: list of data dependencies for the java_binary rule.
-        proto_deps: str label of the proto dependencies for the test. Note: This only supports proto_library rules.
-        enable_coverage: bool whether to enable coverage for the test. This is needed only if the
-          test runner is being used for gathering coverage data.
-        test_data_path: absolute path of the directory containing the test files. This is needed only
-          if the test files are not located in the same directory as the BUILD file. This
-          would be of the form "//foo/bar".
     """
+
     jvm_flags = []
 
-    data, test_data_path = _update_data_with_test_files(data, filegroup, test_data_path, config, test_suite, cel_expr, is_raw_expr)
+    # Avoid mutating the original data list passed into the macro
+    resolved_data = list(data)
+    resolved_deps = list(deps)
 
-    # Since the test_data_path is of the form "//foo/bar", we need to strip the leading "/" to get
-    # the absolute path.
-    test_data_path = test_data_path.lstrip("/")
+    # Normalize paths
+    pkg_name = native.package_name()
+    test_data_dir = test_data_path.lstrip("/") if test_data_path else pkg_name
 
-    if test_suite != "":
-        test_suite = test_data_path + "/" + test_suite
-        jvm_flags.append("-Dtest_suite_path=%s" % test_suite)
+    # Add filegroup if provided
+    if filegroup:
+        resolved_data.append(filegroup)
 
-    if config != "":
-        config = test_data_path + "/" + config
-        jvm_flags.append("-Dconfig_path=%s" % config)
+    def _process_file_arg(file_val, flag_name):
+        """Helper to append JVM flags and resolve data targets for file inputs."""
+        if not file_val:
+            return
 
+        if _is_label(file_val):
+            jvm_flags.append("-D{}=$(location {})".format(flag_name, file_val))
+            resolved_data.append(file_val)
+        else:
+            jvm_flags.append("-D{}={}/{}".format(flag_name, test_data_dir, file_val))
+
+            # If no filegroup is provided, we must add the file directly to data
+            if not filegroup:
+                target = file_val if test_data_dir == pkg_name else "//{}:{}".format(test_data_dir, file_val)
+                resolved_data.append(target)
+
+    # Process standard file inputs
+    _process_file_arg(test_suite, "test_suite_path")
+    _process_file_arg(config, "config_path")
+
+    # Process cel_expr (has specialized fallback logic)
     _, cel_expr_format = paths.split_extension(cel_expr)
+    is_valid_cel_ext = cel_expr_format in [".cel", ".celpolicy", ".yaml"]
 
-    if is_valid_cel_file_format(file_extension = cel_expr_format) == True:
-        jvm_flags.append("-Dcel_expr=%s" % test_data_path + "/" + cel_expr)
-    elif is_raw_expr == True:
-        jvm_flags.append("-Dcel_expr='%s'" % cel_expr)
-    elif not is_valid_cel_file_format(file_extension = cel_expr_format) and not is_raw_expr:
+    if _is_label(cel_expr):
         jvm_flags.append("-Dcel_expr=$(location {})".format(cel_expr))
+        resolved_data.append(cel_expr)
+    elif is_raw_expr:
+        jvm_flags.append("-Dcel_expr='{}'".format(cel_expr))
+    elif is_valid_cel_ext:
+        jvm_flags.append("-Dcel_expr={}/{}".format(test_data_dir, cel_expr))
+        if not filegroup:
+            target = cel_expr if test_data_dir == pkg_name else "//{}:{}".format(test_data_dir, cel_expr)
+            resolved_data.append(target)
+    else:
+        # Fallback: Treat as a local target
+        jvm_flags.append("-Dcel_expr=$(location {})".format(cel_expr))
+        resolved_data.append(cel_expr)
 
+    # Process Proto Dependencies
     if proto_deps:
+        descriptor_set_name = name + "_proto_descriptor_set"
+        descriptor_set_path = ":" + descriptor_set_name
+
         proto_descriptor_set(
-            name = name + "_proto_descriptor_set",
+            name = descriptor_set_name,
             deps = proto_deps,
         )
-        descriptor_set_path = ":" + name + "_proto_descriptor_set"
-        data.append(descriptor_set_path)
+        java_proto_library(
+            name = descriptor_set_name + "_java_proto",
+            deps = proto_deps,
+        )
+
+        resolved_data.append(descriptor_set_path)
+        resolved_deps.append(":" + descriptor_set_name + "_java_proto")
         jvm_flags.append("-Dfile_descriptor_set_path=$(location {})".format(descriptor_set_path))
 
-        java_proto_library(
-            name = name + "_proto_descriptor_set_java_proto",
-            deps = proto_deps,
-        )
-        deps = deps + [":" + name + "_proto_descriptor_set_java_proto"]
+    # Add boolean flags
+    jvm_flags.append("-Dis_raw_expr={}".format(is_raw_expr))
+    jvm_flags.append("-Dis_coverage_enabled={}".format(enable_coverage))
 
-    jvm_flags.append("-Dis_raw_expr=%s" % is_raw_expr)
-    jvm_flags.append("-Dis_coverage_enabled=%s" % enable_coverage)
-
+    # Generate the runner binary
     java_binary(
         name = name + "_test_runner_binary",
         srcs = ["//testing/testrunner:test_runner_binary"],
-        data = data,
+        data = resolved_data,
         jvm_flags = jvm_flags,
         testonly = True,
         main_class = "dev.cel.testing.testrunner.TestRunnerBinary",
-        runtime_deps = [
-            test_src,
-        ],
+        runtime_deps = [test_src],
         deps = [
             "//testing/testrunner:test_executor",
             "@maven//:com_google_guava_guava",
             "@bazel_tools//tools/java/runfiles:runfiles",
-        ] + deps,
+        ] + resolved_deps,
     )
 
+    # Generate the execution shell test
     sh_test(
         name = name,
         tags = ["nomsan"],
         srcs = ["//testing/testrunner:run_testrunner_binary.sh"],
-        data = [
-            ":%s_test_runner_binary" % name,
-        ],
-        args = [
-            name,
-        ],
+        data = [":{}_test_runner_binary".format(name)],
+        args = [name],
     )
-
-def _update_data_with_test_files(data, filegroup, test_data_path, config, test_suite, cel_expr, is_raw_expr):
-    """Updates the data with the test files."""
-
-    _, cel_expr_format = paths.split_extension(cel_expr)
-    if filegroup != "":
-        data = data + [filegroup]
-    elif test_data_path != "" and test_data_path != native.package_name():
-        if config != "":
-            data = data + [test_data_path + ":" + config]
-        if test_suite != "":
-            data = data + [test_data_path + ":" + test_suite]
-        if is_valid_cel_file_format(file_extension = cel_expr_format):
-            data = data + [test_data_path + ":" + cel_expr]
-    else:
-        test_data_path = native.package_name()
-        if config != "":
-            data = data + [config]
-        if test_suite != "":
-            data = data + [test_suite]
-        if is_valid_cel_file_format(file_extension = cel_expr_format):
-            data = data + [cel_expr]
-
-    if not is_valid_cel_file_format(file_extension = cel_expr_format) and not is_raw_expr:
-        data = data + [cel_expr]
-    return data, test_data_path
-
-def is_valid_cel_file_format(file_extension):
-    """Checks if the file extension is a valid CEL file format.
-
-    Args:
-        file_extension: The file extension to check.
-
-    Returns:
-        True if the file extension is a valid CEL file format, False otherwise.
-    """
-    return file_extension in [
-        ".cel",
-        ".celpolicy",
-        ".yaml",
-    ]

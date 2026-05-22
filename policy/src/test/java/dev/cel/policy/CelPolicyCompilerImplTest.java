@@ -17,10 +17,12 @@ package dev.cel.policy;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.policy.PolicyTestHelper.readFromYaml;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameterValue;
@@ -50,6 +52,7 @@ import dev.cel.testing.CelRuntimeFlavor;
 import dev.cel.testing.testdata.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
@@ -112,9 +115,12 @@ public final class CelPolicyCompilerImplTest {
   public void compileYamlPolicy_containsCompilationError_throws(
       @TestParameter TestErrorYamlPolicy testCase) throws Exception {
     // Read config and produce an environment to compile policies
-    String configSource = testCase.readConfigYamlContent();
-    CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
-    Cel cel = celEnvironment.extend(newCel(), CEL_OPTIONS);
+    Optional<String> configSource = testCase.readConfigYamlContent();
+    Cel baseCel = newCel();
+    Cel cel =
+        configSource.isPresent()
+            ? ENVIRONMENT_PARSER.parse(configSource.get()).extend(baseCel, CEL_OPTIONS)
+            : baseCel;
     // Read the policy source
     String policySource = testCase.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource, testCase.getPolicyFilePath());
@@ -509,10 +515,14 @@ public final class CelPolicyCompilerImplTest {
   }
 
   private enum TestErrorYamlPolicy {
-    COMPILE_ERRORS("compile_errors"),
-    COMPOSE_ERRORS_CONFLICTING_OUTPUT("compose_errors_conflicting_output"),
-    COMPOSE_ERRORS_CONFLICTING_SUBRULE("compose_errors_conflicting_subrule"),
-    ERRORS_UNREACHABLE("errors_unreachable");
+    COMPOSE_ERRORS_CONFLICTING_OUTPUT("compose_conflicting_output"),
+    COMPOSE_ERRORS_CONFLICTING_SUBRULE("compose_conflicting_subrule"),
+    ERRORS_UNREACHABLE("unreachable"),
+    DUPLICATE_VARIABLE("duplicate_variable"),
+    IMPORT("import"),
+    INCOMPATIBLE_OUTPUTS("incompatible_outputs"),
+    SYNTAX("syntax"),
+    UNDECLARED_REFERENCE("undeclared_reference");
 
     private final String name;
     private final String policyFilePath;
@@ -522,15 +532,26 @@ public final class CelPolicyCompilerImplTest {
     }
 
     private String readPolicyYamlContent() throws IOException {
-      return readFromYaml(String.format("policy/%s/policy.yaml", name));
+      return readFromYaml(
+          String.format(
+              "cel_policy/conformance/testdata/compile_errors/%s/policy.yaml",
+              name));
     }
 
-    private String readConfigYamlContent() throws IOException {
-      return readFromYaml(String.format("policy/%s/config.yaml", name));
+    private Optional<String> readConfigYamlContent() throws IOException {
+      String rlocationPath =
+          String.format(
+              "cel_policy/conformance/testdata/compile_errors/%s/config.yaml",
+              name);
+      if (PolicyTestHelper.hasRunfile(rlocationPath)) {
+        return Optional.of(readFromYaml(rlocationPath));
+      }
+      return Optional.empty();
     }
 
     private String readExpectedErrorsBaseline() throws IOException {
-      return readFromYaml(String.format("policy/%s/expected_errors.baseline", name));
+      URL url = Resources.getResource(String.format("policy/%s/expected_errors.baseline", name));
+      return Resources.toString(url, UTF_8).trim();
     }
 
     TestErrorYamlPolicy(String name) {

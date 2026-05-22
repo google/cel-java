@@ -1,0 +1,3 @@
+ERROR: duplicate_variable/policy.yaml:23:19: overlapping declaration name 'variables.want' (type 'int' cannot be distinguished from 'string')
+ |     - condition: "true"
+ | ..................^

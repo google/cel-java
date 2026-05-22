@@ -18,9 +18,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
-import com.google.common.io.Resources;
+import com.google.common.io.Files;
+import com.google.devtools.build.runfiles.AutoBazelRepository;
+import com.google.devtools.build.runfiles.Runfiles;
+import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -28,7 +30,10 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 /** Package-private class to assist with policy testing. */
+@AutoBazelRepository
 final class PolicyTestHelper {
+
+  private static final Runfiles runfiles = createRunfiles();
 
   enum TestYamlPolicy {
     NESTED_RULE(
@@ -74,11 +79,11 @@ final class PolicyTestHelper {
         "required_labels",
         true,
         "cel.@block([spec.labels.filter(@it:0:0, !(@it:0:0 in resource.labels)), spec.labels,"
-            + " resource.labels, @index2.filter(@it:0:0, @it:0:0 in @index1 && @index1[@it:0:0] !="
-            + " @index2[@it:0:0])], (@index0.size() > 0) ? optional.of(\"missing one or more"
-            + " required labels: [\"\" + @index0.join(\",\") + \"\"]\") : ((@index3.size() > 0) ?"
-            + " optional.of(\"invalid values provided on one or more labels: [\"\" +"
-            + " @index3.join(\",\") + \"\"]\") : optional.none()))"),
+            + " resource.labels.transformList(@it:0:1, @it2:0:1, @it:0:1 in @index1 && @it2:0:1 !="
+            + " @index1[@it:0:1], @it:0:1)], (@index0.size() > 0) ? optional.of(\"missing one or"
+            + " more required labels: [\"\" + @index0.join(\"\", \"\") + \"\"]\") :"
+            + " ((@index2.size() > 0) ? optional.of(\"invalid values provided on one or more"
+            + " labels: [\"\" + @index2.join(\"\", \"\") + \"\"]\") : optional.none()))"),
     RESTRICTED_DESTINATIONS(
         "restricted_destinations",
         false,
@@ -102,9 +107,10 @@ final class PolicyTestHelper {
         "cel.@block([spec.single_int32], (@index0 > 10) ? optional.of(\"invalid spec, got"
             + " single_int32=\" + string(@index0) + \", wanted <= 10\") : ((spec.standalone_enum =="
             + " cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR ||"
-            + " dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR =="
-            + " dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGOO) ? optional.of(\"invalid"
-            + " spec, neither nested nor imported enums may refer to BAR\") : optional.none()))"),
+            + " cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAZ in"
+            + " spec.repeated_nested_enum || cel.expr.conformance.proto3.GlobalEnum.GAR =="
+            + " cel.expr.conformance.proto3.GlobalEnum.GOO) ? optional.of(\"invalid spec, neither"
+            + " nested nor repeated enums may refer to BAR or BAZ\") : optional.none()))"),
     LIMITS(
         "limits",
         true,
@@ -136,16 +142,23 @@ final class PolicyTestHelper {
     }
 
     String readPolicyYamlContent() throws IOException {
-      return readFromYaml(String.format("policy/%s/policy.yaml", name));
+      return readFromYaml(
+          String.format(
+              "cel_policy/conformance/testdata/%s/policy.yaml", name));
     }
 
     String readConfigYamlContent() throws IOException {
-      return readFromYaml(String.format("policy/%s/config.yaml", name));
+      return readFromYaml(
+          String.format(
+              "cel_policy/conformance/testdata/%s/config.yaml", name));
     }
 
     PolicyTestSuite readTestYamlContent() throws IOException {
       Yaml yaml = new Yaml(new Constructor(PolicyTestSuite.class, new LoaderOptions()));
-      String testContent = readFile(String.format("policy/%s/tests.yaml", name));
+      String testContent =
+          readFile(
+              String.format(
+                  "cel_policy/conformance/testdata/%s/tests.yaml", name));
 
       return yaml.load(testContent);
     }
@@ -163,8 +176,17 @@ final class PolicyTestHelper {
    */
   @VisibleForTesting
   public static final class PolicyTestSuite {
+    private String name;
     private String description;
     private List<PolicyTestSection> section;
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
 
     public void setDescription(String description) {
       this.description = description;
@@ -258,12 +280,32 @@ final class PolicyTestHelper {
     }
   }
 
-  private static URL getResource(String path) {
-    return Resources.getResource(Ascii.toLowerCase(path));
+  private static String readFile(String rlocationPath) throws IOException {
+    String resolvedPath = runfiles.rlocation(Ascii.toLowerCase(rlocationPath));
+    if (resolvedPath == null) {
+      throw new IOException("Unmapped runfile path: " + rlocationPath);
+    }
+    File file = new File(resolvedPath);
+    if (!file.exists()) {
+      throw new IOException(
+          String.format(
+              "Runfile not found on disk at '%s' (unresolved path: '%s')",
+              resolvedPath, rlocationPath));
+    }
+    return Files.asCharSource(file, UTF_8).read();
   }
 
-  private static String readFile(String path) throws IOException {
-    return Resources.toString(getResource(path), UTF_8);
+  static boolean hasRunfile(String rlocationPath) {
+    String resolvedPath = runfiles.rlocation(Ascii.toLowerCase(rlocationPath));
+    return resolvedPath != null && new File(resolvedPath).exists();
+  }
+
+  private static Runfiles createRunfiles() {
+    try {
+      return Runfiles.preload().withSourceRepository(AutoBazelRepository_PolicyTestHelper.NAME);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to initialize Runfiles", e);
+    }
   }
 
   private PolicyTestHelper() {}

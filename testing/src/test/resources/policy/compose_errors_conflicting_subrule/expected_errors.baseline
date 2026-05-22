@@ -1,6 +1,0 @@
-ERROR: compose_errors_conflicting_subrule/policy.yaml:34:18: failed composing the subrule 'banned regions' due to incompatible output types.
- |         output: "true"
- | .................^
-ERROR: compose_errors_conflicting_subrule/policy.yaml:36:14: failed composing the subrule 'banned regions' due to incompatible output types.
- |     output: "{'banned': false}"
- | .............^

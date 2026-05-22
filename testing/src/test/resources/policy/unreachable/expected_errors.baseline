@@ -1,0 +1,6 @@
+ERROR: unreachable/policy.yaml:36:9: Match creates unreachable outputs
+ |       - output: |
+ | ........^
+ERROR: unreachable/policy.yaml:28:7: Rule creates unreachable outputs
+ |       match:
+ | ......^

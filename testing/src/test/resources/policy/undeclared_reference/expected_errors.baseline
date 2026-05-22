@@ -1,0 +1,6 @@
+ERROR: undeclared_reference/policy.yaml:19:19: undeclared reference to 'spec' (in container '')
+ |       expression: spec.labels
+ | ..................^
+ERROR: undeclared_reference/policy.yaml:23:29: undeclared reference to 'format' (in container '')
+ |         "invalid: %s".format([variables.val])
+ | ............................^
