@@ -1,5 +1,12 @@
 # Common Expression Language for Java
 
+> [!WARNING]
+> **On June 16, 2026, this repository will move to
+> github.com/cel-expr/cel-java!**
+>
+> Please update your links and dependencies. See the [pinned
+> issue](https://github.com/google/cel-java/issues/1066) for details.
+
 The Common Expression Language (CEL) is a non-Turing complete language designed
 for simplicity, speed, safety, and portability. CEL's C-like [syntax][1] looks
 nearly identical to equivalent expressions in C++, Go, Java, and TypeScript.
