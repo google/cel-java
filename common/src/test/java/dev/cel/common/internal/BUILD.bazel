@@ -1,9 +1,11 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//:testing.bzl", "junit4_test_suites")
 
-package(default_applicable_licenses = [
-    "//:license",
-])
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+)
 
 java_library(
     name = "tests",

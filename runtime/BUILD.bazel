@@ -47,6 +47,7 @@ java_library(
 
 cel_android_library(
     name = "dispatcher_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:dispatcher_android",
@@ -70,6 +71,7 @@ java_library(
 
 cel_android_library(
     name = "activation_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:activation_android",
@@ -91,6 +93,7 @@ java_library(
 
 cel_android_library(
     name = "function_binding_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime:function_binding_android"],
 )
 
@@ -107,6 +110,7 @@ java_library(
 
 cel_android_library(
     name = "late_function_binding_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime:late_function_binding_android"],
 )
 
@@ -148,6 +152,7 @@ java_library(
 
 cel_android_library(
     name = "interpretable_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:interpretable_android"],
 )
@@ -160,6 +165,7 @@ java_library(
 
 cel_android_library(
     name = "runtime_helpers_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helpers_android"],
 )
@@ -178,6 +184,7 @@ java_library(
 
 cel_android_library(
     name = "runtime_equality_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_equality_android"],
 )
@@ -196,6 +203,7 @@ java_library(
 
 cel_android_library(
     name = "type_resolver_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:type_resolver_android"],
 )
@@ -213,6 +221,7 @@ java_library(
 
 cel_android_library(
     name = "unknown_attributes_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_attributes_android"],
 )
 
@@ -233,6 +242,7 @@ java_library(
 
 cel_android_library(
     name = "standard_functions_android",
+    compatible_with = [],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:standard_functions_android",
     ],
@@ -240,11 +250,13 @@ cel_android_library(
 
 cel_android_library(
     name = "lite_runtime_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_android"],
 )
 
 cel_android_library(
     name = "lite_runtime_factory_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_factory_android"],
 )
 
@@ -264,6 +276,7 @@ java_library(
 
 cel_android_library(
     name = "lite_runtime_impl_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_impl_android"],
 )
@@ -276,6 +289,7 @@ java_library(
 
 cel_android_library(
     name = "resolved_overload_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:resolved_overload_android"],
 )
@@ -288,6 +302,7 @@ java_library(
 
 cel_android_library(
     name = "internal_function_binder_android",
+    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:internal_function_binder_andriod"],
 )
@@ -300,6 +315,7 @@ java_library(
 
 cel_android_library(
     name = "program_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime:program_android"],
 )
 

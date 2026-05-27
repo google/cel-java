@@ -76,6 +76,7 @@ java_library(
 cel_android_library(
     name = "expr_converter_android",
     srcs = EXPR_CONVERTER_SOURCES,
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -142,6 +143,7 @@ java_library(
 cel_android_library(
     name = "ast_android",
     srcs = AST_SOURCES,
+    compatible_with = [],
     tags = [
     ],
     deps = [

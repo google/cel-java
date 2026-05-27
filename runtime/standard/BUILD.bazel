@@ -13,6 +13,7 @@ java_library(
 
 cel_android_library(
     name = "standard_function_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:standard_function_android"],
 )
 
@@ -23,6 +24,7 @@ java_library(
 
 cel_android_library(
     name = "add_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:add_android"],
 )
 
@@ -33,6 +35,7 @@ java_library(
 
 cel_android_library(
     name = "subtract_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:subtract_android"],
 )
 
@@ -43,6 +46,7 @@ java_library(
 
 cel_android_library(
     name = "bool_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:bool_android"],
 )
 
@@ -53,6 +57,7 @@ java_library(
 
 cel_android_library(
     name = "bytes_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:bytes_android"],
 )
 
@@ -63,6 +68,7 @@ java_library(
 
 cel_android_library(
     name = "contains_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:contains_android"],
 )
 
@@ -73,6 +79,7 @@ java_library(
 
 cel_android_library(
     name = "double_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:double_android"],
 )
 
@@ -83,6 +90,7 @@ java_library(
 
 cel_android_library(
     name = "duration_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:duration_android"],
 )
 
@@ -93,6 +101,7 @@ java_library(
 
 cel_android_library(
     name = "dyn_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:dyn_android"],
 )
 
@@ -103,6 +112,7 @@ java_library(
 
 cel_android_library(
     name = "ends_with_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:ends_with_android"],
 )
 
@@ -113,6 +123,7 @@ java_library(
 
 cel_android_library(
     name = "equals_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:equals_android"],
 )
 
@@ -123,6 +134,7 @@ java_library(
 
 cel_android_library(
     name = "get_day_of_year_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_year_android"],
 )
 
@@ -133,6 +145,7 @@ java_library(
 
 cel_android_library(
     name = "get_day_of_month_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_month_android"],
 )
 
@@ -143,6 +156,7 @@ java_library(
 
 cel_android_library(
     name = "get_day_of_week_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_week_android"],
 )
 
@@ -153,6 +167,7 @@ java_library(
 
 cel_android_library(
     name = "get_date_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_date_android"],
 )
 
@@ -163,6 +178,7 @@ java_library(
 
 cel_android_library(
     name = "get_full_year_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_full_year_android"],
 )
 
@@ -173,6 +189,7 @@ java_library(
 
 cel_android_library(
     name = "get_hours_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_hours_android"],
 )
 
@@ -183,6 +200,7 @@ java_library(
 
 cel_android_library(
     name = "get_milliseconds_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_milliseconds_android"],
 )
 
@@ -193,6 +211,7 @@ java_library(
 
 cel_android_library(
     name = "get_minutes_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_minutes_android"],
 )
 
@@ -203,6 +222,7 @@ java_library(
 
 cel_android_library(
     name = "get_month_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_month_android"],
 )
 
@@ -213,6 +233,7 @@ java_library(
 
 cel_android_library(
     name = "get_seconds_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_seconds_android"],
 )
 
@@ -223,6 +244,7 @@ java_library(
 
 cel_android_library(
     name = "greater_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:greater_android"],
 )
 
@@ -233,6 +255,7 @@ java_library(
 
 cel_android_library(
     name = "greater_equals_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:greater_equals_android"],
 )
 
@@ -243,6 +266,7 @@ java_library(
 
 cel_android_library(
     name = "in_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:in_android"],
 )
 
@@ -253,6 +277,7 @@ java_library(
 
 cel_android_library(
     name = "index_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:index_android"],
 )
 
@@ -263,6 +288,7 @@ java_library(
 
 cel_android_library(
     name = "int_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:int_android"],
 )
 
@@ -273,6 +299,7 @@ java_library(
 
 cel_android_library(
     name = "less_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:less_android"],
 )
 
@@ -283,6 +310,7 @@ java_library(
 
 cel_android_library(
     name = "less_equals_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:less_equals_android"],
 )
 
@@ -293,6 +321,7 @@ java_library(
 
 cel_android_library(
     name = "logical_not_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:logical_not_android"],
 )
 
@@ -303,6 +332,7 @@ java_library(
 
 cel_android_library(
     name = "matches_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:matches_android"],
 )
 
@@ -313,6 +343,7 @@ java_library(
 
 cel_android_library(
     name = "modulo_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:modulo_android"],
 )
 
@@ -323,6 +354,7 @@ java_library(
 
 cel_android_library(
     name = "multiply_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:multiply_android"],
 )
 
@@ -333,6 +365,7 @@ java_library(
 
 cel_android_library(
     name = "divide_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:divide_android"],
 )
 
@@ -343,6 +376,7 @@ java_library(
 
 cel_android_library(
     name = "negate_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:negate_android"],
 )
 
@@ -353,6 +387,7 @@ java_library(
 
 cel_android_library(
     name = "not_equals_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:not_equals_android"],
 )
 
@@ -363,6 +398,7 @@ java_library(
 
 cel_android_library(
     name = "size_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:size_android"],
 )
 
@@ -373,6 +409,7 @@ java_library(
 
 cel_android_library(
     name = "starts_with_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:starts_with_android"],
 )
 
@@ -383,6 +420,7 @@ java_library(
 
 cel_android_library(
     name = "string_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:string_android"],
 )
 
@@ -393,6 +431,7 @@ java_library(
 
 cel_android_library(
     name = "timestamp_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:timestamp_android"],
 )
 
@@ -403,6 +442,7 @@ java_library(
 
 cel_android_library(
     name = "uint_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:uint_android"],
 )
 
@@ -413,6 +453,7 @@ java_library(
 
 cel_android_library(
     name = "type_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:type_android"],
 )
 
@@ -423,6 +464,7 @@ java_library(
 
 cel_android_library(
     name = "not_strictly_false_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:not_strictly_false_android"],
 )
 
@@ -433,5 +475,6 @@ java_library(
 
 cel_android_library(
     name = "standard_overload_android",
+    compatible_with = [],
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:standard_overload_android"],
 )

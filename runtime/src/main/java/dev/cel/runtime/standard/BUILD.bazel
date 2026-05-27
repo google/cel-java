@@ -27,6 +27,7 @@ java_library(
 cel_android_library(
     name = "standard_function_android",
     srcs = ["CelStandardFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -64,6 +65,7 @@ java_library(
 cel_android_library(
     name = "add_android",
     srcs = ["AddOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -107,6 +109,7 @@ java_library(
 cel_android_library(
     name = "subtract_android",
     srcs = ["SubtractOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -145,6 +148,7 @@ java_library(
 cel_android_library(
     name = "bool_android",
     srcs = ["BoolFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -179,6 +183,7 @@ java_library(
 cel_android_library(
     name = "bytes_android",
     srcs = ["BytesFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -211,6 +216,7 @@ java_library(
 cel_android_library(
     name = "contains_android",
     srcs = ["ContainsFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -242,6 +248,7 @@ java_library(
 cel_android_library(
     name = "double_android",
     srcs = ["DoubleFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -276,6 +283,7 @@ java_library(
 cel_android_library(
     name = "duration_android",
     srcs = ["DurationFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -309,6 +317,7 @@ java_library(
 cel_android_library(
     name = "dyn_android",
     srcs = ["DynFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -339,6 +348,7 @@ java_library(
 cel_android_library(
     name = "ends_with_android",
     srcs = ["EndsWithFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -370,6 +380,7 @@ java_library(
 cel_android_library(
     name = "equals_android",
     srcs = ["EqualsOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -403,6 +414,7 @@ java_library(
 cel_android_library(
     name = "get_day_of_year_android",
     srcs = ["GetDayOfYearFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -437,6 +449,7 @@ java_library(
 cel_android_library(
     name = "get_day_of_month_android",
     srcs = ["GetDayOfMonthFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -471,6 +484,7 @@ java_library(
 cel_android_library(
     name = "get_day_of_week_android",
     srcs = ["GetDayOfWeekFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -505,6 +519,7 @@ java_library(
 cel_android_library(
     name = "get_date_android",
     srcs = ["GetDateFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -539,6 +554,7 @@ java_library(
 cel_android_library(
     name = "get_full_year_android",
     srcs = ["GetFullYearFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -574,6 +590,7 @@ java_library(
 cel_android_library(
     name = "get_hours_android",
     srcs = ["GetHoursFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -610,6 +627,7 @@ java_library(
 cel_android_library(
     name = "get_milliseconds_android",
     srcs = ["GetMillisecondsFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -646,6 +664,7 @@ java_library(
 cel_android_library(
     name = "get_minutes_android",
     srcs = ["GetMinutesFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -681,6 +700,7 @@ java_library(
 cel_android_library(
     name = "get_month_android",
     srcs = ["GetMonthFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -716,6 +736,7 @@ java_library(
 cel_android_library(
     name = "get_seconds_android",
     srcs = ["GetSecondsFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -755,6 +776,7 @@ java_library(
 cel_android_library(
     name = "greater_android",
     srcs = ["GreaterOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -797,6 +819,7 @@ java_library(
 cel_android_library(
     name = "greater_equals_android",
     srcs = ["GreaterEqualsOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -834,6 +857,7 @@ java_library(
 cel_android_library(
     name = "in_android",
     srcs = ["InOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -867,6 +891,7 @@ java_library(
 cel_android_library(
     name = "index_android",
     srcs = ["IndexOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -904,6 +929,7 @@ java_library(
 cel_android_library(
     name = "int_android",
     srcs = ["IntFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -945,6 +971,7 @@ java_library(
 cel_android_library(
     name = "less_android",
     srcs = ["LessOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -987,6 +1014,7 @@ java_library(
 cel_android_library(
     name = "less_equals_android",
     srcs = ["LessEqualsOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1024,6 +1052,7 @@ java_library(
 cel_android_library(
     name = "logical_not_android",
     srcs = ["LogicalNotOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1057,6 +1086,7 @@ java_library(
 cel_android_library(
     name = "matches_android",
     srcs = ["MatchesFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1092,6 +1122,7 @@ java_library(
 cel_android_library(
     name = "modulo_android",
     srcs = ["ModuloOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1128,6 +1159,7 @@ java_library(
 cel_android_library(
     name = "multiply_android",
     srcs = ["MultiplyOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1164,6 +1196,7 @@ java_library(
 cel_android_library(
     name = "divide_android",
     srcs = ["DivideOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1200,6 +1233,7 @@ java_library(
 cel_android_library(
     name = "negate_android",
     srcs = ["NegateOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1234,6 +1268,7 @@ java_library(
 cel_android_library(
     name = "not_equals_android",
     srcs = ["NotEqualsOperator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1267,6 +1302,7 @@ java_library(
 cel_android_library(
     name = "size_android",
     srcs = ["SizeFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1299,6 +1335,7 @@ java_library(
 cel_android_library(
     name = "starts_with_android",
     srcs = ["StartsWithFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1334,6 +1371,7 @@ java_library(
 cel_android_library(
     name = "string_android",
     srcs = ["StringFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1373,6 +1411,7 @@ java_library(
 cel_android_library(
     name = "timestamp_android",
     srcs = ["TimestampFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1409,6 +1448,7 @@ java_library(
 cel_android_library(
     name = "type_android",
     srcs = ["TypeFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1444,6 +1484,7 @@ java_library(
 cel_android_library(
     name = "uint_android",
     srcs = ["UintFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1479,6 +1520,7 @@ java_library(
 cel_android_library(
     name = "not_strictly_false_android",
     srcs = ["NotStrictlyFalseFunction.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1509,6 +1551,7 @@ java_library(
 cel_android_library(
     name = "standard_overload_android",
     srcs = ["CelStandardOverload.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [

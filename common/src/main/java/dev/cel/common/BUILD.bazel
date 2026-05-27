@@ -133,6 +133,7 @@ java_library(
 cel_android_library(
     name = "proto_ast_android",
     srcs = PROTO_AST_SOURCE,
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -247,6 +248,7 @@ java_library(
 cel_android_library(
     name = "cel_source_android",
     srcs = ["CelSource.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -277,6 +279,7 @@ java_library(
 cel_android_library(
     name = "cel_source_helper_android",
     srcs = ["CelSourceHelper.java"],
+    compatible_with = [],
     deps = [
         ":source_location_android",
         "//common/annotations",
@@ -305,6 +308,7 @@ java_library(
 cel_android_library(
     name = "cel_ast_android",
     srcs = ["CelAbstractSyntaxTree.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -334,6 +338,7 @@ java_library(
 cel_android_library(
     name = "source_android",
     srcs = SOURCE_SOURCES,
+    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         "//common/annotations",
@@ -345,6 +350,7 @@ cel_android_library(
 cel_android_library(
     name = "source_location_android",
     srcs = ["CelSourceLocation.java"],
+    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         "//:auto_value",
@@ -376,6 +382,7 @@ java_library(
 cel_android_library(
     name = "operator_android",
     srcs = ["Operator.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = ["@maven_android//:com_google_guava_guava"],

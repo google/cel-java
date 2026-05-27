@@ -24,6 +24,7 @@ java_library(
 
 cel_android_library(
     name = "lite_extensions_android",
+    compatible_with = [],
     exports = ["//extensions/src/main/java/dev/cel/extensions:lite_extensions_android"],
 )
 

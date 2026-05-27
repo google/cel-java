@@ -66,6 +66,7 @@ java_library(
 cel_android_library(
     name = "lite_extensions_android",
     srcs = ["CelLiteExtensions.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -247,6 +248,7 @@ java_library(
 cel_android_library(
     name = "sets_runtime_impl_android",
     srcs = ["SetsExtensionsRuntimeImpl.java"],
+    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         ":sets_function",

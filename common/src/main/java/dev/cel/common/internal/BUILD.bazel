@@ -67,6 +67,7 @@ java_library(
 cel_android_library(
     name = "internal_android",
     srcs = INTERNAL_SOURCES,
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -98,6 +99,7 @@ java_library(
 cel_android_library(
     name = "comparison_functions_android",
     srcs = ["ComparisonFunctions.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -275,6 +277,7 @@ java_library(
 cel_android_library(
     name = "well_known_proto_android",
     srcs = ["WellKnownProto.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -341,6 +344,7 @@ java_library(
 cel_android_library(
     name = "cel_lite_descriptor_pool_android",
     srcs = ["CelLiteDescriptorPool.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -370,6 +374,7 @@ java_library(
 cel_android_library(
     name = "default_lite_descriptor_pool_android",
     srcs = ["DefaultLiteDescriptorPool.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -422,6 +427,7 @@ java_library(
 cel_android_library(
     name = "proto_time_utils_android",
     srcs = ["ProtoTimeUtils.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -449,6 +455,7 @@ java_library(
 cel_android_library(
     name = "date_time_helpers_android",
     srcs = ["DateTimeHelpers.java"],
+    compatible_with = [],
     tags = [
     ],
     deps = [
