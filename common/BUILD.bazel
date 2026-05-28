@@ -29,7 +29,6 @@ java_library(
 
 cel_android_library(
     name = "proto_ast_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common:proto_ast_android"],
 )
 
@@ -77,7 +76,6 @@ java_library(
 
 cel_android_library(
     name = "cel_source_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common:cel_source_android"],
 )
 
@@ -94,7 +92,6 @@ java_library(
 
 cel_android_library(
     name = "cel_ast_android",
-    compatible_with = [],
     exports = [
         "//common/src/main/java/dev/cel/common:cel_ast_android",
     ],
@@ -128,6 +125,5 @@ java_library(
 
 cel_android_library(
     name = "operator_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common:operator_android"],
 )

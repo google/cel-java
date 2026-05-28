@@ -33,11 +33,13 @@ def cel_android_library(name, **kwargs):
 
     # By default, set visibility to android_allow_list, unless if overridden at the call site.
     provided_visibility_or_default = kwargs.get("visibility", ["//:android_allow_list"])
-    filtered_kwargs = {k: v for k, v in kwargs.items() if k != "visibility"}
+    provided_compatible_with_or_default = kwargs.get("compatible_with", [])
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k not in ["visibility", "compatible_with"]}
 
     android_library(
         name = name,
         visibility = provided_visibility_or_default,
+        compatible_with = provided_compatible_with_or_default,
         javacopts = all_javacopts,
         **filtered_kwargs
     )

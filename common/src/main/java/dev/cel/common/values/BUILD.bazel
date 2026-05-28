@@ -43,7 +43,6 @@ java_library(
 cel_android_library(
     name = "cel_value_android",
     srcs = ["CelValue.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -67,7 +66,6 @@ java_library(
 cel_android_library(
     name = "cel_value_provider_android",
     srcs = ["CelValueProvider.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -97,7 +95,6 @@ cel_android_library(
     srcs = [
         "CombinedCelValueProvider.java",
     ],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -129,7 +126,6 @@ cel_android_library(
     srcs = [
         "CombinedCelValueConverter.java",
     ],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -155,7 +151,6 @@ cel_android_library(
     srcs = [
         "CelPreAdaptedList.java",
     ],
-    compatible_with = [],
     tags = [
     ],
     deps = ["//common/annotations"],
@@ -199,7 +194,6 @@ java_library(
 cel_android_library(
     name = "mutable_map_value_android",
     srcs = ["MutableMapValue.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -216,7 +210,6 @@ cel_android_library(
 cel_android_library(
     name = "values_android",
     srcs = CEL_VALUES_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -264,7 +257,6 @@ java_library(
 cel_android_library(
     name = "base_proto_cel_value_converter_android",
     srcs = ["BaseProtoCelValueConverter.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -351,7 +343,6 @@ cel_android_library(
         "ProtoLiteCelValueConverter.java",
         "ProtoMessageLiteValue.java",
     ],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -394,7 +385,6 @@ java_library(
 cel_android_library(
     name = "proto_message_lite_value_provider_android",
     srcs = ["ProtoMessageLiteValueProvider.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -427,7 +417,6 @@ java_library(
 cel_android_library(
     name = "base_proto_message_value_provider_android",
     srcs = ["BaseProtoMessageValueProvider.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [

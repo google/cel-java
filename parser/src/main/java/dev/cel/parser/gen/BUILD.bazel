@@ -7,9 +7,7 @@ that causes build failures on filesystems with case-insensitive paths (e.g. macO
 load("@rules_java//java:defs.bzl", "java_library")
 load("//:antlr.bzl", "antlr4_java_combined")
 
-package(
-    default_applicable_licenses = ["//:license"],
-)
+package(default_applicable_licenses = ["//:license"])
 
 antlr4_java_combined(
     name = "cel_g4",

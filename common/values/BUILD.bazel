@@ -14,7 +14,6 @@ java_library(
 
 cel_android_library(
     name = "cel_value_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:cel_value_android"],
 )
 
@@ -25,7 +24,6 @@ java_library(
 
 cel_android_library(
     name = "cel_value_provider_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:cel_value_provider_android"],
 )
 
@@ -36,7 +34,6 @@ java_library(
 
 cel_android_library(
     name = "combined_cel_value_provider_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:combined_cel_value_provider_android"],
 )
 
@@ -48,7 +45,6 @@ java_library(
 
 cel_android_library(
     name = "combined_cel_value_converter_android",
-    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common/values:combined_cel_value_converter_android"],
 )
@@ -60,7 +56,6 @@ java_library(
 
 cel_android_library(
     name = "values_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:values_android"],
 )
 
@@ -72,7 +67,6 @@ java_library(
 
 cel_android_library(
     name = "mutable_map_value_android",
-    compatible_with = [],
     visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common/values:mutable_map_value_android"],
 )
@@ -84,7 +78,6 @@ java_library(
 
 cel_android_library(
     name = "base_proto_cel_value_converter_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:base_proto_cel_value_converter_android"],
 )
 
@@ -111,7 +104,6 @@ java_library(
 
 cel_android_library(
     name = "proto_message_lite_value_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value_android"],
 )
 
@@ -122,7 +114,6 @@ java_library(
 
 cel_android_library(
     name = "proto_message_lite_value_provider_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value_provider_android"],
 )
 
@@ -133,6 +124,5 @@ java_library(
 
 cel_android_library(
     name = "base_proto_message_value_provider_android",
-    compatible_with = [],
     exports = ["//common/src/main/java/dev/cel/common/values:base_proto_message_value_provider_android"],
 )

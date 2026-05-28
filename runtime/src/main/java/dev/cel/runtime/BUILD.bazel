@@ -82,7 +82,6 @@ java_library(
 cel_android_library(
     name = "runtime_type_provider_android",
     srcs = ["RuntimeTypeProvider.java"],
-    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         ":base_android",
@@ -140,7 +139,6 @@ java_library(
 cel_android_library(
     name = "dispatcher_android",
     srcs = DISPATCHER_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -177,7 +175,6 @@ java_library(
 cel_android_library(
     name = "activation_android",
     srcs = ["Activation.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -225,7 +222,6 @@ java_library(
 cel_android_library(
     name = "type_resolver_android",
     srcs = ["TypeResolver.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -276,7 +272,6 @@ java_library(
 cel_android_library(
     name = "base_android",
     srcs = BASE_SOURCES,
-    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         ":function_overload_android",
@@ -331,7 +326,6 @@ java_library(
 cel_android_library(
     name = "interpreter_android",
     srcs = INTERPRETER_SOURCES,
-    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         ":accumulated_unknowns_android",
@@ -390,7 +384,6 @@ java_library(
 cel_android_library(
     name = "runtime_equality_android",
     srcs = ["RuntimeEquality.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -428,7 +421,6 @@ java_library(
 cel_android_library(
     name = "runtime_helpers_android",
     srcs = ["RuntimeHelpers.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -522,7 +514,6 @@ java_library(
 cel_android_library(
     name = "late_function_binding_android",
     srcs = LATE_FUNCTION_BINDING_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -546,7 +537,6 @@ java_library(
 cel_android_library(
     name = "lite_runtime_library_android",
     srcs = ["CelLiteRuntimeLibrary.java"],
-    compatible_with = [],
     deps = [":lite_runtime_android"],
 )
 
@@ -613,7 +603,6 @@ java_library(
 cel_android_library(
     name = "interpretable_android",
     srcs = INTERPRABLE_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -687,7 +676,6 @@ java_library(
 cel_android_library(
     name = "standard_functions_android",
     srcs = ["CelStandardFunctions.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -763,7 +751,6 @@ java_library(
 cel_android_library(
     name = "function_binding_android",
     srcs = FUNCTION_BINDING_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -792,7 +779,6 @@ java_library(
 cel_android_library(
     name = "function_resolver_android",
     srcs = ["CelFunctionResolver.java"],
-    compatible_with = [],
     deps = [
         ":evaluation_exception",
         ":resolved_overload_android",
@@ -823,7 +809,6 @@ cel_android_library(
         "CelFunctionOverload.java",
         "OptimizedFunctionOverload.java",
     ],
-    compatible_with = [],
     deps = [
         ":evaluation_exception",
         ":unknown_attributes_android",
@@ -1036,7 +1021,6 @@ java_library(
 cel_android_library(
     name = "lite_program_impl_android",
     srcs = LITE_PROGRAM_IMPL_SOURCES,
-    compatible_with = [],
     deps = [
         ":activation_android",
         ":evaluation_exception",
@@ -1053,7 +1037,6 @@ cel_android_library(
 cel_android_library(
     name = "lite_runtime_impl_android",
     srcs = LITE_RUNTIME_IMPL_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1098,7 +1081,6 @@ cel_android_library(
     srcs = [
         "CelLiteRuntimeFactory.java",
     ],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1154,7 +1136,6 @@ java_library(
 cel_android_library(
     name = "unknown_attributes_android",
     srcs = UNKNOWN_ATTRIBUTE_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1188,7 +1169,6 @@ java_library(
 cel_android_library(
     name = "cel_value_runtime_type_provider_android",
     srcs = ["CelValueRuntimeTypeProvider.java"],
-    compatible_with = [],
     deps = [
         ":runtime_type_provider_android",
         ":unknown_attributes_android",
@@ -1225,7 +1205,6 @@ java_library(
 cel_android_library(
     name = "interpreter_util_android",
     srcs = ["InterpreterUtil.java"],
-    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         ":accumulated_unknowns_android",
@@ -1253,7 +1232,6 @@ java_library(
 cel_android_library(
     name = "evaluation_listener_android",
     srcs = ["CelEvaluationListener.java"],
-    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         "//common/ast:ast_android",
@@ -1265,7 +1243,6 @@ cel_android_library(
 cel_android_library(
     name = "lite_runtime_android",
     srcs = LITE_RUNTIME_SOURCES,
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1309,7 +1286,6 @@ java_library(
 cel_android_library(
     name = "accumulated_unknowns_android",
     srcs = ["AccumulatedUnknowns.java"],
-    compatible_with = [],
     visibility = ["//visibility:private"],
     deps = [
         ":unknown_attributes_android",
@@ -1339,7 +1315,6 @@ java_library(
 cel_android_library(
     name = "resolved_overload_android",
     srcs = ["CelResolvedOverload.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1371,7 +1346,6 @@ java_library(
 cel_android_library(
     name = "partial_vars_android",
     srcs = ["PartialVars.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1400,7 +1374,6 @@ java_library(
 cel_android_library(
     name = "program_android",
     srcs = ["Program.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
@@ -1428,7 +1401,6 @@ java_library(
 cel_android_library(
     name = "internal_function_binder_andriod",
     srcs = ["InternalFunctionBinder.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [

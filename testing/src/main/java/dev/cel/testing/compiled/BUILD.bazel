@@ -26,7 +26,6 @@ java_library(
 cel_android_library(
     name = "compiled_expr_utils_android",
     srcs = ["CompiledExprUtils.java"],
-    compatible_with = [],
     tags = [
     ],
     deps = [
