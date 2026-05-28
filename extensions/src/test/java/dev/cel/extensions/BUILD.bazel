@@ -20,6 +20,7 @@ java_library(
         "//common/exceptions:attribute_not_found",
         "//common/exceptions:divide_by_zero",
         "//common/exceptions:index_out_of_bounds",
+        "//common/exceptions:invalid_argument",
         "//common/types",
         "//common/types:type_providers",
         "//common/values",
