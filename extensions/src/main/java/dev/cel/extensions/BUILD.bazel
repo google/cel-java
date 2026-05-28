@@ -329,6 +329,7 @@ java_library(
     deps = [
         "//checker:checker_builder",
         "//common/exceptions:attribute_not_found",
+        "//common/exceptions:invalid_argument",
         "//common/internal:reflection_util",
         "//common/types",
         "//common/types:type_providers",
