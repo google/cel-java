@@ -21,7 +21,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 
 def _is_label(s):
-    return s.startswith("//") or s.startswith(":") or s.startswith("@")
+    return s.startswith("//") or s.startswith(":")
 
 def cel_java_test(
         name,
