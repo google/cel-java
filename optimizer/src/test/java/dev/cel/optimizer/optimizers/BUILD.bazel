@@ -11,7 +11,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = ["//optimizer/src/test/resources:baselines"],
     deps = [
-        #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
         "//common:cel_ast",
         "//common:cel_source",
@@ -24,6 +23,7 @@ java_library(
         "//common/types",
         "//extensions",
         "//extensions:optional_library",
+        #         "//java/com/google/testing/testsize:annotations",
         "//optimizer",
         "//optimizer:optimization_exception",
         "//optimizer:optimizer_builder",
