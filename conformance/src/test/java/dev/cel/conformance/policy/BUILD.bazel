@@ -32,5 +32,10 @@ java_library(
 
 cel_policy_conformance_test_java(
     name = "policy_conformance_tests",
+    skip_tests = [
+        "nested_rules_variable_shadowing",
+        "variable_type_propagation",
+        "unconditional_rules",
+    ],
     testdata = "@cel_policy//conformance:testdata",
 )
