@@ -112,6 +112,32 @@ public final class CelPolicyCompilerImplTest {
   }
 
   @Test
+  public void compileYamlPolicy_nestedRuleOptionalFallbackDivergence() throws Exception {
+    Cel cel = newCel().toCelBuilder().addVar("input_val", SimpleType.INT).build();
+    String policySource =
+        "name: grandparent_policy\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "    - condition: 'input_val == 2'\n" // conditional grandparent match
+            + "      rule:\n"
+            + "        id: parent_rule\n"
+            + "        match:\n"
+            + "          - condition: 'input_val == 1'\n" // conditional parent match
+            + "            rule:\n"
+            + "              id: nested_rule\n"
+            + "              match:\n"
+            + "                - condition: 'input_val == 3'\n"
+            + "                  output: 'true'\n"
+            + "          - output: 'true'\n" // fallback (optional)
+            + "    - output: 'true'\n";
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+    CelAbstractSyntaxTree ast =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+
+    assertThat(ast.getResultType()).isEqualTo(OptionalType.create(SimpleType.BOOL));
+  }
+
+  @Test
   public void compileYamlPolicy_containsCompilationError_throws(
       @TestParameter TestErrorYamlPolicy testCase) throws Exception {
     // Read config and produce an environment to compile policies

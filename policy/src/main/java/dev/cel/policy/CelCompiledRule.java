@@ -52,14 +52,17 @@ public abstract class CelCompiledRule {
     for (CelCompiledMatch match : matches()) {
       if (match.result().kind().equals(CelCompiledMatch.Result.Kind.RULE)
           && match.result().rule().hasOptionalOutput()) {
-        return true;
-      }
-
-      if (match.isConditionTriviallyTrue()) {
+        // If the nested rule is unconditional, the matching may fallthrough to the next match
+        // in this context (unwrapping the optional value from the nested rule).
+        if (!match.isConditionTriviallyTrue()) {
+          return true;
+        }
+        isOptionalOutput = true;
+      } else if (match.isConditionTriviallyTrue()) {
         return false;
+      } else {
+        isOptionalOutput = true;
       }
-
-      isOptionalOutput = true;
     }
 
     return isOptionalOutput;

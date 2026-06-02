@@ -249,14 +249,21 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   }
 
   private void checkUnreachableCode(CelCompiledRule compiledRule, CompilerContext compilerContext) {
-    boolean ruleHasOptional = compiledRule.hasOptionalOutput();
     ImmutableList<CelCompiledMatch> compiledMatches = compiledRule.matches();
     int matchCount = compiledMatches.size();
     for (int i = matchCount - 1; i >= 0; i--) {
       CelCompiledMatch compiledMatch = compiledMatches.get(i);
       boolean isTriviallyTrue = compiledMatch.isConditionTriviallyTrue();
 
-      if (isTriviallyTrue && !ruleHasOptional && i != matchCount - 1) {
+      // If the match is a single output or a nested rule that always returns a value, it is
+      // exhaustive. If the condition is trivially true, then all subsequent branches are
+      // unreachable.
+      boolean isExhaustive =
+          isTriviallyTrue
+              && (compiledMatch.result().kind().equals(Kind.OUTPUT)
+                  || !compiledMatch.result().rule().hasOptionalOutput());
+
+      if (isExhaustive && i != matchCount - 1) {
         if (compiledMatch.result().kind().equals(Kind.OUTPUT)) {
           compilerContext.addIssue(
               compiledMatch.sourceId(),
