@@ -27,7 +27,6 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
 import com.google.protobuf.ExtensionRegistryLite;
-import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -103,17 +102,6 @@ public class ProtoLiteCelValueConverterTest {
     Object adaptedValue = PROTO_LITE_CEL_VALUE_CONVERTER.toRuntimeValue(testCase.msg);
 
     assertThat(adaptedValue).isEqualTo(testCase.value);
-  }
-
-  @Test
-  public void fromProtoMessageToCelValue_fieldMask_returnsProtoMessageLiteValue() {
-    FieldMask fieldMask = FieldMask.newBuilder().addPaths("foo").addPaths("bar").build();
-
-    Object adaptedValue = PROTO_LITE_CEL_VALUE_CONVERTER.toRuntimeValue(fieldMask);
-
-    assertThat(adaptedValue).isInstanceOf(ProtoMessageLiteValue.class);
-    assertThat(((ProtoMessageLiteValue) adaptedValue).select("paths"))
-        .isEqualTo(ImmutableList.of("foo", "bar"));
   }
 
   /** Test cases for repeated_int64: 1L,2L,3L */
