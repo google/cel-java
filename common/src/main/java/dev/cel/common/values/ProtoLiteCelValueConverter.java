@@ -28,6 +28,7 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.MessageLiteOrBuilder;
 import com.google.protobuf.WireFormat;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
@@ -178,10 +179,25 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
         return ProtoMessageLiteValue.create(msg, descriptor.getProtoTypeName(), this);
       }
 
-      return super.fromWellKnownProto(msg, wellKnownProto);
+      return fromWellKnownProto(msg, wellKnownProto);
     }
 
     return super.toRuntimeValue(value);
+  }
+
+  @Override
+  protected Object fromWellKnownProto(MessageLiteOrBuilder msg, WellKnownProto wellKnownProto) {
+    if (wellKnownProto == WellKnownProto.FIELD_MASK) {
+      MessageLite message = (MessageLite) msg;
+      MessageLiteDescriptor descriptor =
+          descriptorPool
+              .findDescriptor(message)
+              .orElseThrow(
+                  () -> new NoSuchElementException("Could not find a descriptor for: " + message));
+      return ProtoMessageLiteValue.create(message, descriptor.getProtoTypeName(), this);
+    }
+
+    return super.fromWellKnownProto(msg, wellKnownProto);
   }
 
   private Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
