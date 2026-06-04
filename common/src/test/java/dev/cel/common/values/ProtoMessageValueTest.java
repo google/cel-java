@@ -321,6 +321,29 @@ public final class ProtoMessageValueTest {
         .isEqualTo(ImmutableList.of("foo", "bar"));
   }
 
+  @Test
+  public void selectField_fixed32_returnsUnsignedLong() {
+    TestAllTypes testAllTypes = TestAllTypes.newBuilder().setSingleFixed32(1).build();
+
+    ProtoMessageValue protoMessageValue =
+        ProtoMessageValue.create(
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
+
+    assertThat(protoMessageValue.select("single_fixed32")).isEqualTo(UnsignedLong.valueOf(1L));
+  }
+
+  @Test
+  public void selectField_fixed64_returnsUnsignedLong() {
+    TestAllTypes testAllTypes =
+        TestAllTypes.newBuilder().setSingleFixed64(UnsignedLong.MAX_VALUE.longValue()).build();
+
+    ProtoMessageValue protoMessageValue =
+        ProtoMessageValue.create(
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
+
+    assertThat(protoMessageValue.select("single_fixed64")).isEqualTo(UnsignedLong.MAX_VALUE);
+  }
+
   @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum SelectFieldJsonValueTestCase {
     NULL(Value.newBuilder().build(), NullValue.NULL_VALUE),
