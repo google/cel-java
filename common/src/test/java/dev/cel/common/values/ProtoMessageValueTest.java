@@ -23,6 +23,7 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -301,6 +302,23 @@ public final class ProtoMessageValueTest {
 
     assertThat(protoMessageValue.select("single_duration"))
         .isEqualTo(Duration.ofSeconds(seconds, nanos));
+  }
+
+  @Test
+  public void selectField_fieldMask_returnsProtoMessageValue() {
+    TestAllTypes testAllTypes =
+        TestAllTypes.newBuilder()
+            .setFieldMask(FieldMask.newBuilder().addPaths("foo").addPaths("bar"))
+            .build();
+
+    ProtoMessageValue protoMessageValue =
+        ProtoMessageValue.create(
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
+
+    Object selected = protoMessageValue.select("field_mask");
+    assertThat(selected).isInstanceOf(ProtoMessageValue.class);
+    assertThat(((ProtoMessageValue) selected).select("paths"))
+        .isEqualTo(ImmutableList.of("foo", "bar"));
   }
 
   @Test

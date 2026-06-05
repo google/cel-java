@@ -71,6 +71,9 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
               "Unpacking failed for message: " + message.getDescriptorForType().getFullName(), e);
         }
         return toRuntimeValue(unpackedMessage);
+      case FIELD_MASK:
+        return ProtoMessageValue.create(
+            (Message) message, celDescriptorPool, this, celOptions.enableJsonFieldNames());
       default:
         return super.fromWellKnownProto(message, wellKnownProto);
     }
