@@ -82,6 +82,10 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
   private static final ImmutableSet<String> OBJECT_METHOD_NAMES =
       stream(Object.class.getDeclaredMethods()).map(Method::getName).collect(toImmutableSet());
 
+  // Set of all standard java.lang.Enum method names.
+  private static final ImmutableSet<String> ENUM_METHOD_NAMES =
+      stream(Enum.class.getDeclaredMethods()).map(Method::getName).collect(toImmutableSet());
+
   private static final ImmutableMap<Class<?>, CelType> JAVA_TO_CEL_TYPE_MAP =
       ImmutableMap.<Class<?>, CelType>builder()
           .put(boolean.class, SimpleType.BOOL)
@@ -604,6 +608,10 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
       }
       String name = method.getName();
       if (OBJECT_METHOD_NAMES.contains(name)) {
+        return false;
+      }
+      if (Enum.class.isAssignableFrom(method.getDeclaringClass())
+          && ENUM_METHOD_NAMES.contains(name)) {
         return false;
       }
       if (name.startsWith("get")) {

@@ -89,7 +89,8 @@ public final class CelNativeTypesExtensionsTest {
           TestNestedSimplePojo.class,
           TestGetterFieldTypeMismatchPojo.class,
           TestAbstractPojo.class,
-          TestURLPojo.class);
+          TestURLPojo.class,
+          PojoWithEnum.class);
 
   private static final Cel CEL =
       CelFactory.plannerCelBuilder()
@@ -564,16 +565,24 @@ public final class CelNativeTypesExtensionsTest {
             .setContainer(CelContainer.ofName("dev.cel.extensions.CelNativeTypesExtensionsTest"))
             .addLibraries(extensions)
             .build();
-    CelAbstractSyntaxTree ast =
+    CelAbstractSyntaxTree valueAst =
         celCompiler
             .compile(
                 "dev.cel.extensions.CelNativeTypesExtensionsTest.TestPrefixLessGetterPojo{}.value")
             .getAst();
-    CelRuntime.Program program = celRuntime.createProgram(ast);
+    CelAbstractSyntaxTree nameAst =
+        celCompiler
+            .compile(
+                "dev.cel.extensions.CelNativeTypesExtensionsTest.TestPrefixLessGetterPojo{}.name")
+            .getAst();
+    CelRuntime.Program valueProgram = celRuntime.createProgram(valueAst);
+    CelRuntime.Program nameProgram = celRuntime.createProgram(nameAst);
 
-    Object result = program.eval();
+    Object valueResult = valueProgram.eval();
+    Object nameResult = nameProgram.eval();
 
-    assertThat(result).isEqualTo("hello");
+    assertThat(valueResult).isEqualTo("hello");
+    assertThat(nameResult).isEqualTo("my_name");
   }
 
   @Test
@@ -1201,9 +1210,14 @@ public final class CelNativeTypesExtensionsTest {
 
   public static class TestPrefixLessGetterPojo {
     private String value = "hello";
+    private String name = "my_name";
 
     public String value() {
       return value;
+    }
+
+    public String name() {
+      return name;
     }
   }
 
@@ -1346,4 +1360,27 @@ public final class CelNativeTypesExtensionsTest {
       return "mismatch";
     }
   }
+
+  public enum TestEnum {
+    FOO,
+    BAR;
+  }
+
+  public static class PojoWithEnum {
+    private TestEnum enumVal = TestEnum.FOO;
+
+    public TestEnum getEnumVal() {
+      return enumVal;
+    }
+
+    public void setEnumVal(TestEnum val) {
+      this.enumVal = val;
+    }
+  }
+
+  @Test
+  public void nativeTypes_enumSafelyIgnored() throws Exception {
+    assertThat(eval("PojoWithEnum{}.enumVal")).isNotNull();
+  }
+
 }

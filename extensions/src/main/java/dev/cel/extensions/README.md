@@ -1122,6 +1122,7 @@ The type-mapping between Java and CEL is as follows:
 
 *   This is only supported for the planner runtime (e.g., `CelRuntimeFactory.plannerRuntimeBuilder()`).
 *   Native Java arrays (except `byte[]`) are not supported. Use `java.util.List` instead.
+*   Java `enum` properties are not currently supported and will be safely ignored during scanning.
 *   If there is a name collision with a Protobuf type, the protobuf type will take precedence.
 *   Instantiating new struct values (e.g., `Account{id: 1234}`) requires the class to have a no-argument constructor (public, protected, package-private, or private).
 *   Final fields are supported only in a **read-only** capacity; they cannot be populated when instantiating new struct values.
