@@ -30,6 +30,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.exceptions.CelAttributeNotFoundException;
+import dev.cel.common.exceptions.CelInvalidArgumentException;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -90,7 +91,8 @@ public final class CelNativeTypesExtensionsTest {
           TestGetterFieldTypeMismatchPojo.class,
           TestAbstractPojo.class,
           TestURLPojo.class,
-          PojoWithEnum.class);
+          PojoWithEnum.class,
+          TestArrayPojo.class);
 
   private static final Cel CEL =
       CelFactory.plannerCelBuilder()
@@ -323,10 +325,10 @@ public final class CelNativeTypesExtensionsTest {
 
   @Test
   public void nativeTypes_createStruct_privateConstructor() throws Exception {
-    Object result = eval("TestPrivateConstructorPojo{value:" + " 'hello'}");
+    TestPrivateConstructorPojo result =
+        (TestPrivateConstructorPojo) eval("TestPrivateConstructorPojo{value:" + " 'hello'}");
 
-    assertThat(result).isInstanceOf(TestPrivateConstructorPojo.class);
-    assertThat(((TestPrivateConstructorPojo) result).value).isEqualTo("hello");
+    assertThat(result.value).isEqualTo("hello");
   }
 
   @Test
@@ -375,10 +377,9 @@ public final class CelNativeTypesExtensionsTest {
 
   @Test
   public void nativeTypes_createWithDeepConversion() throws Exception {
-    Object result = eval("TestDeepConversionPojo{ints: [1, 2], floats: {'a': 1.0, 'b': 2.0}}");
-
-    assertThat(result).isInstanceOf(TestDeepConversionPojo.class);
-    TestDeepConversionPojo pojo = (TestDeepConversionPojo) result;
+    TestDeepConversionPojo pojo =
+        (TestDeepConversionPojo)
+            eval("TestDeepConversionPojo{ints: [1, 2], floats: {'a': 1.0, 'b': 2.0}}");
     assertThat(pojo.ints.get(0)).isEqualTo(1);
     assertThat(pojo.floats).containsEntry("a", 1.0f);
   }
@@ -398,11 +399,92 @@ public final class CelNativeTypesExtensionsTest {
   }
 
   @Test
-  public void nativeTypes_arrayType_throwsOnRegistration() throws Exception {
-    IllegalArgumentException e =
+  public void nativeTypes_arrayType_construction() throws Exception {
+    String expr =
+        "TestArrayPojo{"
+            + "  strings: ['a', 'b'],"
+            + "  ints: [1, 2],"
+            + "  nesteds: [TestNestedType{value: 'nested'}],"
+            + "  matrix: [[1, 2], [3, 4]],"
+            + "  nestedMatrix: [[TestNestedType{value: 'm1'}], [TestNestedType{value: 'm2'}]],"
+            + "  byteArrays: [b'foo', b'bar']"
+            + "}";
+
+    TestArrayPojo pojo = (TestArrayPojo) eval(expr);
+
+    assertThat(pojo.strings).isEqualTo(new String[] {"a", "b"});
+    assertThat(pojo.ints).isEqualTo(new int[] {1, 2});
+    assertThat(pojo.nesteds).hasLength(1);
+    assertThat(pojo.nesteds[0].value).isEqualTo("nested");
+    assertThat(pojo.matrix).hasLength(2);
+    assertThat(pojo.matrix[0]).isEqualTo(new int[] {1, 2});
+    assertThat(pojo.matrix[1]).isEqualTo(new int[] {3, 4});
+    assertThat(pojo.nestedMatrix).hasLength(2);
+    assertThat(pojo.nestedMatrix[0][0].value).isEqualTo("m1");
+    assertThat(pojo.nestedMatrix[1][0].value).isEqualTo("m2");
+    assertThat(pojo.byteArrays).hasLength(2);
+    assertThat(pojo.byteArrays[0]).isEqualTo("foo".getBytes(UTF_8));
+    assertThat(pojo.byteArrays[1]).isEqualTo("bar".getBytes(UTF_8));
+  }
+
+  @Test
+  public void nativeTypes_arrayType_selection() throws Exception {
+    CelNativeTypesExtensions extensions = CelExtensions.nativeTypes(TestArrayPojo.class);
+    Cel cel =
+        CelFactory.plannerCelBuilder()
+            .setContainer(CelContainer.ofName("dev.cel.extensions.CelNativeTypesExtensionsTest"))
+            .addCompilerLibraries(extensions)
+            .addRuntimeLibraries(extensions)
+            .addVar("pojo", StructTypeReference.create(TestArrayPojo.class.getCanonicalName()))
+            .build();
+    String expr =
+        "pojo.strings[1] == 'b'"
+            + "  && pojo.ints[0] == 1"
+            + "  && pojo.nesteds[0].value == 'nested'"
+            + "  && pojo.matrix[1][0] == 3"
+            + "  && pojo.nestedMatrix[1][0].value == 'm2'"
+            + "  && pojo.byteArrays[1] == b'bar'";
+    CelAbstractSyntaxTree ast = cel.compile(expr).getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    TestArrayPojo input = new TestArrayPojo();
+    input.strings = new String[] {"a", "b"};
+    input.ints = new int[] {1, 2};
+    TestNestedType nested = new TestNestedType();
+    nested.value = "nested";
+    input.nesteds = new TestNestedType[] {nested};
+    input.matrix = new int[][] {{1, 2}, {3, 4}};
+    TestNestedType m1 = new TestNestedType();
+    m1.value = "m1";
+    TestNestedType m2 = new TestNestedType();
+    m2.value = "m2";
+    input.nestedMatrix = new TestNestedType[][] {{m1}, {m2}};
+    input.byteArrays = new byte[][] {"foo".getBytes(UTF_8), "bar".getBytes(UTF_8)};
+
+    assertThat(program.eval(ImmutableMap.of("pojo", input))).isEqualTo(true);
+  }
+
+  @Test
+  public void nativeTypes_arrayWithNullElement_throws() throws Exception {
+    CelNativeTypesExtensions extensions = CelExtensions.nativeTypes(TestArrayPojo.class);
+    Cel cel =
+        CelFactory.plannerCelBuilder()
+            .setContainer(CelContainer.ofName("dev.cel.extensions.CelNativeTypesExtensionsTest"))
+            .addCompilerLibraries(extensions)
+            .addRuntimeLibraries(extensions)
+            .addVar("pojo", StructTypeReference.create(TestArrayPojo.class.getCanonicalName()))
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("pojo.strings").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+
+    TestArrayPojo input = new TestArrayPojo();
+    input.strings = new String[] {"a", null, "c"};
+
+    CelEvaluationException e =
         assertThrows(
-            IllegalArgumentException.class, () -> CelExtensions.nativeTypes(TestArrayPojo.class));
-    assertThat(e).hasMessageThat().contains("Unsupported type for property 'values'");
+            CelEvaluationException.class, () -> program.eval(ImmutableMap.of("pojo", input)));
+    assertThat(e).hasCauseThat().isInstanceOf(CelInvalidArgumentException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().contains("Element at index 1 is null.");
   }
 
   @Test
@@ -662,10 +744,7 @@ public final class CelNativeTypesExtensionsTest {
             .getAst();
     CelRuntime.Program program = celRuntime.createProgram(ast);
 
-    Object result = program.eval();
-
-    assertThat(result).isInstanceOf(TestAllTypesPublicFieldsPojo.class);
-    TestAllTypesPublicFieldsPojo pojo = (TestAllTypesPublicFieldsPojo) result;
+    TestAllTypesPublicFieldsPojo pojo = (TestAllTypesPublicFieldsPojo) program.eval();
     assertThat(pojo.uintVal).isEqualTo(UnsignedLong.fromLongBits(42L));
   }
 
@@ -782,6 +861,8 @@ public final class CelNativeTypesExtensionsTest {
     assertThat(cel.createProgram(cel.compile("pojo.int64Val").getAst()).eval(vars)).isEqualTo(0L);
     assertThat(cel.createProgram(cel.compile("pojo.nestedVal.value").getAst()).eval(vars))
         .isEqualTo("");
+    assertThat(cel.createProgram(cel.compile("size(pojo.arrayVal) == 0").getAst()).eval(vars))
+        .isEqualTo(true);
     CelAbstractSyntaxTree abstractPojoAst = cel.compile("pojo.abstractPojo.value").getAst();
     CelRuntime.Program abstractPojoProgram = cel.createProgram(abstractPojoAst);
     CelEvaluationException e =
@@ -942,6 +1023,7 @@ public final class CelNativeTypesExtensionsTest {
     public double doubleVal;
     public float floatVal;
     public byte[] bytesVal;
+    public String[] arrayVal;
     public Duration durationVal;
     public Instant timestampVal;
     public TestNestedType nestedVal;
@@ -1259,7 +1341,12 @@ public final class CelNativeTypesExtensionsTest {
   }
 
   public static class TestArrayPojo {
-    public String[] values;
+    public String[] strings;
+    public int[] ints;
+    public TestNestedType[] nesteds;
+    public int[][] matrix;
+    public TestNestedType[][] nestedMatrix;
+    public byte[][] byteArrays;
   }
 
   public static class TestOptionalUrlPojo {

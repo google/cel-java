@@ -28,6 +28,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.exceptions.CelAttributeNotFoundException;
+import dev.cel.common.exceptions.CelInvalidArgumentException;
 import dev.cel.common.internal.ReflectionUtil;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
@@ -47,6 +48,7 @@ import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -289,6 +291,15 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
         return celType;
       }
 
+      if (type.isArray()) {
+        TypeToken<?> token = TypeToken.of(genericType);
+        TypeToken<?> componentToken =
+            Preconditions.checkNotNull(
+                token.getComponentType(), "Array component type cannot be null");
+        return ListType.create(
+            mapJavaTypeToCelType(componentToken.getRawType(), componentToken.getType(), classMap));
+      }
+
       if (type.isInterface()
           && !List.class.isAssignableFrom(type)
           && !Map.class.isAssignableFrom(type)) {
@@ -415,6 +426,14 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
         Preconditions.checkNotNull(type, "Type to discover cannot be null.");
         TypeToken<?> token = TypeToken.of(type);
         Class<?> rawType = token.getRawType();
+
+        if (rawType.isArray()) {
+          TypeToken<?> componentToken =
+              Preconditions.checkNotNull(
+                  token.getComponentType(), "Array component type cannot be null");
+          discover(componentToken.getType());
+          return;
+        }
 
         if (List.class.isAssignableFrom(rawType)) {
           discover(ReflectionUtil.resolveGenericParameter(token, List.class, 0));
@@ -775,6 +794,9 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
       if (Map.class.isAssignableFrom(targetType)) {
         return ImmutableMap.of();
       }
+      if (targetType.isArray()) {
+        return Array.newInstance(targetType.getComponentType(), 0);
+      }
 
       try {
         Constructor<?> constructor = targetType.getDeclaredConstructor();
@@ -822,6 +844,10 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
         return new PojoStructValue(value, accessors, registry.classToTypeMap.get(clazz));
       }
 
+      if (clazz.isArray() && clazz != byte[].class) {
+        return convertArrayToList(value);
+      }
+
       return super.toRuntimeValue(value);
     }
 
@@ -844,8 +870,14 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
         return ((CelByteString) value).toByteArray();
       }
 
-      if (List.class.isAssignableFrom(targetType) && value instanceof List) {
-        return convertListToNative((List<?>) value, targetType, genericType);
+      if (value instanceof List) {
+        List<?> listValue = (List<?>) value;
+        if (List.class.isAssignableFrom(targetType)) {
+          return convertListToNative(listValue, targetType, genericType);
+        }
+        if (targetType.isArray()) {
+          return convertListToArray(listValue, targetType, genericType);
+        }
       }
 
       if (Map.class.isAssignableFrom(targetType) && value instanceof Map) {
@@ -857,7 +889,7 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
 
     // Safe reflection collection cast.
     @SuppressWarnings("unchecked")
-    private Object convertListToNative(List<?> list, Class<?> targetType, Type genericType) {
+    private List<?> convertListToNative(List<?> list, Class<?> targetType, Type genericType) {
       TypeToken<?> token = TypeToken.of(genericType);
       Type elementType = ReflectionUtil.resolveGenericParameter(token, List.class, 0);
       Class<?> componentType = ReflectionUtil.getRawType(elementType);
@@ -909,7 +941,7 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
 
     // Safe reflection collection cast.
     @SuppressWarnings("unchecked")
-    private Object convertMapToNative(Map<?, ?> map, Class<?> targetType, Type genericType) {
+    private Map<?, ?> convertMapToNative(Map<?, ?> map, Class<?> targetType, Type genericType) {
       TypeToken<?> token = TypeToken.of(genericType);
       Type keyType = ReflectionUtil.resolveGenericParameter(token, Map.class, 0);
       Type valueType = ReflectionUtil.resolveGenericParameter(token, Map.class, 1);
@@ -968,6 +1000,36 @@ public final class CelNativeTypesExtensions implements CelCompilerLibrary, CelRu
         return map;
       }
       return builder.buildOrThrow();
+    }
+
+    private Object convertListToArray(List<?> list, Class<?> targetType, Type genericType) {
+      Class<?> componentType = targetType.getComponentType();
+      Object array = Array.newInstance(componentType, list.size());
+      TypeToken<?> token = TypeToken.of(genericType);
+      TypeToken<?> componentToken =
+          Preconditions.checkNotNull(
+              token.getComponentType(), "Array component type cannot be null");
+      Type componentGenericType = componentToken.getType();
+
+      for (int i = 0; i < list.size(); i++) {
+        Object element = list.get(i);
+        Object converted = toNative(element, componentType, componentGenericType);
+        Array.set(array, i, converted);
+      }
+      return array;
+    }
+
+    private ImmutableList<Object> convertArrayToList(Object array) {
+      int length = Array.getLength(array);
+      ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(length);
+      for (int i = 0; i < length; i++) {
+        Object element = Array.get(array, i);
+        if (element == null) {
+          throw new CelInvalidArgumentException(String.format("Element at index %d is null.", i));
+        }
+        builder.add(toRuntimeValue(element));
+      }
+      return builder.build();
     }
 
     private Object downcastPrimitives(Object value, Class<?> targetType) {

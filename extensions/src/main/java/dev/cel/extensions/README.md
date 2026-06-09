@@ -1114,14 +1114,14 @@ The type-mapping between Java and CEL is as follows:
 | `String` | `string` |
 | `java.time.Duration` | `duration` |
 | `java.time.Instant` | `timestamp` |
-| `java.util.List` | `list` |
+| `java.util.List`, `T[]` (except `byte[]`) | `list` |
 | `java.util.Map` | `map` |
 | `java.util.Optional` | `optional_type` |
 
 ### Notes
 
 *   This is only supported for the planner runtime (e.g., `CelRuntimeFactory.plannerRuntimeBuilder()`).
-*   Native Java arrays (except `byte[]`) are not supported. Use `java.util.List` instead.
+*   Native Java arrays are supported. `byte[]` maps to `bytes`, while other arrays map to `list`.
 *   Java `enum` properties are not currently supported and will be safely ignored during scanning.
 *   If there is a name collision with a Protobuf type, the protobuf type will take precedence.
 *   Instantiating new struct values (e.g., `Account{id: 1234}`) requires the class to have a no-argument constructor (public, protected, package-private, or private).
