@@ -3,7 +3,10 @@ load("//:cel_android_rules.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//:internal"],
+    default_visibility = [
+        "//:internal",
+        "//third_party/java_src/grpc/xds:__subpackages__",
+    ],
 )
 
 java_library(
