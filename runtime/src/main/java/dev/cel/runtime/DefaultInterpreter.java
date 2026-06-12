@@ -783,8 +783,12 @@ final class DefaultInterpreter implements Interpreter {
       }
 
       IntermediateResult result = evalFieldSelect(frame, expr, operand, field, false);
-      return Optional.of(
-          IntermediateResult.create(result.attribute(), Optional.of(result.value())));
+      // Ensure only one level of optional is wrapped when chaining optional field selections.
+      Object resultValue = result.value();
+      if (!(resultValue instanceof Optional)) {
+        resultValue = Optional.of(resultValue);
+      }
+      return Optional.of(IntermediateResult.create(result.attribute(), resultValue));
     }
 
     private IntermediateResult evalBoolean(ExecutionFrame frame, CelExpr expr, boolean strict)

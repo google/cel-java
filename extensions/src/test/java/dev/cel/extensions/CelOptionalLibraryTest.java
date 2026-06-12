@@ -44,6 +44,7 @@ import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
+import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.parser.CelMacro;
@@ -604,6 +605,16 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
+  public void optionalFieldSelection_onMap_chained_returnsSinglyWrappedOptional() throws Exception {
+    Cel cel = newCelBuilder().setResultType(OptionalType.create(SimpleType.STRING)).build();
+    CelAbstractSyntaxTree ast = compile(cel, "{'foo': {'bar': 'baz'}}.?foo.?bar");
+
+    Optional<String> result = (Optional<String>) cel.createProgram(ast).eval();
+
+    assertThat(result).hasValue("baz");
+  }
+
+  @Test
   public void optionalFieldSelection_onProtoMessage_returnsOptionalEmpty() throws Exception {
     Cel cel =
         newCelBuilder()
@@ -617,6 +628,30 @@ public class CelOptionalLibraryTest {
             cel.createProgram(ast).eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
 
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void optionalFieldSelection_onProtoMessage_chained_returnsSinglyWrappedOptional()
+      throws Exception {
+    Cel cel =
+        newCelBuilder()
+            .setResultType(OptionalType.create(SimpleType.INT))
+            .addVar(
+                "msg", StructTypeReference.create(NestedTestAllTypes.getDescriptor().getFullName()))
+            .build();
+    CelAbstractSyntaxTree ast = compile(cel, "msg.?payload.?single_int32");
+
+    Optional<Long> result =
+        (Optional<Long>)
+            cel.createProgram(ast)
+                .eval(
+                    ImmutableMap.of(
+                        "msg",
+                        NestedTestAllTypes.newBuilder()
+                            .setPayload(TestAllTypes.newBuilder().setSingleInt32(5).build())
+                            .build()));
+
+    assertThat(result).hasValue(5L);
   }
 
   @Test
