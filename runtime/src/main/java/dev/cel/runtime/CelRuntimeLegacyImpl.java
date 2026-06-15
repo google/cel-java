@@ -42,6 +42,7 @@ import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.runtime.standard.IntFunction.IntOverload;
@@ -330,6 +331,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
             customBinding.getDefinition());
       }
 
+      CelValueConverter celValueConverter = CelValueConverter.getDefaultInstance();
       RuntimeTypeProvider runtimeTypeProvider;
 
       if (options.enableCelValue()) {
@@ -340,13 +342,17 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         }
 
         runtimeTypeProvider = CelValueRuntimeTypeProvider.newInstance(messageValueProvider);
+        celValueConverter = messageValueProvider.celValueConverter();
       } else {
         runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
+        if (celValueProvider != null) {
+          celValueConverter = celValueProvider.celValueConverter();
+        }
       }
 
       DefaultInterpreter interpreter =
           new DefaultInterpreter(
-              DescriptorTypeResolver.create(),
+              DescriptorTypeResolver.create(celValueConverter),
               runtimeTypeProvider,
               dispatcherBuilder.build(),
               options);

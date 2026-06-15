@@ -28,6 +28,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelValueConverter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
@@ -36,7 +37,8 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class TypeResolverTest {
-  private static final TypeResolver TYPE_RESOLVER = TypeResolver.create();
+  private static final TypeResolver TYPE_RESOLVER =
+      TypeResolver.create(CelValueConverter.getDefaultInstance());
 
   @Test
   public void resolveWellKnownObjectType_sentinelRuntimeType() {

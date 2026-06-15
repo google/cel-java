@@ -177,7 +177,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
 
       Interpreter interpreter =
           new DefaultInterpreter(
-              TypeResolver.create(),
+              TypeResolver.create(celValueProvider.celValueConverter()),
               CelValueRuntimeTypeProvider.newInstance(celValueProvider),
               dispatcherBuilder.build(),
               celOptions);

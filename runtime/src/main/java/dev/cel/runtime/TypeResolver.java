@@ -36,6 +36,8 @@ import dev.cel.common.types.StructType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.CelValue;
+import dev.cel.common.values.CelValueConverter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,8 +55,10 @@ import java.util.Optional;
 @Internal
 public class TypeResolver {
 
-  static TypeResolver create() {
-    return new TypeResolver();
+  private final CelValueConverter celValueConverter;
+
+  static TypeResolver create(CelValueConverter celValueConverter) {
+    return new TypeResolver(celValueConverter);
   }
 
   // Sentinel runtime value representing the special "type" ident. This ensures following to be
@@ -147,6 +151,13 @@ public class TypeResolver {
       return wellKnownTypeType.get();
     }
 
+    if (celValueConverter != null) {
+      Object celVal = celValueConverter.toRuntimeValue(obj);
+      if (celVal instanceof CelValue) {
+        return TypeType.create(((CelValue) celVal).celType());
+      }
+    }
+
     if (obj instanceof MessageLiteOrBuilder) {
       // TODO: Replace with CelLiteDescriptor
       throw new UnsupportedOperationException("Not implemented yet");
@@ -193,5 +204,7 @@ public class TypeResolver {
     return newTypeOfType;
   }
 
-  protected TypeResolver() {}
+  protected TypeResolver(CelValueConverter celValueConverter) {
+    this.celValueConverter = checkNotNull(celValueConverter);
+  }
 }

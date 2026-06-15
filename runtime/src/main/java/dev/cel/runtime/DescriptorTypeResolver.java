@@ -23,6 +23,7 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelValueConverter;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -42,9 +43,13 @@ public final class DescriptorTypeResolver extends TypeResolver {
   /**
    * Creates a {@code DescriptorTypeResolver}. All protobuf messages are resolved as a type of
    * {@link StructTypeReference}.
+   *
+   * @deprecated This only exists to maintain support for the legacy runtime. Use {@link
+   *     #create(CelTypeProvider, CelValueConverter)} instead.
    */
-  public static DescriptorTypeResolver create() {
-    return new DescriptorTypeResolver();
+  @Deprecated
+  static DescriptorTypeResolver create(CelValueConverter celValueConverter) {
+    return new DescriptorTypeResolver(null, celValueConverter);
   }
 
   /**
@@ -52,8 +57,9 @@ public final class DescriptorTypeResolver extends TypeResolver {
    * in the provided {@link CelTypeProvider}, the message is resolved as a concrete {@code
    * ProtoMessageType} instead of a {@link StructTypeReference}.
    */
-  public static DescriptorTypeResolver create(CelTypeProvider typeProvider) {
-    return new DescriptorTypeResolver(typeProvider);
+  public static DescriptorTypeResolver create(
+      CelTypeProvider typeProvider, CelValueConverter celValueConverter) {
+    return new DescriptorTypeResolver(typeProvider, celValueConverter);
   }
 
   @Override
@@ -81,11 +87,9 @@ public final class DescriptorTypeResolver extends TypeResolver {
     return super.resolveObjectType(obj, typeCheckedType);
   }
 
-  private DescriptorTypeResolver() {
-    this(null);
-  }
-
-  private DescriptorTypeResolver(@Nullable CelTypeProvider typeProvider) {
+  private DescriptorTypeResolver(
+      @Nullable CelTypeProvider typeProvider, CelValueConverter celValueConverter) {
+    super(celValueConverter);
     this.typeProvider = typeProvider;
   }
 }

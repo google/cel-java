@@ -327,6 +327,9 @@ final class CelImpl implements Cel, EnvVisitable {
     @Override
     public CelBuilder setTypeProvider(CelTypeProvider celTypeProvider) {
       compilerBuilder.setTypeProvider(celTypeProvider);
+      if (runtimeBuilder instanceof CelRuntimeImpl.Builder) {
+        runtimeBuilder.setTypeProvider(celTypeProvider);
+      }
       return this;
     }
 

@@ -180,7 +180,9 @@ public final class ProgramPlannerTest {
     addBindingsToDispatcher(
         builder, stdFunctions.newFunctionBindings(RUNTIME_EQUALITY, CEL_OPTIONS));
 
-    TypeFunction typeFunction = TypeFunction.create(DescriptorTypeResolver.create(TYPE_PROVIDER));
+    TypeFunction typeFunction =
+        TypeFunction.create(
+            DescriptorTypeResolver.create(TYPE_PROVIDER, CelValueConverter.getDefaultInstance()));
     addBindingsToDispatcher(
         builder, typeFunction.newFunctionBindings(CEL_OPTIONS, RUNTIME_EQUALITY));
 

@@ -129,6 +129,22 @@ public final class StructValueTest {
   }
 
   @Test
+  public void evaluate_typeOfCustomStruct() throws Exception {
+    Cel cel =
+        CelFactory.plannerCelBuilder()
+            .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
+            .addVar("a", CUSTOM_STRUCT_TYPE)
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("type(a) == custom_struct").getAst();
+
+    Object result = cel.createProgram(ast).eval(ImmutableMap.of("a", new CelCustomStructValue(20)));
+
+    assertThat(result).isEqualTo(true);
+  }
+
+  @Test
   public void evaluate_usingCustomClass_createNewStruct() throws Exception {
     Cel cel =
         CelFactory.plannerCelBuilder()
