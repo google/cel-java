@@ -5,7 +5,7 @@
 > github.com/cel-expr/cel-java!**
 >
 > Please update your links and dependencies. See the [pinned
-> issue](https://github.com/google/cel-java/issues/1066) for details.
+> issue](https://github.com/cel-exp/cel-java/issues/1066) for details.
 
 The Common Expression Language (CEL) is a non-Turing complete language designed
 for simplicity, speed, safety, and portability. CEL's C-like [syntax][1] looks
@@ -389,8 +389,8 @@ Released under the [Apache License](LICENSE).
 [4]:  https://github.com/google/re2j
 [5]:  https://github.com/protocolbuffers/protobuf/tree/master/java
 [6]:  https://github.com/antlr/antlr4/tree/master/runtime/Java
-[7]:  https://github.com/google/cel-java/issues
+[7]:  https://github.com/cel-exp/cel-java/issues
 [8]:  https://search.maven.org/search?q=g:dev.cel
-[9]:  https://github.com/google/cel-java/blob/main/compiler/src/main/java/dev/cel/compiler/CelCompilerBuilder.java
-[10]:  https://github.com/google/cel-spec/blob/master/doc/langdef.md#macros
-[11]:  https://github.com/google/cel-java/blob/main/extensions/src/main/java/dev/cel/extensions/README.md
+[9]:  https://github.com/cel-expr/cel-java/blob/main/compiler/src/main/java/dev/cel/compiler/CelCompilerBuilder.java
+[10]:  https://github.com/cel-expr/cel-spec/blob/master/doc/langdef.md#macros
+[11]:  https://github.com/cel-expr/cel-java/blob/main/extensions/src/main/java/dev/cel/extensions/README.md
