@@ -376,7 +376,7 @@ Java 8 or newer is required.
 
 Released under the [Apache License](LICENSE).
 
-[1]:  https://github.com/google/cel-spec
+[1]:  https://github.com/cel-expr/cel-spec
 [2]:  https://groups.google.com/forum/#!forum/cel-java-discuss
 [3]:  https://github.com/google/guava
 [4]:  https://github.com/google/re2j
