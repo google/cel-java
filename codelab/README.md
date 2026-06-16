@@ -50,7 +50,7 @@ The code for this codelab lives in the `codelab` folder of the cel-java repo. Th
 Clone and cd into the repo:
 
 ```
-git clone git@github.com:google/cel-java.git
+git clone git@github.com:cel-expr/cel-java.git
 cd cel-java
 ```
 
@@ -74,10 +74,10 @@ Tests run: 5,  Failures: 5
 
 Each exercise is laid out as `ExerciseN.java` and is accompanied by failing tests. Throughout this codelab, we will modify the main exercise code to make these tests pass.
 
-- Codelab code: https://github.com/google/cel-java/tree/main/codelab/src/main/codelab
-- Test code for the main codelab: https://github.com/google/cel-java/tree/main/codelab/src/test/codelab
-- Codelab solution code: https://github.com/google/cel-java/tree/main/codelab/src/main/codelab/solutions
-- Test code for the solution: https://github.com/google/cel-java/tree/main/codelab/src/test/codelab/solutions
+- Codelab code: https://github.com/cel-expr/cel-java/tree/main/codelab/src/main/codelab
+- Test code for the main codelab: https://github.com/cel-expr/cel-java/tree/main/codelab/src/test/codelab
+- Codelab solution code: https://github.com/cel-expr/cel-java/tree/main/codelab/src/main/codelab/solutions
+- Test code for the solution: https://github.com/cel-expr/cel-java/tree/main/codelab/src/test/codelab/solutions
 
 We will also be using `google.rpc.context.AttributeContext` in [attribute_context.proto](https://github.com/googleapis/googleapis/blob/master/google/rpc/context/attribute_context.proto) to help with defining inputs for exercises.
 
