@@ -20,7 +20,7 @@ This is an implementation detail. Clients should use 'java_lite_proto_cel_librar
 load("@rules_java//java:defs.bzl", "java_library")
 load("//publish:cel_version.bzl", "CEL_VERSION")
 load("@com_google_protobuf//bazel:java_lite_proto_library.bzl", "java_lite_proto_library")
-load("@rules_proto//proto:defs.bzl", "ProtoInfo")
+load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 
 def java_lite_proto_cel_library_impl(
         name,
