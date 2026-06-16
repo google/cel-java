@@ -53,12 +53,12 @@
   </parent>
 
   <scm>
-    <connection>scm:git:git://github.com/google/cel-java.git
+    <connection>scm:git:git://github.com/cel-expr/cel-java.git
     </connection>
-    <url>https://github.com/google/cel-java/tree/main</url>
+    <url>https://github.com/cel-expr/cel-java/tree/main</url>
   </scm>
 
-  <url>https://github.com/google/cel-java</url>
+  <url>https://github.com/cel-expr/cel-java</url>
 
   <version>CEL_VERSION</version>
 </project>
