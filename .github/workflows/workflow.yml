@@ -15,32 +15,7 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-  Static-Checks:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 Job is running on a ${{ runner.os }} server!"
-      - run: echo "🔎 The name of your branch is ${GITHUB_REF} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.18.0
-        with:
-            # Avoid downloading Bazel every time.
-            bazelisk-cache: true
-            # Store build cache per workflow.
-            disk-cache: ${{ github.workflow }}
-            # Share repository cache between workflows.
-            repository-cache: true
-            # Never write to the cache, strictly read-only
-            cache-save: false
-      - name: Unwanted Dependencies
-        run: .github/workflows/unwanted_deps.sh
-      - name: Cross-artifact Duplicate Classes Check
-        run: .github/workflows/cross_artifact_dependencies_check.sh
-      - run: echo "🍏 This job's status is ${{ job.status }}."
-  Bazel-Tests:
+  Bazel-Build-Java8:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -64,6 +39,34 @@ jobs:
         run: bazelisk --version
       - name: Java 8 Build
         run: bazel build ... --java_language_version=8 --java_runtime_version=8 --build_tag_filters=-conformance_maven
+      - name: Unwanted Dependencies
+        run: .github/workflows/unwanted_deps.sh
+      - name: Cross-artifact Duplicate Classes Check
+        run: .github/workflows/cross_artifact_dependencies_check.sh
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  Bazel-Tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 Job is running on a ${{ runner.os }} server!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+            # Avoid downloading Bazel every time.
+            bazelisk-cache: true
+            # Store build cache per workflow.
+            disk-cache: ${{ github.workflow }}
+            # Share repository cache between workflows.
+            repository-cache: true
+            # Prevent PRs from polluting cache
+            cache-save: ${{ github.event_name != 'pull_request' }}
+      - name: Bazel Output Version
+        run: bazelisk --version
       - name: Bazel Test
         # Exclude codelab exercises as they are intentionally made to fail
         # Exclude maven conformance tests. They are only executed when there's version change.
