@@ -52,6 +52,66 @@ E: ERROR: <input>:1:10: The argument must be a simple name
  | 1.exists(2, 3)
  | .........^
 
+I: [].all(__result__, x)
+=====>
+E: ERROR: <input>:1:8: The iteration variable __result__ overwrites accumulator variable
+ | [].all(__result__, x)
+ | .......^
+
+I: [].exists(__result__, x)
+=====>
+E: ERROR: <input>:1:11: The iteration variable __result__ overwrites accumulator variable
+ | [].exists(__result__, x)
+ | ..........^
+
+I: [].exists_one(__result__, x)
+=====>
+E: ERROR: <input>:1:15: The iteration variable __result__ overwrites accumulator variable
+ | [].exists_one(__result__, x)
+ | ..............^
+
+I: [].map(__result__, x, x)
+=====>
+E: ERROR: <input>:1:8: The iteration variable __result__ overwrites accumulator variable
+ | [].map(__result__, x, x)
+ | .......^
+
+I: [].filter(__result__, x)
+=====>
+E: ERROR: <input>:1:11: The iteration variable __result__ overwrites accumulator variable
+ | [].filter(__result__, x)
+ | ..........^
+
+I: [].all(.x, x)
+=====>
+E: ERROR: <input>:1:9: The argument must be a simple name
+ | [].all(.x, x)
+ | ........^
+
+I: [].exists(.x, x)
+=====>
+E: ERROR: <input>:1:12: The argument must be a simple name
+ | [].exists(.x, x)
+ | ...........^
+
+I: [].exists_one(.x, x)
+=====>
+E: ERROR: <input>:1:16: The argument must be a simple name
+ | [].exists_one(.x, x)
+ | ...............^
+
+I: [].map(.x, x, x)
+=====>
+E: ERROR: <input>:1:9: The argument must be a simple name
+ | [].map(.x, x, x)
+ | ........^
+
+I: [].filter(.x, x)
+=====>
+E: ERROR: <input>:1:12: The argument must be a simple name
+ | [].filter(.x, x)
+ | ...........^
+
 I: 1 + +
 =====>
 E: ERROR: <input>:1:5: mismatched input '+' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
@@ -219,7 +279,7 @@ I: [1, 2, 3].map(var, var * var)
 E: ERROR: <input>:1:15: reserved identifier: var
  | [1, 2, 3].map(var, var * var)
  | ..............^
-ERROR: <input>:1:15: argument is not an identifier
+ERROR: <input>:1:15: The argument must be a simple name
  | [1, 2, 3].map(var, var * var)
  | ..............^
 ERROR: <input>:1:20: reserved identifier: var

@@ -245,6 +245,16 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(PARSER, "1 + $");
     runTest(PARSER, "1.all(2, 3)");
     runTest(PARSER, "1.exists(2, 3)");
+    runTest(PARSER, "[].all(__result__, x)");
+    runTest(PARSER, "[].exists(__result__, x)");
+    runTest(PARSER, "[].exists_one(__result__, x)");
+    runTest(PARSER, "[].map(__result__, x, x)");
+    runTest(PARSER, "[].filter(__result__, x)");
+    runTest(PARSER, "[].all(.x, x)");
+    runTest(PARSER, "[].exists(.x, x)");
+    runTest(PARSER, "[].exists_one(.x, x)");
+    runTest(PARSER, "[].map(.x, x, x)");
+    runTest(PARSER, "[].filter(.x, x)");
     runTest(PARSER, "1 + +");
     runTest(PARSER, "\"\\xFh\"");
     runTest(PARSER, "\"\\a\\b\\f\\n\\r\\t\\v\\'\\\"\\\\\\? Illegal escape \\>\"");

@@ -479,15 +479,20 @@ public final class CelComprehensionsExtensions
 
   private static CelExpr validatedIterationVariable(
       CelMacroExprFactory exprFactory, CelExpr argument) {
-
     CelExpr arg = checkNotNull(argument);
-    if (arg.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
+    if (!isSimpleIdentifier(arg)) {
       return reportArgumentError(exprFactory, arg);
     } else if (arg.exprKind().ident().name().equals("__result__")) {
       return reportAccumulatorOverwriteError(exprFactory, arg);
     } else {
       return arg;
     }
+  }
+
+  private static boolean isSimpleIdentifier(CelExpr expr) {
+    return expr.getKind() == CelExpr.ExprKind.Kind.IDENT
+        && !expr.ident().name().isEmpty()
+        && !expr.ident().name().startsWith(".");
   }
 
   private static CelExpr reportArgumentError(CelMacroExprFactory exprFactory, CelExpr argument) {
