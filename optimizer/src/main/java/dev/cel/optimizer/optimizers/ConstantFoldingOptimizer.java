@@ -41,6 +41,7 @@ import dev.cel.common.ast.CelMutableExprConverter;
 import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
+import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
@@ -111,7 +112,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       ImmutableList<CelNavigableMutableExpr> foldableExprs =
           CelNavigableMutableAst.fromAst(mutableAst)
               .getRoot()
-              .allNodes()
+              .allNodes(TraversalOrder.PRE_ORDER)
               .filter(this::canFold)
               .collect(toImmutableList());
       for (CelNavigableMutableExpr foldableExpr : foldableExprs) {
@@ -122,7 +123,13 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         mutatedResult = maybePruneBranches(mutableAst, foldableExpr.expr());
         if (!mutatedResult.isPresent()) {
           // Evaluate the call then fold
-          mutatedResult = maybeFold(optimizerEnv, mutableAst, foldableExpr);
+          try {
+            mutatedResult = maybeFold(optimizerEnv, mutableAst, foldableExpr);
+          } catch (CelEvaluationException e) {
+            throw new CelOptimizationException(
+                "Constant folding failure. Failed to evaluate subtree due to: " + e.getMessage(),
+                e);
+          }
         }
 
         if (!mutatedResult.isPresent()) {
@@ -132,12 +139,17 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
         continueFolding = true;
         mutableAst = mutatedResult.get();
+        // Break the loop because we mutated the AST. Since we traverse in PRE_ORDER (top-down),
+        // mutating a parent node means its children are now obsolete or folded.
+        // We restart the traversal to gather a fresh list of foldable expressions.
+        break;
       }
     }
 
     // If the output is a list, map, or struct which contains optional entries, then prune it
     // to make sure that the optionals, if resolved, do not surface in the output literal.
     mutableAst = pruneOptionalElements(mutableAst);
+
     return OptimizationResult.create(astMutator.renumberIdsConsecutively(mutableAst).toParsedAst());
   }
 
@@ -280,11 +292,11 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
   private Optional<CelMutableAst> maybeFold(
       Cel cel, CelMutableAst mutableAst, CelNavigableMutableExpr node)
-      throws CelOptimizationException {
+      throws CelOptimizationException, CelEvaluationException {
     Object result;
     try {
       result = evaluateExpr(cel, node);
-    } catch (CelValidationException | CelEvaluationException e) {
+    } catch (CelValidationException e) {
       throw new CelOptimizationException(
           "Constant folding failure. Failed to evaluate subtree due to: " + e.getMessage(), e);
     }

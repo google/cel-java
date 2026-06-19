@@ -28,6 +28,7 @@ java_library(
         "//common/ast",
         "//common/ast:mutable_expr",
         "//common/internal:date_time_helpers",
+        "//common/navigation:common",
         "//common/navigation:mutable_navigation",
         "//common/types",
         "//extensions:optional_library",
