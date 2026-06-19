@@ -252,6 +252,9 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters(
       "{source: 'timestamp(\"2000-01-01T00:02:03.2123Z\") + duration(\"25h2m32s42ms53us29ns\")',"
           + " expected: 'timestamp(\"2000-01-02T01:04:35.254353029Z\")'}")
+  @TestParameters(
+      "{source: 'has({\"req\": \"Avail\"}.opt) ? ({\"req\": \"Avail\"}.req + \" \" +"
+          + " {\"req\": \"Avail\"}.opt) : {\"req\": \"Avail\"}.req', expected: '\"Avail\"'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
@@ -534,26 +537,20 @@ public class ConstantFoldingOptimizerTest {
 
   @Test
   public void iterationLimitReached_throws() throws Exception {
-    StringBuilder sb = new StringBuilder();
-    sb.append("0");
-    for (int i = 1; i < 200; i++) {
-      sb.append(" + ").append(i);
-    } // 0 + 1 + 2 + 3 + ... 200
     Cel cel =
         runtimeFlavor
             .builder()
             .setOptions(
                 CelOptions.current()
                     .enableHeterogeneousNumericComparisons(true)
-                    .maxParseRecursionDepth(200)
                     .build())
             .build();
-    CelAbstractSyntaxTree ast = cel.compile(sb.toString()).getAst();
+    CelAbstractSyntaxTree ast = cel.compile("1 + 1").getAst();
     CelOptimizer optimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 ConstantFoldingOptimizer.newInstance(
-                    ConstantFoldingOptions.newBuilder().maxIterationLimit(200).build()))
+                    ConstantFoldingOptions.newBuilder().maxIterationLimit(1).build()))
             .build();
 
     CelOptimizationException e =
