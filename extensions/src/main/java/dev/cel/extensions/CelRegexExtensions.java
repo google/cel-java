@@ -201,7 +201,7 @@ public final class CelRegexExtensions
 
     Pattern pattern = compileRegexPattern(regex);
     Matcher matcher = pattern.matcher(target);
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int counter = 0;
 
     while (matcher.find()) {
