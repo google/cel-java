@@ -31,6 +31,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.common.types.TypeType;
+import java.util.Optional;
 
 /**
  * Standard declarations for CEL.
@@ -1473,6 +1474,16 @@ public final class CelStandardDeclarations {
         @Override
         public CelOverloadDecl celOverloadDecl() {
           return this.celOverloadDecl;
+        }
+
+        /** Finds a Comparison by its overload ID. */
+        public static Optional<Comparison> fromOverloadId(String overloadId) {
+          for (Comparison c : values()) {
+            if (c.celOverloadDecl().overloadId().equals(overloadId)) {
+              return Optional.of(c);
+            }
+          }
+          return Optional.empty();
         }
       }
 
