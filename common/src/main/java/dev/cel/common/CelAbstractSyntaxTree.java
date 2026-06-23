@@ -103,6 +103,11 @@ public abstract class CelAbstractSyntaxTree {
     return Optional.ofNullable(types().get(exprId));
   }
 
+  public CelType getTypeOrThrow(long exprId) {
+    return getType(exprId)
+        .orElseThrow(() -> new NoSuchElementException("Type not found for expr id: " + exprId));
+  }
+
   public ImmutableMap<Long, CelType> getTypeMap() {
     return types();
   }
