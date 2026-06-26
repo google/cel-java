@@ -255,6 +255,24 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters(
       "{source: 'has({\"req\": \"Avail\"}.opt) ? ({\"req\": \"Avail\"}.req + \" \" +"
           + " {\"req\": \"Avail\"}.opt) : {\"req\": \"Avail\"}.req', expected: '\"Avail\"'}")
+  @TestParameters("{source: 'true || optional.none().hasValue()', expected: 'true'}")
+  @TestParameters("{source: 'false && map_var[?\"missing\"].hasValue()', expected: 'false'}")
+  @TestParameters("{source: '{\"hello\": [1, 2]}.?hello', expected: 'optional.of([1, 2])'}")
+  @TestParameters(
+      "{source: '{?\"key\": optional.of({\"a\": 1})}', expected: '{\"key\": {\"a\": 1}}'}")
+  @TestParameters(
+      "{source: 'TestAllTypes{?repeated_int32: optional.of([1, 2])}',"
+          + " expected: 'cel.expr.conformance.proto3.TestAllTypes{repeated_int32: [1, 2]}'}")
+  @TestParameters("{source: '[?optional.of([1, x])]', expected: '[?optional.of([1, x])]'}")
+  @TestParameters("{source: '[?optional.of({\"a\": x})]', expected: '[?optional.of({\"a\": x})]'}")
+  @TestParameters("{source: '[?optional.of({x: 1})]', expected: '[?optional.of({x: 1})]'}")
+  @TestParameters(
+      "{source: '[?optional.of(TestAllTypes{single_int32: x})]', expected:"
+          + " '[?optional.of(cel.expr.conformance.proto3.TestAllTypes{single_int32: x})]'}")
+  @TestParameters(
+      "{source: '[?optional.of(TestAllTypes{single_int32: 1})]', expected:"
+          + " '[cel.expr.conformance.proto3.TestAllTypes{single_int32: 1}]'}")
+  @TestParameters("{source: '[?optional.of(x)]', expected: '[?optional.of(x)]'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
@@ -560,6 +578,4 @@ public class ConstantFoldingOptimizerTest {
         assertThrows(CelOptimizationException.class, () -> optimizer.optimize(ast));
     assertThat(e).hasMessageThat().contains("Optimization failure: Max iteration count reached.");
   }
-
-
 }

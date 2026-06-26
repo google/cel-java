@@ -58,7 +58,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 
 /**
@@ -309,8 +308,12 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       return maybeRewriteOptional(optResult, mutableAst, node.expr());
     }
 
-    return maybeAdaptEvaluatedResult(result)
-        .map(celExpr -> astMutator.replaceSubtree(mutableAst, celExpr, node.id()));
+    CelMutableExpr adaptedResult = maybeAdaptEvaluatedResult(result).orElse(null);
+    if (adaptedResult == null) {
+      return Optional.empty();
+    }
+
+    return Optional.of(astMutator.replaceSubtree(mutableAst, adaptedResult, node.id()));
   }
 
   private Optional<CelMutableExpr> maybeAdaptEvaluatedResult(Object result) {
@@ -331,7 +334,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     } else if (result instanceof Map<?, ?>) {
       Map<?, ?> map = (Map<?, ?>) result;
       List<CelMutableMap.Entry> mapEntries = new ArrayList<>();
-      for (Entry<?, ?> entry : map.entrySet()) {
+      for (Map.Entry<?, ?> entry : map.entrySet()) {
         CelMutableExpr adaptedKey = maybeAdaptEvaluatedResult(entry.getKey()).orElse(null);
         if (adaptedKey == null) {
           return Optional.empty();
@@ -384,16 +387,15 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       return Optional.empty();
     }
 
-    if (!CelConstant.isConstantValue(unwrappedResult)) {
-      // Evaluated result is not a constant. Leave the optional as is.
+    CelMutableExpr adaptedResult = maybeAdaptEvaluatedResult(unwrappedResult).orElse(null);
+    if (adaptedResult == null) {
+      // Evaluated result is not an adaptable constant. Leave the optional as is.
       return Optional.empty();
     }
 
     CelMutableExpr newOptionalOfCall =
         CelMutableExpr.ofCall(
-            CelMutableCall.create(
-                Function.OPTIONAL_OF.getFunction(),
-                CelMutableExpr.ofConstant(CelConstant.ofObjectValue(unwrappedResult))));
+            CelMutableCall.create(Function.OPTIONAL_OF.getFunction(), adaptedResult));
 
     return Optional.of(astMutator.replaceSubtree(mutableAst, newOptionalOfCall, expr.id()));
   }
@@ -530,6 +532,37 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         "Folding variadic logical operator is not supported yet.");
   }
 
+  private boolean isFoldedAggregateLiteral(CelMutableExpr expr) {
+    if (expr.getKind().equals(Kind.CONSTANT)) {
+      return true;
+    }
+    if (expr.getKind().equals(Kind.LIST)) {
+      for (CelMutableExpr child : expr.list().elements()) {
+        if (!isFoldedAggregateLiteral(child)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if (expr.getKind().equals(Kind.MAP)) {
+      for (CelMutableExpr.CelMutableMap.Entry entry : expr.map().entries()) {
+        if (!isFoldedAggregateLiteral(entry.key()) || !isFoldedAggregateLiteral(entry.value())) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if (expr.getKind().equals(Kind.STRUCT)) {
+      for (CelMutableExpr.CelMutableStruct.Entry entry : expr.struct().entries()) {
+        if (!isFoldedAggregateLiteral(entry.value())) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   private CelMutableAst pruneOptionalElements(CelMutableAst ast) {
     ImmutableList<CelMutableExpr> aggregateLiterals =
         CelNavigableMutableExpr.fromExpr(ast.expr())
@@ -588,7 +621,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           continue;
         } else if (call.function().equals(Function.OPTIONAL_OF.getFunction())) {
           CelMutableExpr arg = call.args().get(0);
-          if (arg.getKind().equals(Kind.CONSTANT)) {
+          if (isFoldedAggregateLiteral(arg)) {
             updatedElemBuilder.add(call.args().get(0));
             continue;
           }
@@ -629,7 +662,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         continue;
       } else if (call.function().equals(Function.OPTIONAL_OF.getFunction())) {
         CelMutableExpr arg = call.args().get(0);
-        if (arg.getKind().equals(Kind.CONSTANT)) {
+        if (isFoldedAggregateLiteral(arg)) {
           modified = true;
           entry.setOptionalEntry(false);
           entry.setValue(call.args().get(0));
@@ -670,7 +703,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         continue;
       } else if (call.function().equals(Function.OPTIONAL_OF.getFunction())) {
         CelMutableExpr arg = call.args().get(0);
-        if (arg.getKind().equals(Kind.CONSTANT)) {
+        if (isFoldedAggregateLiteral(arg)) {
           modified = true;
           entry.setOptionalEntry(false);
           entry.setValue(call.args().get(0));
