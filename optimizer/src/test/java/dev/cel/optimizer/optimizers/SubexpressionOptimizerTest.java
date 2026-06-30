@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static org.junit.Assert.assertThrows;
 
-import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -65,6 +64,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
@@ -377,18 +377,22 @@ public class SubexpressionOptimizerTest {
             Extension.create("cel_block", Version.of(1L, 1L), Component.COMPONENT_RUNTIME));
   }
 
+  @SuppressWarnings("Immutable") // Test only
   private enum BlockTestCase {
-    BOOL_LITERAL("cel.block([true, false], index0 || index1)"),
-    STRING_CONCAT("cel.block(['a' + 'b', index0 + 'c'], index1 + 'd') == 'abcd'"),
+    BOOL_LITERAL("cel.block([true, false], index0 || index1)", true),
+    STRING_CONCAT("cel.block(['a' + 'b', index0 + 'c'], index1 + 'd')", "abcd"),
 
-    BLOCK_WITH_EXISTS_TRUE("cel.block([[1, 2, 3], [3, 4, 5].exists(e, e in index0)], index1)"),
-    BLOCK_WITH_EXISTS_FALSE("cel.block([[1, 2, 3], ![4, 5].exists(e, e in index0)], index1)"),
+    BLOCK_WITH_EXISTS_TRUE(
+        "cel.block([[1, 2, 3], [3, 4, 5].exists(e, e in index0)], index1)", true),
+    BLOCK_WITH_EXISTS_FALSE("cel.block([[1, 2, 3], ![4, 5].exists(e, e in index0)], index1)", true),
     ;
 
     private final String source;
+    private final Object expectedResult;
 
-    BlockTestCase(String source) {
+    BlockTestCase(String source, Object expectedResult) {
       this.source = source;
+      this.expectedResult = expectedResult;
     }
   }
 
@@ -398,7 +402,7 @@ public class SubexpressionOptimizerTest {
 
     Object evaluatedResult = celForEvaluatingBlock.createProgram(ast).eval();
 
-    assertThat(evaluatedResult).isNotNull();
+    assertThat(evaluatedResult).isEqualTo(testCase.expectedResult);
   }
 
   @Test
@@ -411,7 +415,7 @@ public class SubexpressionOptimizerTest {
 
     Object evaluatedResult = celForEvaluatingBlock.createProgram(ast).eval();
 
-    assertThat(evaluatedResult).isNotNull();
+    assertThat(evaluatedResult).isEqualTo(testCase.expectedResult);
   }
 
   @Test
@@ -604,9 +608,10 @@ public class SubexpressionOptimizerTest {
     CelAbstractSyntaxTree ast =
         compileUsingInternalFunctions("cel.block([1, 2], cel.block([2], 3))");
 
-    VerifyException e =
+    IllegalArgumentException e =
         assertThrows(
-            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+            IllegalArgumentException.class,
+            () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
     assertThat(e)
         .hasMessageThat()
         .isEqualTo("Expected 1 cel.block function to be present but found 2");
@@ -616,9 +621,10 @@ public class SubexpressionOptimizerTest {
   public void verifyOptimizedAstCorrectness_celBlockNotAtRoot_throws() throws Exception {
     CelAbstractSyntaxTree ast = compileUsingInternalFunctions("1 + cel.block([1, 2], index0)");
 
-    VerifyException e =
+    IllegalArgumentException e =
         assertThrows(
-            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+            IllegalArgumentException.class,
+            () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
     assertThat(e).hasMessageThat().isEqualTo("Expected cel.block to be present at root");
   }
 
@@ -626,9 +632,10 @@ public class SubexpressionOptimizerTest {
   public void verifyOptimizedAstCorrectness_blockContainsNoIndexResult_throws() throws Exception {
     CelAbstractSyntaxTree ast = compileUsingInternalFunctions("cel.block([1, index0], 2)");
 
-    VerifyException e =
+    IllegalArgumentException e =
         assertThrows(
-            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+            IllegalArgumentException.class,
+            () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
     assertThat(e)
         .hasMessageThat()
         .isEqualTo("Expected at least one reference of index in cel.block result");
@@ -641,9 +648,10 @@ public class SubexpressionOptimizerTest {
       throws Exception {
     CelAbstractSyntaxTree ast = compileUsingInternalFunctions(source);
 
-    VerifyException e =
+    IllegalArgumentException e =
         assertThrows(
-            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+            IllegalArgumentException.class,
+            () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
     assertThat(e)
         .hasMessageThat()
         .contains("Illegal block index found. The index value must be less than");
@@ -658,9 +666,10 @@ public class SubexpressionOptimizerTest {
       throws Exception {
     CelAbstractSyntaxTree ast = compileUsingInternalFunctions(source);
 
-    VerifyException e =
+    IllegalArgumentException e =
         assertThrows(
-            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+            IllegalArgumentException.class,
+            () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
     assertThat(e)
         .hasMessageThat()
         .contains("Illegal block index found. The index value must be less than");
@@ -670,9 +679,14 @@ public class SubexpressionOptimizerTest {
   public void block_containsCycle_throws() throws Exception {
     CelAbstractSyntaxTree ast = compileUsingInternalFunctions("cel.block([index1,index0],index0)");
 
-    CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
-    assertThat(e).hasMessageThat().contains("Cycle detected: @index0");
+    ThrowingRunnable evaluateProgram = () -> cel.createProgram(ast).eval();
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, evaluateProgram);
+    assertThat(e)
+        .hasMessageThat()
+        .containsMatch(
+            "Cycle detected: @index0|Illegal block index found. The index value must be less than"
+                + " 0.");
   }
 
   @Test

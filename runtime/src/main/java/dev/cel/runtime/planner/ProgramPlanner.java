@@ -26,6 +26,7 @@ import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.Operator;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.ast.CelBlock;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -79,7 +80,11 @@ public final class ProgramPlanner {
     ErrorMetadata errorMetadata =
         ErrorMetadata.create(ast.getSource().getPositionsMap(), ast.getSource().getDescription());
     try {
-      plannedInterpretable = plan(ast.getExpr(), PlannerContext.create(ast));
+      PlannerContext ctx = PlannerContext.create(ast);
+      plannedInterpretable =
+          CelBlock.extract(ast)
+              .map(celBlock -> planBlock(celBlock, ctx))
+              .orElseGet(() -> plan(ast.getExpr(), ctx));
     } catch (RuntimeException e) {
       throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
           .setMetadata(errorMetadata, ast.getExpr().id())
@@ -231,11 +236,6 @@ public final class ProgramPlanner {
     ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
     String functionName = resolvedFunction.functionName();
 
-    PlannedInterpretable blockCall = maybeInterceptBlockCall(functionName, expr, ctx).orElse(null);
-    if (blockCall != null) {
-      return blockCall;
-    }
-
     CelExpr target = resolvedFunction.target().orElse(null);
     int argCount = expr.call().args().size();
     if (target != null) {
@@ -331,26 +331,15 @@ public final class ProgramPlanner {
     }
   }
 
-  private Optional<PlannedInterpretable> maybeInterceptBlockCall(
-      String functionName, CelExpr expr, PlannerContext ctx) {
-    if (!functionName.equals("cel.@block")) {
-      return Optional.empty();
-    }
+  private PlannedInterpretable planBlock(CelBlock celBlock, PlannerContext ctx) {
+    ImmutableList<CelExpr> indices = celBlock.indices();
 
-    CelCall blockCall = expr.call();
-
-    if (blockCall.args().size() != 2) {
-      throw new IllegalArgumentException(
-          "Expected 2 arguments for cel.@block call. Got: " + blockCall.args().size());
-    }
-
-    CelList exprList = blockCall.args().get(0).list();
-    PlannedInterpretable[] slotExprs = new PlannedInterpretable[exprList.elements().size()];
+    PlannedInterpretable[] slotExprs = new PlannedInterpretable[indices.size()];
     for (int i = 0; i < slotExprs.length; i++) {
-      slotExprs[i] = plan(exprList.elements().get(i), ctx);
+      slotExprs[i] = plan(indices.get(i), ctx);
     }
-    PlannedInterpretable resultExpr = plan(blockCall.args().get(1), ctx);
-    return Optional.of(EvalBlock.create(expr, slotExprs, resultExpr));
+    PlannedInterpretable resultExpr = plan(celBlock.result(), ctx);
+    return EvalBlock.create(celBlock.expr(), slotExprs, resultExpr);
   }
 
   /**

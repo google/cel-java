@@ -60,6 +60,7 @@ java_library(
         "//common:mutable_ast",
         "//common:mutable_source",
         "//common/ast",
+        "//common/ast:cel_block",
         "//common/ast:mutable_expr",
         "//common/navigation",
         "//common/navigation:common",

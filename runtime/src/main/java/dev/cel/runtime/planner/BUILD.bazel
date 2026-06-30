@@ -49,6 +49,7 @@ java_library(
         "//common:options",
         "//common/annotations",
         "//common/ast",
+        "//common/ast:cel_block",
         "//common/exceptions:overload_not_found",
         "//common/types",
         "//common/types:type_providers",

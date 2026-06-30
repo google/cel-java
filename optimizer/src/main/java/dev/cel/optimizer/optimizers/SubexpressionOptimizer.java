@@ -41,6 +41,7 @@ import dev.cel.common.CelSource.Extension.Component;
 import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.ast.CelBlock;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
@@ -238,64 +239,12 @@ public final class SubexpressionOptimizer implements CelAstOptimizer {
    */
   @VisibleForTesting
   static void verifyOptimizedAstCorrectness(CelAbstractSyntaxTree ast) {
-    CelNavigableExpr celNavigableExpr = CelNavigableExpr.fromExpr(ast.getExpr());
-
-    ImmutableList<CelExpr> allCelBlocks =
-        celNavigableExpr
-            .allNodes()
-            .map(CelNavigableExpr::expr)
-            .filter(expr -> expr.callOrDefault().function().equals(CEL_BLOCK_FUNCTION))
-            .collect(toImmutableList());
-    if (allCelBlocks.isEmpty()) {
+    CelBlock celBlock = CelBlock.extract(ast).orElse(null);
+    if (celBlock == null) {
       return;
     }
 
-    CelExpr celBlockExpr = allCelBlocks.get(0);
-    Verify.verify(
-        allCelBlocks.size() == 1,
-        "Expected 1 cel.block function to be present but found %s",
-        allCelBlocks.size());
-    Verify.verify(
-        celNavigableExpr.expr().equals(celBlockExpr), "Expected cel.block to be present at root");
-
-    // Assert correctness on block indices used in subexpressions
-    CelCall celBlockCall = celBlockExpr.call();
-    ImmutableList<CelExpr> subexprs = celBlockCall.args().get(0).list().elements();
-    for (int i = 0; i < subexprs.size(); i++) {
-      verifyBlockIndex(subexprs.get(i), i);
-    }
-
-    // Assert correctness on block indices used in block result
-    CelExpr blockResult = celBlockCall.args().get(1);
-    verifyBlockIndex(blockResult, subexprs.size());
-    boolean resultHasAtLeastOneBlockIndex =
-        CelNavigableExpr.fromExpr(blockResult)
-            .allNodes()
-            .map(CelNavigableExpr::expr)
-            .anyMatch(expr -> expr.identOrDefault().name().startsWith(BLOCK_INDEX_PREFIX));
-    Verify.verify(
-        resultHasAtLeastOneBlockIndex,
-        "Expected at least one reference of index in cel.block result");
-
-    verifyNoInvalidScopedMangledVariables(celBlockExpr);
-  }
-
-  private static void verifyBlockIndex(CelExpr celExpr, int maxIndexValue) {
-    boolean areAllIndicesValid =
-        CelNavigableExpr.fromExpr(celExpr)
-            .allNodes()
-            .map(CelNavigableExpr::expr)
-            .filter(expr -> expr.identOrDefault().name().startsWith(BLOCK_INDEX_PREFIX))
-            .map(CelExpr::ident)
-            .allMatch(
-                blockIdent ->
-                    Integer.parseInt(blockIdent.name().substring(BLOCK_INDEX_PREFIX.length()))
-                        < maxIndexValue);
-    Verify.verify(
-        areAllIndicesValid,
-        "Illegal block index found. The index value must be less than %s. Expr: %s",
-        maxIndexValue,
-        celExpr);
+    verifyNoInvalidScopedMangledVariables(celBlock.expr());
   }
 
   private static void verifyNoInvalidScopedMangledVariables(CelExpr celExpr) {

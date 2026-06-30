@@ -11,6 +11,12 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/ast"],
 )
 
+java_library(
+    name = "cel_block",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/ast:cel_block"],
+)
+
 cel_android_library(
     name = "ast_android",
     exports = ["//common/src/main/java/dev/cel/common/ast:ast_android"],

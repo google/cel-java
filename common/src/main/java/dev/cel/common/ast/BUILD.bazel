@@ -58,6 +58,20 @@ java_library(
 )
 
 java_library(
+    name = "cel_block",
+    srcs = ["CelBlock.java"],
+    tags = [
+    ],
+    deps = [
+        ":ast",
+        "//common:cel_ast",
+        "//common/annotations",
+        "//common/navigation",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "expr_converter",
     srcs = EXPR_CONVERTER_SOURCES,
     tags = [
