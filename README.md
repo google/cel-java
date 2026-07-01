@@ -84,7 +84,7 @@ public class HelloWorld {
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder().addVar("my_var", SimpleType.STRING).build();
   private static final CelRuntime CEL_RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder().build();
+      CelRuntimeFactory.plannerRuntimeBuilder().build();
 
   public void run() throws CelValidationException, CelEvaluationException {
     // Compile the expression into an Abstract Syntax Tree.
@@ -144,7 +144,7 @@ found in the [`CelCompilerBuilder`][9].
 Some CEL use cases only require parsing of an expression in order to be useful.
 For example, one example might want to check whether the expression contains any
 nested comprehensions, or possibly to pass the parsed expression to a C++ or Go
-binary for evaluation. Presently, Java does not support parse-only evaluation.
+binary for evaluation.
 
 ```java
 CelValidationResult parseResult =
@@ -231,7 +231,7 @@ Expressions can be evaluated using once they are type-checked/compiled by
 creating a `CelRuntime.Program` from a `CelAbstractSyntaxTree`:
 
 ```java
-CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+CelRuntime celRuntime = CelRuntimeFactory.plannerRuntimeBuilder().build();
 try {
   CelRuntime.Program program = celRuntime.createProgram(compileResult.getAst());
   return program.eval(

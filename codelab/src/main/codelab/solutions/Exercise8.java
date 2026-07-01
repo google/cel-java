@@ -27,7 +27,6 @@ import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
 import dev.cel.optimizer.optimizers.ConstantFoldingOptimizer;
 import dev.cel.optimizer.optimizers.SubexpressionOptimizer;
-import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimizerOptions;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
@@ -52,7 +51,7 @@ final class Exercise8 {
           .addMessageTypes(AttributeContext.Request.getDescriptor())
           .build();
   private static final CelRuntime CEL_RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
+      CelRuntimeFactory.plannerRuntimeBuilder()
           .addMessageTypes(AttributeContext.Request.getDescriptor())
           .build();
 
@@ -69,9 +68,7 @@ final class Exercise8 {
   private static final CelOptimizer CEL_OPTIMIZER =
       CelOptimizerFactory.standardCelOptimizerBuilder(CEL_COMPILER, CEL_RUNTIME)
           .addAstOptimizers(
-              ConstantFoldingOptimizer.getInstance(),
-              SubexpressionOptimizer.newInstance(
-                  SubexpressionOptimizerOptions.newBuilder().enableCelBlock(true).build()))
+              ConstantFoldingOptimizer.getInstance(), SubexpressionOptimizer.getInstance())
           .build();
 
   /**

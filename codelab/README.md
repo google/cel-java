@@ -140,7 +140,7 @@ private static final CelCompiler CEL_COMPILER =
 // CelRuntime can also be initialized statically and cached just like the
 // compiler.
 private static final CelRuntime CEL_RUNTIME =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
+        CelRuntimeFactory.plannerRuntimeBuilder()
              .setOptions(CEL_OPTIONS)
              .build();
 ```
@@ -232,7 +232,7 @@ Copy the following into eval method:
 Object eval(CelAbstractSyntaxTree ast) {
   // Construct a CelRuntime instance
   // CelRuntime is immutable just like the compiler and can be moved to a static final member.
-  CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+  CelRuntime celRuntime = CelRuntimeFactory.plannerRuntimeBuilder().build();
 
   try {
     // Plan the program
@@ -314,7 +314,7 @@ Let's make the evaluation work now. Copy into the eval method:
  * @throws IllegalArgumentException If the compiled expression in AST fails to evaluate.
  */
 Object eval(CelAbstractSyntaxTree ast, Map<String, ?> parameterValues) {
-  CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+  CelRuntime celRuntime = CelRuntimeFactory.plannerRuntimeBuilder().build();
   try {
     CelRuntime.Program program = celRuntime.createProgram(ast);
 
@@ -510,7 +510,7 @@ CelAbstractSyntaxTree compile(String expression) {
  */
 Object eval(CelAbstractSyntaxTree ast, Map<String, ?> parameterValues) {
   CelRuntime celRuntime =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
+      CelRuntimeFactory.plannerRuntimeBuilder()
           // Provide the custom `contains` function implementation here.
           .build();
 
@@ -590,7 +590,7 @@ Provide the function implementation to the runtime using the .addFunctionBinding
  */
 Object eval(CelAbstractSyntaxTree ast, Map<String, ?> parameterValues) {
   CelRuntime celRuntime =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
+      CelRuntimeFactory.plannerRuntimeBuilder()
           .addFunctionBindings(
               CelFunctionBinding.from(
                   "map_contains_key_value",
@@ -1136,7 +1136,7 @@ private static final CelCompiler CEL_COMPILER =
         .addMessageTypes(AttributeContext.Request.getDescriptor())
         .build();
 private static final CelRuntime CEL_RUNTIME =
-    CelRuntimeFactory.standardCelRuntimeBuilder()
+    CelRuntimeFactory.plannerRuntimeBuilder()
         .addMessageTypes(AttributeContext.Request.getDescriptor())
         .build();
 ```
@@ -1362,11 +1362,11 @@ public void optimize_commonSubexpressionElimination_success() throws Exception {
 }
 ```
 
-CSE will rewrite this expression using a specialized internal function
-`cel.@block`. The first argument contain a list duplicate subexpressions
-and the second argument is the rewritten result expression that is semantically
-the same as the original expression. The subexpressions are lazily evaluated and
-memoized when accessed by index (e.g: `@index0`).
+CSE optimizes the expression by rewriting it to use a specialized internal
+function `cel.@block`. This function takes a list of duplicate subexpressions
+as its first argument, and a semantically equivalent rewritten expression as
+its second. The subexpressions are lazily evaluated and memoized when accessed
+by index (e.g., `@index0`).
 
 Make the following changes in `Exercise8.java`:
 
@@ -1375,18 +1375,9 @@ private static final CelOptimizer CEL_OPTIMIZER =
     CelOptimizerFactory.standardCelOptimizerBuilder(CEL_COMPILER, CEL_RUNTIME)
         .addAstOptimizers(
             ConstantFoldingOptimizer.getInstance(),
-            SubexpressionOptimizer.newInstance(
-                SubexpressionOptimizerOptions.newBuilder().enableCelBlock(true).build()))
+            SubexpressionOptimizer.getInstance())
         .build();
 ```
-
-As seen here, the usage of `cel.block` must explicitly be enabled as it is
-only supported in CEL-Java as of now. Disabling `cel.block` will instead rewrite
-the AST using cascaded `cel.bind` macros. Prefer using the block format if
-possible as it is a more efficient format for evaluation.
-
-> [!CAUTION]
-> You MUST disable `cel.block` if you are targeting `cel-go` or `cel-cpp` for the runtime until its support has been added in those stacks.
 
 Re-run the tests to confirm that they pass.
 

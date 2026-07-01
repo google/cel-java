@@ -62,7 +62,7 @@ final class Exercise9 {
           .addMessageTypes(AttributeContext.Request.getDescriptor())
           .build();
   private static final CelRuntime CEL_RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
+      CelRuntimeFactory.plannerRuntimeBuilder()
           .addMessageTypes(AttributeContext.Request.getDescriptor())
           .build();
   private static final CelValidator CEL_VALIDATOR =

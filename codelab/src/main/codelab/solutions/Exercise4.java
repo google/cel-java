@@ -81,7 +81,7 @@ final class Exercise4 {
    */
   Object eval(CelAbstractSyntaxTree ast, Map<String, ?> parameterValues) {
     CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
+        CelRuntimeFactory.plannerRuntimeBuilder()
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "map_contains_key_value",

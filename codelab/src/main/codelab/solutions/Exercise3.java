@@ -27,8 +27,7 @@ final class Exercise3 {
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder().setResultType(SimpleType.BOOL).build();
-  private static final CelRuntime CEL_RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder().build();
+  private static final CelRuntime CEL_RUNTIME = CelRuntimeFactory.plannerRuntimeBuilder().build();
 
   /**
    * Compiles the given expression and evaluates it.

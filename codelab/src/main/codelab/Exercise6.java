@@ -59,9 +59,7 @@ final class Exercise6 {
   /** Evaluates the compiled AST with the user provided parameter values. */
   Object eval(CelAbstractSyntaxTree ast, Map<String, ?> parameterValues) {
     CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
-            .addMessageTypes(Request.getDescriptor())
-            .build();
+        CelRuntimeFactory.plannerRuntimeBuilder().addMessageTypes(Request.getDescriptor()).build();
 
     try {
       CelRuntime.Program program = celRuntime.createProgram(ast);

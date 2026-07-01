@@ -63,7 +63,7 @@ final class Exercise4 {
    */
   Object eval(CelAbstractSyntaxTree ast, Map<String, ?> parameterValues) {
     CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
+        CelRuntimeFactory.plannerRuntimeBuilder()
             // Provide the custom `contains` function implementation here.
             .build();
 

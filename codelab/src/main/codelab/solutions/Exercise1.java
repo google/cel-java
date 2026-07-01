@@ -73,7 +73,7 @@ final class Exercise1 {
   Object eval(CelAbstractSyntaxTree ast) {
     // Construct a CelRuntime instance
     // CelRuntime is immutable just like the compiler and can be moved to a static final member.
-    CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+    CelRuntime celRuntime = CelRuntimeFactory.plannerRuntimeBuilder().build();
 
     try {
       // Plan the program

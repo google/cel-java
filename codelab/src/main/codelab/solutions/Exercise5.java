@@ -60,7 +60,7 @@ final class Exercise5 {
    * @throws IllegalArgumentException If the compiled expression in AST fails to evaluate.
    */
   Object eval(CelAbstractSyntaxTree ast, Map<String, ?> parameterValues) {
-    CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+    CelRuntime celRuntime = CelRuntimeFactory.plannerRuntimeBuilder().build();
 
     try {
       CelRuntime.Program program = celRuntime.createProgram(ast);
