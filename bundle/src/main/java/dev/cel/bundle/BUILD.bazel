@@ -54,6 +54,7 @@ java_library(
         "//parser",
         "//runtime",
         "//runtime:runtime_planner_impl",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 

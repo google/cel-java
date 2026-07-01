@@ -922,6 +922,7 @@ java_library(
         ":runtime_legacy_impl",
         ":runtime_planner_impl",
         "//common:options",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 

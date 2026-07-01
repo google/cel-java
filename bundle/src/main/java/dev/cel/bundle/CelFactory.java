@@ -14,6 +14,7 @@
 
 package dev.cel.bundle;
 
+import com.google.errorprone.annotations.InlineMe;
 import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.common.CelOptions;
 import dev.cel.compiler.CelCompiler;
@@ -34,8 +35,23 @@ public final class CelFactory {
    *
    * <p>Note, the {@link CelOptions#current}, standard CEL function libraries, and linked message
    * evaluation are enabled by default.
+   *
+   * <p>Note: This standard builder currently proxies the legacy builder, which will be deprecated.
+   * Callers are strongly encouraged to migrate to the planner ({@link #plannerCelBuilder()}).
    */
+  @InlineMe(replacement = "CelFactory.legacyCelBuilder()", imports = "dev.cel.bundle.CelFactory")
   public static CelBuilder standardCelBuilder() {
+    return legacyCelBuilder();
+  }
+
+  /**
+   * Creates a builder for configuring a legacy CEL using current parser for the parse, type-check,
+   * and eval of expressions.
+   *
+   * <p>Note: This legacy builder will be deprecated. Callers are strongly encouraged to migrate to
+   * the planner ({@link #plannerCelBuilder()}).
+   */
+  public static CelBuilder legacyCelBuilder() {
     return CelImpl.newBuilder(
             CelCompilerImpl.newBuilder(
                 CelParserImpl.newBuilder(), CelCheckerLegacyImpl.newBuilder()),
